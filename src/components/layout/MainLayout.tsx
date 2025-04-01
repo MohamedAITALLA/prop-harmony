@@ -111,18 +111,15 @@ export default function MainLayout({ children }: MainLayoutProps) {
                       
                       return (
                         <SidebarMenuItem key={item.path}>
-                          <SidebarMenuButton
-                            asChild
+                          <SidebarMenuButton 
                             className={cn(
                               "flex items-center gap-3 px-4 py-2 rounded-md transition-colors",
                               location.pathname === item.path && "bg-accent text-accent-foreground"
                             )}
                             onClick={() => handleNavigation(item.path)}
                           >
-                            <div>
-                              <item.icon className="h-5 w-5" />
-                              <span>{item.name}</span>
-                            </div>
+                            <item.icon className="h-5 w-5" />
+                            <span>{item.name}</span>
                           </SidebarMenuButton>
                           {item.badge === "count" && badgeCount > 0 && (
                             <SidebarMenuBadge className="bg-primary text-primary-foreground">
