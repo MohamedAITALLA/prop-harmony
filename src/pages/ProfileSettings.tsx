@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +18,6 @@ import { toast } from "sonner";
 import { timezones } from "@/lib/timezones";
 import { UserPreferences } from "@/types/api-responses";
 
-// Schema for contact information form
 const contactSchema = z.object({
   contact_info: z.object({
     phone: z.string().optional(),
@@ -31,7 +29,6 @@ const contactSchema = z.object({
   }),
 });
 
-// Schema for preferences form
 const preferencesSchema = z.object({
   preferences: z.object({
     theme: z.enum(["light", "dark", "system"]),
@@ -44,7 +41,6 @@ const preferencesSchema = z.object({
   }),
 });
 
-// Schema for security form
 const securitySchema = z.object({
   current_password: z.string().min(8, "Password must be at least 8 characters"),
   new_password: z.string().min(8, "Password must be at least 8 characters"),
@@ -54,7 +50,6 @@ const securitySchema = z.object({
   path: ["confirm_password"],
 });
 
-// Type for password update
 interface PasswordUpdate {
   current_password: string;
   new_password: string;
@@ -64,13 +59,11 @@ const ProfileSettings = () => {
   const { user } = useAuth();
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
-  // Fetch user profile data
   const { data: profileData, isLoading: isProfileLoading } = useQuery({
     queryKey: ["user-profile"],
     queryFn: () => profileService.getProfile(),
   });
 
-  // Contact form setup
   const contactForm = useForm({
     resolver: zodResolver(contactSchema),
     defaultValues: {
@@ -85,7 +78,6 @@ const ProfileSettings = () => {
     },
   });
 
-  // Preferences form setup with properly typed preferences
   const preferencesForm = useForm<{
     preferences: UserPreferences;
   }>({
@@ -103,7 +95,6 @@ const ProfileSettings = () => {
     },
   });
 
-  // Security form setup
   const securityForm = useForm({
     resolver: zodResolver(securitySchema),
     defaultValues: {
@@ -113,7 +104,6 @@ const ProfileSettings = () => {
     },
   });
 
-  // Update profile mutations
   const contactMutation = useMutation({
     mutationFn: (data: any) => profileService.updateProfile(data),
     onSuccess: () => {
@@ -136,9 +126,7 @@ const ProfileSettings = () => {
 
   const securityMutation = useMutation({
     mutationFn: (data: { current_password: string, new_password: string }) => {
-      // Send password update with a properly shaped object
       return profileService.updateProfile({
-        // Pass this as a custom field that the API will handle
         password_update: {
           current: data.current_password,
           new: data.new_password,
@@ -155,10 +143,9 @@ const ProfileSettings = () => {
   });
 
   const resetProfileMutation = useMutation({
-    mutationFn: () => profileService.updateProfile({ preferences_reset: true }),
+    mutationFn: () => profileService.resetProfile(),
     onSuccess: () => {
       toast.success("Profile reset to default settings");
-      // Refetch profile data
       window.location.reload();
     },
     onError: (error) => {
@@ -166,7 +153,6 @@ const ProfileSettings = () => {
     },
   });
 
-  // Update form values when profile data loads
   useEffect(() => {
     if (profileData?.data) {
       const { contact_info = {}, preferences = {} } = profileData.data;
@@ -182,7 +168,6 @@ const ProfileSettings = () => {
         },
       });
       
-      // Create a properly typed preferences object with defaults for missing values
       const typedPreferences: UserPreferences = {
         theme: (preferences.theme as "light" | "dark" | "system") || "system",
         language: (preferences.language as "en" | "es" | "fr" | "de") || "en",
@@ -193,14 +178,12 @@ const ProfileSettings = () => {
         notifications_enabled: preferences.notifications_enabled !== false,
       };
       
-      // Reset the form with the properly typed preferences
       preferencesForm.reset({
         preferences: typedPreferences,
       });
     }
   }, [profileData, contactForm, preferencesForm]);
 
-  // Form submission handlers
   const onSubmitContact = (data: any) => {
     contactMutation.mutate(data);
   };
@@ -234,7 +217,6 @@ const ProfileSettings = () => {
         </Button>
       </div>
 
-      {/* Personal Information Section */}
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center gap-2">
           <User className="h-5 w-5 text-muted-foreground" />
@@ -261,7 +243,6 @@ const ProfileSettings = () => {
         </CardContent>
       </Card>
 
-      {/* Contact Information Section */}
       <Form {...contactForm}>
         <form onSubmit={contactForm.handleSubmit(onSubmitContact)}>
           <Card className="mb-6">
@@ -367,7 +348,6 @@ const ProfileSettings = () => {
         </form>
       </Form>
 
-      {/* Preferences Section */}
       <Form {...preferencesForm}>
         <form onSubmit={preferencesForm.handleSubmit(onSubmitPreferences)}>
           <Card className="mb-6">
@@ -545,7 +525,6 @@ const ProfileSettings = () => {
         </form>
       </Form>
 
-      {/* Security Section */}
       <Form {...securityForm}>
         <form onSubmit={securityForm.handleSubmit(onSubmitSecurity)}>
           <Card className="mb-6">
@@ -610,7 +589,6 @@ const ProfileSettings = () => {
         </form>
       </Form>
 
-      {/* Reset Dialog */}
       <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -629,7 +607,6 @@ const ProfileSettings = () => {
   );
 };
 
-// Simple label component for disabled inputs
 const Label = ({ children }: { children: React.ReactNode }) => (
   <div className="text-sm font-medium">{children}</div>
 );

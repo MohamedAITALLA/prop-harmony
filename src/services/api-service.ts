@@ -255,7 +255,7 @@ export const adminProfileService = {
   },
   
   resetUserProfile: async (userId: string): Promise<ApiResponse<{ profile: Record<string, any> }>> => {
-    const response = await api.delete<ApiResponse<{ profile: Record<string, any> }>>(`/admin/user-profiles/${userId}`);
+    const response = await api.post<ApiResponse<{ profile: Record<string, any> }>>(`/admin/user-profiles/${userId}/reset`);
     return response.data;
   }
 };
