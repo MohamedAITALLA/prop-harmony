@@ -1,8 +1,8 @@
 
 import React from "react";
 import { 
-  Home, Users, Bed, Shower, LogIn, LogOut, Calendar, Ban, AlertCircle, 
-  Wifi, Kitchen, Wind, Flame, Tv, Loader, Trash, Car, Elevator, Droplets
+  Home, Users, Bed, Bath, LogIn, LogOut, Calendar, Ban, AlertCircle, 
+  Wifi, ChefHat, Wind, Flame, Tv, Loader, Trash, Car, ArrowUpDown, Droplets
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Property } from "@/types/api-responses";
@@ -57,7 +57,7 @@ export function PropertyOverview({ property }: PropertyOverviewProps) {
             {renderIconItem("Accommodates", `${property.accommodates} guests`, <Users className="h-4 w-4" />)}
             {renderIconItem("Bedrooms", property.bedrooms, <Bed className="h-4 w-4" />)}
             {renderIconItem("Beds", property.beds || '-', <Bed className="h-4 w-4" />)}
-            {renderIconItem("Bathrooms", property.bathrooms, <Shower className="h-4 w-4" />)}
+            {renderIconItem("Bathrooms", property.bathrooms, <Bath className="h-4 w-4" />)}
           </div>
         </CardContent>
       </Card>
@@ -103,14 +103,14 @@ export function PropertyOverview({ property }: PropertyOverviewProps) {
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {renderAmenity("WiFi", property.amenities.wifi, <Wifi className="h-4 w-4" />)}
-              {renderAmenity("Kitchen", property.amenities.kitchen, <Kitchen className="h-4 w-4" />)}
+              {renderAmenity("Kitchen", property.amenities.kitchen, <ChefHat className="h-4 w-4" />)}
               {renderAmenity("Air Conditioning", property.amenities.ac, <Wind className="h-4 w-4" />)}
               {renderAmenity("Heating", property.amenities.heating, <Flame className="h-4 w-4" />)}
               {renderAmenity("TV", property.amenities.tv, <Tv className="h-4 w-4" />)}
               {renderAmenity("Washer", property.amenities.washer, <Loader className="h-4 w-4" />)}
               {renderAmenity("Dryer", property.amenities.dryer, <Trash className="h-4 w-4" />)}
               {renderAmenity("Parking", property.amenities.parking, <Car className="h-4 w-4" />)}
-              {renderAmenity("Elevator", property.amenities.elevator, <Elevator className="h-4 w-4" />)}
+              {renderAmenity("Elevator", property.amenities.elevator, <ArrowUpDown className="h-4 w-4" />)}
               {renderAmenity("Pool", property.amenities.pool, <Droplets className="h-4 w-4" />)}
             </div>
           </CardContent>
