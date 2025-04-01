@@ -34,15 +34,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkAuth = async () => {
       // In development mode, create a mock user
       if (DEV_MODE) {
-        setUser({
+        const mockUser: User = {
           id: "dev-user-id",
           email: "dev@example.com",
           first_name: "Developer",
           last_name: "User",
+          full_name: "Developer User", // Add missing property
+          is_admin: true, // Add missing property
           role: "admin",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        });
+        };
+        
+        setUser(mockUser);
         setIsLoading(false);
         return;
       }
@@ -75,15 +79,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       // In development mode, create a mock user and bypass authentication
       if (DEV_MODE) {
-        setUser({
+        const mockUser: User = {
           id: "dev-user-id",
           email: email || "dev@example.com",
           first_name: "Developer",
           last_name: "User",
+          full_name: "Developer User", // Add missing property
+          is_admin: true, // Add missing property
           role: "admin",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        });
+        };
+        
+        setUser(mockUser);
         navigate("/dashboard");
         toast.success("Development mode: Authentication bypassed");
         setIsLoading(false);
@@ -109,15 +117,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       // In development mode, create a mock user and bypass registration
       if (DEV_MODE) {
-        setUser({
+        const mockUser: User = {
           id: "dev-user-id",
           email: userData.email,
           first_name: userData.firstName,
           last_name: userData.lastName,
+          full_name: `${userData.firstName} ${userData.lastName}`, // Add missing property
+          is_admin: true, // Add missing property
           role: "admin",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        });
+        };
+        
+        setUser(mockUser);
         navigate("/dashboard");
         toast.success("Development mode: Registration bypassed");
         setIsLoading(false);

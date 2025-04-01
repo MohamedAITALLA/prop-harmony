@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarEvent, Property } from "@/types/api-responses";
@@ -26,7 +25,6 @@ export default function EventManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   
-  // Fetch properties
   const { data: properties = [] } = useQuery({
     queryKey: ["properties"],
     queryFn: async () => {
@@ -35,19 +33,15 @@ export default function EventManagement() {
         return response.data.properties;
       } catch (error) {
         console.error("Error fetching properties:", error);
-        // Return mock data for development
         return getMockProperties();
       }
     },
   });
   
-  // Fetch events
   const { data: eventsData = [], isLoading } = useQuery({
     queryKey: ["events", selectedProperties, selectedPlatforms, selectedEventTypes, dateRange],
     queryFn: async () => {
       try {
-        // In real app, you'd fetch data from the API with filters
-        // For now, return mock data
         return { events: getMockEvents() };
       } catch (error) {
         console.error("Error fetching events:", error);
@@ -56,10 +50,8 @@ export default function EventManagement() {
     },
   });
   
-  // Extract events array safely, handling both array and object responses
   const events = Array.isArray(eventsData) ? eventsData : eventsData.events || [];
   
-  // Filter events based on search query
   const filteredEvents = events.filter(event => 
     event.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.property?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -180,7 +172,10 @@ export default function EventManagement() {
               
               <div className="space-y-2">
                 <Label>Date Range</Label>
-                <DateRange selected={dateRange} onSelect={setDateRange} />
+                <DateRange 
+                  selected={dateRange} 
+                  onSelect={(value) => setDateRange(value)}
+                />
               </div>
             </CardContent>
           </Card>
@@ -257,7 +252,6 @@ export default function EventManagement() {
         </div>
       </div>
       
-      {/* Add Event Dialog */}
       <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -354,7 +348,6 @@ export default function EventManagement() {
   );
 }
 
-// Mock data functions for development
 function getMockProperties() {
   return [
     { id: "1", name: "Oceanfront Villa" },
