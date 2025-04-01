@@ -38,7 +38,7 @@ interface NotificationFilters {
   type?: string;
   severity?: string;
   read?: string;
-  page?: number;
+  page: number;
   limit?: number;
   search?: string;
 }
@@ -80,8 +80,10 @@ export default function Notifications() {
         return { ...prev, [key]: value, page: 1 };
       }
       // Ensure page is a number
-      const newPage = key === 'page' ? Number(value) : prev.page;
-      return { ...prev, [key]: key === 'page' ? newPage : value };
+      return { 
+        ...prev, 
+        [key]: key === 'page' ? parseInt(value, 10) : value 
+      };
     });
   };
 

@@ -1,6 +1,5 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Notification } from "@/components/ui/notifications-list";
+import { Notification, NotificationSettings } from "@/types/api-responses";
 import { toast } from "sonner";
 import { notificationService } from "@/services/api-service";
 
@@ -14,14 +13,7 @@ export interface NotificationFilters {
   limit?: number;
 }
 
-export interface NotificationSettings {
-  email_notifications: boolean;
-  new_booking_notifications: boolean;
-  modified_booking_notifications: boolean;
-  cancelled_booking_notifications: boolean;
-  conflict_notifications: boolean;
-  sync_failure_notifications: boolean;
-}
+export { NotificationSettings };
 
 export function useNotifications(filters?: NotificationFilters) {
   const queryClient = useQueryClient();
