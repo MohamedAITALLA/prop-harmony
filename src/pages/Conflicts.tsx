@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { conflictService, propertyService } from "@/services/api-service";
@@ -40,14 +41,23 @@ import { ConflictDetailsView } from "@/components/conflicts/ConflictDetailsView"
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ConflictType, ConflictSeverity, ConflictStatus } from "@/types/enums";
 
-interface MockConflict extends Omit<Conflict, 'conflict_type' | 'severity' | 'status'> {
-  conflict_type: string;
-  severity: string;
-  status: string;
+// Define MockConflict type that extends Conflict with required platforms
+interface MockConflict {
+  id: string;
+  property_id: string;
   property?: {
     id: string;
     name: string;
   };
+  event_ids: string[];
+  conflict_type: string;
+  start_date: string;
+  end_date: string;
+  severity: string;
+  status: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
   platforms: string[];
 }
 
@@ -194,7 +204,9 @@ export default function Conflicts() {
       ...mockConflict,
       conflict_type: mockConflict.conflict_type as ConflictType,
       severity: mockConflict.severity as ConflictSeverity,
-      status: mockConflict.status as ConflictStatus
+      status: mockConflict.status as ConflictStatus,
+      // Ensure platforms is passed correctly
+      platforms: mockConflict.platforms
     };
   };
 
@@ -217,7 +229,7 @@ export default function Conflicts() {
               <SelectValue placeholder="All properties" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all_properties">All properties</SelectItem>
+              <SelectItem value="">All properties</SelectItem>
               {propertiesData?.map((property: Property) => (
                 <SelectItem key={property.id} value={property.id}>
                   {property.name}
@@ -238,7 +250,7 @@ export default function Conflicts() {
             <SelectContent>
               <SelectItem value="unresolved">Unresolved</SelectItem>
               <SelectItem value="resolved">Resolved</SelectItem>
-              <SelectItem value="all_statuses">All</SelectItem>
+              <SelectItem value="">All</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -272,17 +284,18 @@ export default function Conflicts() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {conflictsData.map((mockConflict: MockConflict, index: number) => {
-                const conflict = convertMockToConflict(mockConflict);
+              {conflictsData.map((item: MockConflict, index: number) => {
+                // Convert the mock conflict to a proper Conflict type
+                const conflict = convertMockToConflict(item);
                 
                 return (
                   <TableRow key={conflict.id}>
-                    <TableCell>{mockConflict.property?.name || "—"}</TableCell>
+                    <TableCell>{item.property?.name || "—"}</TableCell>
                     <TableCell>
                       <ConflictTypeBadge type={conflict.conflict_type} />
                     </TableCell>
                     <TableCell>
-                      <PlatformsList platforms={mockConflict.platforms || []} />
+                      <PlatformsList platforms={item.platforms || []} />
                     </TableCell>
                     <TableCell>
                       <DateRange startDate={conflict.start_date} endDate={conflict.end_date} />
