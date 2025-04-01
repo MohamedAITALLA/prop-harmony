@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ensureMongoIds } from "@/lib/mongo-helpers";
+import { convertToMongoIdFormat } from "@/lib/id-conversion";
 
 interface PropertyCardsProps {
   limit?: number;
@@ -72,9 +73,9 @@ export function PropertyCards({ limit = 3, action }: PropertyCardsProps) {
           description: "Modern downtown apartment in the heart of the city",
           images: ["https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=800&auto=format&fit=crop"]
         }
-      ] as Property[];
+      ];
 
-      return ensureMongoIds(mockData);
+      return convertToMongoIdFormat(mockData) as Property[];
     },
   });
 

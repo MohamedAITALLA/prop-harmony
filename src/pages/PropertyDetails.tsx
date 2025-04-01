@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -9,12 +10,12 @@ import { PropertyOverview } from "@/components/properties/PropertyOverview";
 import { PropertyICalFeed } from "@/components/properties/PropertyICalFeed";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Platform, EventType, PropertyType } from "@/types/enums";
+import { Platform, EventType } from "@/types/enums";
 import { PropertyConflictsView } from "@/components/conflicts/PropertyConflictsView";
 import { PropertyCalendar } from "@/components/properties/PropertyCalendar";
 import { PropertyEventDialog } from "@/components/properties/PropertyEventDialog";
 import { SyncDialog } from "@/components/ui/sync-dialog";
-import { CalendarEvent, Property as PropertyType } from "@/types/api-responses";
+import { CalendarEvent, Property } from "@/types/api-responses";
 import { normalizeMongoObject } from "@/lib/mongo-helpers";
 import { 
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
@@ -36,6 +37,7 @@ import { DateRange } from "@/components/ui/date-range";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { format } from "date-fns";
+import { PropertyType } from "@/types/enums";
 
 export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>();
@@ -562,7 +564,7 @@ export default function PropertyDetails() {
   );
 }
 
-function getMockPropertyData(id: string): PropertyType {
+function getMockPropertyData(id: string): Property {
   return {
     _id: id,
     name: "Oceanfront Villa",

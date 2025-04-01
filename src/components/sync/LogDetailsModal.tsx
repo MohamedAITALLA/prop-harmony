@@ -62,7 +62,7 @@ export function LogDetailsModal({ log, open, onOpenChange }: LogDetailsModalProp
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">ID</p>
-              <p className="font-mono text-xs">{log.id}</p>
+              <p className="font-mono text-xs">{log._id}</p>
             </div>
           </div>
 
