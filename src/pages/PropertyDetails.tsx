@@ -1,8 +1,7 @@
-
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { propertyService, conflictService, eventService } from "@/services/api-service";
+import { propertyService, eventService } from "@/services/api-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Edit, RefreshCw, Trash, Info, Calendar, Link, AlertTriangle, Settings, Plus, Download, ChevronDown } from "lucide-react";
@@ -24,7 +23,8 @@ import { Label } from "@/components/ui/label";
 import { 
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from "@/components/ui/select";
-import { useState } from "react";
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
 
 export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>();
@@ -40,7 +40,7 @@ export default function PropertyDetails() {
     status: "confirmed",
     description: ""
   });
-  
+
   // Fetch property data
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["property", id],
@@ -48,29 +48,40 @@ export default function PropertyDetails() {
       if (!id) throw new Error("Property ID is required");
       
       try {
-        // In a production app, this would use the real API
         const response = await propertyService.getProperty(id);
         return response.data.property;
       } catch (error) {
         console.error("Error fetching property:", error);
         
-        // For demo purposes, return mock data if the API fails
         return getMockPropertyData(id);
       }
     },
   });
-  
+
+  // Fetch events for the specific property
+  const { data: eventsData, isLoading: eventsLoading } = useQuery({
+    queryKey: ["property-events", id],
+    queryFn: async () => {
+      if (!id) return [];
+      try {
+        const response = await eventService.getEventsByProperty(id);
+        return response.data.events || [];
+      } catch (error) {
+        console.error("Error fetching property events:", error);
+        return [];
+      }
+    },
+  });
+
   // Handle sync now
   const handleSync = async () => {
     toast.success("Property calendar synced successfully");
   };
-  
+
   // Handle delete property
   const handleDelete = async () => {
-    // In a real app, this would open a confirmation dialog first
     if (window.confirm("Are you sure you want to delete this property? This action cannot be undone.")) {
       try {
-        // await propertyService.deleteProperty(id);
         toast.success("Property deleted successfully");
         navigate("/properties");
       } catch (error) {
@@ -89,12 +100,10 @@ export default function PropertyDetails() {
     e.preventDefault();
     
     try {
-      // In a real implementation, we would call the API here
       console.log("Creating event:", newEvent);
       toast.success("Event created successfully");
       setIsAddEventOpen(false);
       
-      // Reset form
       setNewEvent({
         property_id: id || "",
         platform: Platform.MANUAL,
@@ -116,7 +125,7 @@ export default function PropertyDetails() {
     toast(`Exporting calendar as ${format}...`);
     // Implementation would depend on the export format
   };
-  
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -127,7 +136,7 @@ export default function PropertyDetails() {
       </div>
     );
   }
-  
+
   if (error || !data) {
     return (
       <Alert variant="destructive" className="my-8">
@@ -144,7 +153,6 @@ export default function PropertyDetails() {
 
   return (
     <div className="space-y-6">
-      {/* Property Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{data.name}</h1>
@@ -166,7 +174,6 @@ export default function PropertyDetails() {
         </div>
       </div>
       
-      {/* Tabs */}
       <Tabs defaultValue="overview" className="mt-6">
         <TabsList className="mb-4">
           <TabsTrigger value="overview">
@@ -192,7 +199,6 @@ export default function PropertyDetails() {
         
         <TabsContent value="calendar" className="space-y-4">
           <div className="space-y-6">
-            {/* Calendar Header */}
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Property Calendar</h2>
               <div className="flex space-x-2">
@@ -220,16 +226,24 @@ export default function PropertyDetails() {
               </div>
             </div>
             
-            {/* Calendar View */}
-            <div className="border rounded-lg p-6 bg-background min-h-[500px] flex items-center justify-center">
-              <div className="text-center p-12">
-                <Calendar className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-4 text-lg font-medium">Property Calendar View</h3>
-                <p className="text-sm text-muted-foreground mt-2">
-                  This is a placeholder for the property calendar integration.<br />
-                  In a real application, you would see all the events for this property here.
-                </p>
-              </div>
+            <div className="border rounded-lg p-6 bg-background min-h-[500px]">
+              {eventsLoading ? (
+                <div className="flex items-center justify-center h-full">
+                  <p>Loading events...</p>
+                </div>
+              ) : (
+                <FullCalendar
+                  plugins={[dayGridPlugin]}
+                  initialView="dayGridMonth"
+                  events={eventsData?.map(event => ({
+                    title: event.summary,
+                    start: event.start_date,
+                    end: event.end_date,
+                    allDay: false
+                  }))}
+                  height="100%"
+                />
+              )}
             </div>
           </div>
         </TabsContent>
@@ -263,7 +277,6 @@ export default function PropertyDetails() {
         </TabsContent>
       </Tabs>
 
-      {/* Add Event Dialog */}
       <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
         <DialogContent className="sm:max-w-[525px]">
           <DialogHeader>
@@ -387,12 +400,11 @@ export default function PropertyDetails() {
   );
 }
 
-// Mock data function for development purposes
 function getMockPropertyData(id: string) {
   return {
     id,
     name: "Oceanfront Villa",
-    property_type: PropertyType.VILLA, // Using the enum value instead of string
+    property_type: PropertyType.VILLA,
     address: {
       street: "123 Ocean Drive",
       city: "Malibu",
