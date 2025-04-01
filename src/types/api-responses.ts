@@ -18,12 +18,11 @@ export interface User {
   first_name: string;
   last_name: string;
   full_name: string;
+  role: string;
   is_admin: boolean;
   is_active?: boolean;
   created_at: string;
   updated_at: string;
-  created_by?: string | null;
-  role?: string; // Add the role property as optional
 }
 
 export interface AuthResponse {
@@ -52,13 +51,13 @@ export interface RegisterResponse {
 
 // User Profile Responses
 export interface UserPreferences {
-  theme: string;
-  language: string;
-  timezone: string;
-  date_format: string;
-  time_format: string;
-  currency: string;
-  notifications_enabled: boolean;
+  theme?: "light" | "dark" | "system";
+  language?: "en" | "es" | "fr" | "de";
+  timezone?: string;
+  date_format?: "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD";
+  time_format?: "12h" | "24h";
+  currency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD";
+  notifications_enabled?: boolean;
 }
 
 export interface UserProfile {
@@ -294,3 +293,11 @@ export interface ApiResponse<T> {
   timestamp: string;
   meta?: Record<string, any>;
 }
+
+export interface UsersResponse extends ApiResponse<{
+  users: User[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}> {}

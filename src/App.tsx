@@ -15,6 +15,7 @@ import Calendar from "./pages/Calendar";
 import EventManagement from "./pages/EventManagement";
 import Notifications from "./pages/Notifications";
 import ProfileSettings from "./pages/ProfileSettings";
+import UserManagement from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/layout/MainLayout";
 import ComponentsDemo from "./pages/ComponentsDemo";
@@ -39,6 +40,26 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   
   if (!user) {
     return <Navigate to="/login" />;
+  }
+
+  return <MainLayout>{children}</MainLayout>;
+};
+
+// Admin route wrapper
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  
+  // In development mode, always render the admin content
+  if (DEV_MODE) {
+    return <MainLayout>{children}</MainLayout>;
+  }
+  
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+  
+  if (!user || !user.is_admin) {
+    return <Navigate to="/dashboard" />;
   }
 
   return <MainLayout>{children}</MainLayout>;
@@ -78,7 +99,10 @@ const App = () => (
             <Route path="/sync" element={<ProtectedRoute><PlaceholderPage title="Synchronization" /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><PlaceholderPage title="Analytics" /></ProtectedRoute>} />
             <Route path="/preferences" element={<ProtectedRoute><PlaceholderPage title="Preferences" /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute><PlaceholderPage title="Admin" /></ProtectedRoute>} />
+            
+            {/* Admin routes */}
+            <Route path="/admin/users" element={<AdminRoute><UserManagement /></AdminRoute>} />
+            <Route path="/admin" element={<AdminRoute><PlaceholderPage title="Admin" /></AdminRoute>} />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />

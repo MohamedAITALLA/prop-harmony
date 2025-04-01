@@ -9,7 +9,8 @@ import {
   EventsResponse,
   ConflictsResponse,
   NotificationsResponse,
-  ApiResponse
+  ApiResponse,
+  UsersResponse
 } from "@/types/api-responses";
 
 // Authentication Services
@@ -25,7 +26,6 @@ export const authService = {
     firstName: string;
     lastName: string;
   }): Promise<RegisterResponse> => {
-    // Convert from camelCase to snake_case for API
     const apiData = {
       email: userData.email,
       password: userData.password,
@@ -92,8 +92,6 @@ export const propertyService = {
   },
   
   getICalFeedUrl: (propertyId: string): string => {
-    // This function returns the URL for the property's iCal feed
-    // In a real app, this would include the domain of your deployed app
     const baseUrl = window.location.origin;
     return `${baseUrl}/api/properties/${propertyId}/ical-feed`;
   }
@@ -156,6 +154,66 @@ export const notificationService = {
   
   markAllAsRead: async (): Promise<ApiResponse<Record<string, any>>> => {
     const response = await api.put<ApiResponse<Record<string, any>>>("/notifications/read");
+    return response.data;
+  }
+};
+
+// Admin User Management Services
+export const adminUserService = {
+  getUsers: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+    status?: string;
+    sort?: string;
+    order?: 'asc' | 'desc';
+  }): Promise<UsersResponse> => {
+    const response = await api.get<UsersResponse>("/admin/users", { params });
+    return response.data;
+  },
+  
+  getUser: async (id: string): Promise<ApiResponse<{ user: Record<string, any> }>> => {
+    const response = await api.get<ApiResponse<{ user: Record<string, any> }>>(`/admin/users/${id}`);
+    return response.data;
+  },
+  
+  createUser: async (userData: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    password: string;
+    is_active?: boolean;
+    role?: string;
+  }): Promise<ApiResponse<{ user: Record<string, any> }>> => {
+    const response = await api.post<ApiResponse<{ user: Record<string, any> }>>("/admin/users", userData);
+    return response.data;
+  },
+  
+  updateUser: async (id: string, userData: Partial<{
+    first_name: string;
+    last_name: string;
+    email: string;
+    password?: string;
+    is_active: boolean;
+    role: string;
+  }>): Promise<ApiResponse<{ user: Record<string, any> }>> => {
+    const response = await api.put<ApiResponse<{ user: Record<string, any> }>>(`/admin/users/${id}`, userData);
+    return response.data;
+  },
+  
+  deleteUser: async (id: string): Promise<ApiResponse<{}>> => {
+    const response = await api.delete<ApiResponse<{}>>(`/admin/users/${id}`);
+    return response.data;
+  },
+  
+  promoteUser: async (id: string): Promise<ApiResponse<{ user: Record<string, any> }>> => {
+    const response = await api.put<ApiResponse<{ user: Record<string, any> }>>(`/admin/users/${id}/promote`);
+    return response.data;
+  },
+  
+  demoteUser: async (id: string): Promise<ApiResponse<{ user: Record<string, any> }>> => {
+    const response = await api.put<ApiResponse<{ user: Record<string, any> }>>(`/admin/users/${id}/demote`);
     return response.data;
   }
 };
