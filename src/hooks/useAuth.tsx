@@ -39,8 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: "dev@example.com",
           first_name: "Developer",
           last_name: "User",
-          full_name: "Developer User", // Add missing property
-          is_admin: true, // Add missing property
+          full_name: "Developer User",
+          is_admin: true,
           role: "admin",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -57,11 +57,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const response = await profileService.getProfile();
           if (response && response.data) {
-            setUser({
-              ...response.data,
-              full_name: `${response.data.first_name} ${response.data.last_name}`,
-              is_admin: response.data.role === "admin"
-            } as User);
+            // Check if the response.data has a user property that contains the actual User data
+            if (response.data.user) {
+              setUser(response.data.user);
+            } else {
+              // If we don't have user data directly, we need to make another API call
+              const userResponse = await authService.getCurrentUser();
+              if (userResponse && userResponse.data) {
+                setUser(userResponse.data);
+              }
+            }
           }
         } catch (error) {
           console.error("Error fetching user profile:", error);
@@ -85,8 +90,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: email || "dev@example.com",
           first_name: "Developer",
           last_name: "User",
-          full_name: "Developer User", // Add missing property
-          is_admin: true, // Add missing property
+          full_name: "Developer User",
+          is_admin: true,
           role: "admin",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -108,13 +113,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.data.user) {
         setUser(response.data.user);
       } else {
-        const profileResponse = await profileService.getProfile();
-        if (profileResponse && profileResponse.data) {
-          setUser({
-            ...profileResponse.data,
-            full_name: `${profileResponse.data.first_name} ${profileResponse.data.last_name}`,
-            is_admin: profileResponse.data.role === "admin"
-          } as User);
+        // If login doesn't return user data, fetch it separately
+        const userResponse = await authService.getCurrentUser();
+        if (userResponse && userResponse.data) {
+          setUser(userResponse.data);
         }
       }
       
@@ -138,8 +140,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: userData.email,
           first_name: userData.firstName,
           last_name: userData.lastName,
-          full_name: `${userData.firstName} ${userData.lastName}`, // Add missing property
-          is_admin: false, // Add missing property
+          full_name: `${userData.firstName} ${userData.lastName}`,
+          is_admin: false,
           role: "user",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -160,6 +162,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Set user from the response
       if (response.data.user) {
         setUser(response.data.user);
+      } else {
+        // If registration doesn't return user data, fetch it separately
+        const userResponse = await authService.getCurrentUser();
+        if (userResponse && userResponse.data) {
+          setUser(userResponse.data);
+        }
       }
       
       navigate("/dashboard");

@@ -12,7 +12,8 @@ import {
   ApiResponse,
   UsersResponse,
   UserProfilesResponse,
-  SyncLogsResponse
+  SyncLogsResponse,
+  User
 } from "@/types/api-responses";
 
 // Authentication Services
@@ -36,6 +37,11 @@ export const authService = {
     };
     
     const response = await api.post<RegisterResponse>("/auth/register", apiData);
+    return response.data;
+  },
+
+  getCurrentUser: async (): Promise<ApiResponse<User>> => {
+    const response = await api.get<ApiResponse<User>>("/auth/me");
     return response.data;
   }
 };
