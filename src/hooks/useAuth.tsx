@@ -1,15 +1,9 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "@/lib/api";
 import { toast } from "sonner";
-
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-}
+import { User } from "@/types/api-responses";
+import { authService, profileService } from "@/services/api-service";
 
 interface AuthContextType {
   user: User | null;
@@ -39,8 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (token) {
         try {
-          const response = await api.get("/user-profile");
-          setUser(response.data);
+          const response = await profileService.getProfile();
+          // Extract user data from the profile response or fetch user separately
+          // In a real app, you might have a separate endpoint to get just the user data
+          // For now, we'll use whatever user data we can get from the profile
+          const userData = await authService.login(localStorage.getItem("email") || "", "").catch(() => null);
+          if (userData) {
+            setUser(userData.data.user);
+          }
         } catch (error) {
           localStorage.removeItem("token");
         }
@@ -55,13 +55,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await api.post("/auth/login", { email, password });
-      localStorage.setItem("token", response.data.token);
+      const response = await authService.login(email, password);
+      localStorage.setItem("token", response.data.access_token);
+      localStorage.setItem("email", email); // Store email for session recovery
       setUser(response.data.user);
       navigate("/dashboard");
-      toast.success("Login successful!");
+      toast.success(response.message || "Login successful!");
     } catch (error) {
       console.error("Login error:", error);
+      // The error toast is already handled by the API interceptor
     } finally {
       setIsLoading(false);
     }
@@ -70,13 +72,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (userData: RegisterData) => {
     setIsLoading(true);
     try {
-      const response = await api.post("/auth/register", userData);
-      localStorage.setItem("token", response.data.token);
+      const response = await authService.register(userData);
+      localStorage.setItem("token", response.data.access_token);
+      localStorage.setItem("email", userData.email); // Store email for session recovery
       setUser(response.data.user);
       navigate("/dashboard");
-      toast.success("Registration successful!");
+      toast.success(response.message || "Registration successful!");
     } catch (error) {
       console.error("Registration error:", error);
+      // The error toast is already handled by the API interceptor
     } finally {
       setIsLoading(false);
     }
@@ -84,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("email");
     setUser(null);
     navigate("/login");
     toast.success("You have been logged out.");

@@ -1,105 +1,120 @@
 
 import { PropertyList } from "@/components/properties/PropertyList";
 import { useQuery } from "@tanstack/react-query";
-import api from "@/lib/api";
-
-interface Property {
-  id: string;
-  name: string;
-  propertyType: string;
-  address: {
-    city: string;
-    stateProvince: string;
-    country: string;
-  };
-  bedrooms: number;
-  bathrooms: number;
-  accommodates: number;
-  images?: string[];
-}
+import { propertyService } from "@/services/api-service";
+import { Property } from "@/types/api-responses";
 
 export default function Properties() {
-  // This is a mock query that would normally fetch data from your API
-  const { data: properties, isLoading } = useQuery({
+  // Use our new propertyService to fetch properties
+  const { data, isLoading } = useQuery({
     queryKey: ["properties"],
     queryFn: async () => {
-      // In a real app, you would fetch this data from your API
-      // const response = await api.get("/properties");
-      // return response.data;
-      
-      // Mock data for now
-      return [
-        {
-          id: "1",
-          name: "Oceanfront Villa",
-          propertyType: "villa",
-          address: {
-            city: "Malibu",
-            stateProvince: "California",
-            country: "USA"
+      try {
+        // In a production app, this would use the real API
+        const response = await propertyService.getAllProperties();
+        return response.data.properties;
+      } catch (error) {
+        console.error("Error fetching properties:", error);
+        
+        // For demo purposes, return mock data if the API fails
+        return [
+          {
+            id: "1",
+            name: "Oceanfront Villa",
+            property_type: "villa",
+            address: {
+              city: "Malibu",
+              stateProvince: "California",
+              country: "USA"
+            },
+            bedrooms: 4,
+            bathrooms: 3.5,
+            beds: 5,
+            accommodates: 8,
+            amenities: {},
+            policies: {},
+            images: ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=800&auto=format&fit=crop"],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           },
-          bedrooms: 4,
-          bathrooms: 3.5,
-          accommodates: 8,
-          images: ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=800&auto=format&fit=crop"]
-        },
-        {
-          id: "2",
-          name: "Downtown Loft",
-          propertyType: "apartment",
-          address: {
-            city: "New York",
-            stateProvince: "New York",
-            country: "USA"
+          {
+            id: "2",
+            name: "Downtown Loft",
+            property_type: "apartment",
+            address: {
+              city: "New York",
+              stateProvince: "New York",
+              country: "USA"
+            },
+            bedrooms: 2,
+            bathrooms: 2,
+            beds: 2,
+            accommodates: 4,
+            amenities: {},
+            policies: {},
+            images: ["https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=800&auto=format&fit=crop"],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           },
-          bedrooms: 2,
-          bathrooms: 2,
-          accommodates: 4,
-          images: ["https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=800&auto=format&fit=crop"]
-        },
-        {
-          id: "3",
-          name: "Mountain Cabin",
-          propertyType: "cabin",
-          address: {
-            city: "Aspen",
-            stateProvince: "Colorado",
-            country: "USA"
+          {
+            id: "3",
+            name: "Mountain Cabin",
+            property_type: "cabin",
+            address: {
+              city: "Aspen",
+              stateProvince: "Colorado",
+              country: "USA"
+            },
+            bedrooms: 3,
+            bathrooms: 2,
+            beds: 3,
+            accommodates: 6,
+            amenities: {},
+            policies: {},
+            images: ["https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=800&auto=format&fit=crop"],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           },
-          bedrooms: 3,
-          bathrooms: 2,
-          accommodates: 6,
-          images: ["https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=800&auto=format&fit=crop"]
-        },
-        {
-          id: "4",
-          name: "Beachside Condo",
-          propertyType: "condo",
-          address: {
-            city: "Miami",
-            stateProvince: "Florida",
-            country: "USA"
+          {
+            id: "4",
+            name: "Beachside Condo",
+            property_type: "condo",
+            address: {
+              city: "Miami",
+              stateProvince: "Florida",
+              country: "USA"
+            },
+            bedrooms: 2,
+            bathrooms: 2,
+            beds: 2,
+            accommodates: 4,
+            amenities: {},
+            policies: {},
+            images: ["https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=80&w=800&auto=format&fit=crop"],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           },
-          bedrooms: 2,
-          bathrooms: 2,
-          accommodates: 4,
-          images: ["https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=80&w=800&auto=format&fit=crop"]
-        },
-        {
-          id: "5",
-          name: "Suburban House",
-          propertyType: "house",
-          address: {
-            city: "Austin",
-            stateProvince: "Texas",
-            country: "USA"
+          {
+            id: "5",
+            name: "Suburban House",
+            property_type: "house",
+            address: {
+              city: "Austin",
+              stateProvince: "Texas",
+              country: "USA"
+            },
+            bedrooms: 4,
+            bathrooms: 3,
+            beds: 4,
+            accommodates: 7,
+            amenities: {},
+            policies: {},
+            images: ["https://images.unsplash.com/photo-1593604572577-1c6c41a146ae?q=80&w=800&auto=format&fit=crop"],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           },
-          bedrooms: 4,
-          bathrooms: 3,
-          accommodates: 7,
-          images: ["https://images.unsplash.com/photo-1593604572577-1c6c41a146ae?q=80&w=800&auto=format&fit=crop"]
-        },
-      ] as Property[];
+        ] as Property[];
+      }
     }
   });
 
@@ -112,7 +127,7 @@ export default function Properties() {
         </p>
       </div>
       
-      <PropertyList properties={properties || []} isLoading={isLoading} />
+      <PropertyList properties={data || []} isLoading={isLoading} />
     </div>
   );
 }

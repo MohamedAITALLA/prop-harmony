@@ -6,22 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { Property } from "@/types/api-responses";
 
 export interface PropertyCardProps {
-  property: {
-    id: string;
-    name: string;
-    propertyType: string;
-    address: {
-      city: string;
-      stateProvince: string;
-      country: string;
-    };
-    bedrooms: number;
-    bathrooms: number;
-    accommodates: number;
-    images?: string[];
-  };
+  property: Property;
   className?: string;
 }
 
@@ -43,7 +31,7 @@ export function PropertyCard({ property, className, ...props }: PropertyCardProp
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-semibold text-lg line-clamp-1">{property.name}</h3>
           <Badge variant="outline" className="capitalize">
-            {property.propertyType}
+            {property.property_type}
           </Badge>
         </div>
         

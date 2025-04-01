@@ -28,6 +28,12 @@ api.interceptors.request.use(
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
+    // For successful responses, check if there's a success flag in our API format
+    if (response.data && response.data.success === false) {
+      // Even though HTTP status is 200, the API indicates an error
+      toast.error(response.data.message || "Operation failed");
+      return Promise.reject(response);
+    }
     return response;
   },
   (error) => {
