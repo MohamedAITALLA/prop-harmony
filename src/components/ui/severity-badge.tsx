@@ -15,7 +15,7 @@ export function SeverityBadge({ severity, className }: SeverityBadgeProps) {
       case ConflictSeverity.HIGH:
         return "destructive";
       case ConflictSeverity.MEDIUM:
-        return "warning";
+        return "secondary"; // Changed from "warning" to "secondary"
       case ConflictSeverity.LOW:
         return "outline";
       default:

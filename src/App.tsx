@@ -99,7 +99,7 @@ const App = () => (
             <Route path="/events" element={<ProtectedRoute><EventManagement /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
-            <Route path="/conflicts" element={<ProtectedRoute><PlaceholderPage title="Conflicts" /></ProtectedRoute>} />
+            <Route path="/conflicts" element={<ProtectedRoute><Conflicts /></ProtectedRoute>} />
             <Route path="/sync" element={<ProtectedRoute><SyncDashboard /></ProtectedRoute>} />
             <Route path="/sync/logs" element={<ProtectedRoute><SyncLogs /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><PlaceholderPage title="Analytics" /></ProtectedRoute>} />

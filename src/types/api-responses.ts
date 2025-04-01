@@ -226,6 +226,10 @@ export interface EventsResponse {
 export interface Conflict {
   id: string;
   property_id: string;
+  property?: {
+    id: string;
+    name: string;
+  };
   event_ids: string[];
   conflict_type: ConflictType;
   start_date: string;
@@ -235,6 +239,7 @@ export interface Conflict {
   description: string;
   created_at: string;
   updated_at: string;
+  platforms?: string[];
 }
 
 export interface ConflictsResponse {

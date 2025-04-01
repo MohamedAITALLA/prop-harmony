@@ -15,7 +15,7 @@ export function ConflictTypeBadge({ type, className }: ConflictTypeBadgeProps) {
       case ConflictType.OVERLAP:
         return "destructive";
       case ConflictType.ADJACENT:
-        return "warning";
+        return "secondary"; // Changed from "warning" to "secondary"
       case ConflictType.TURNOVER:
         return "default";
       default:

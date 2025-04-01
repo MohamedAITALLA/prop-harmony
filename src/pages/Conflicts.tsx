@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { conflictService, propertyService } from "@/services/api-service";
@@ -39,13 +38,23 @@ import {
 import { ConflictResolver } from "@/components/ui/conflict-resolver";
 import { ConflictDetailsView } from "@/components/conflicts/ConflictDetailsView";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ConflictType, ConflictSeverity, ConflictStatus } from "@/types/enums";
+
+interface MockConflict extends Omit<Conflict, 'conflict_type' | 'severity' | 'status'> {
+  conflict_type: string;
+  severity: string;
+  status: string;
+  property?: {
+    id: string;
+    name: string;
+  };
+  platforms: string[];
+}
 
 export default function Conflicts() {
-  // State for filters
   const [propertyId, setPropertyId] = useState<string>("");
   const [status, setStatus] = useState<string>("unresolved");
   
-  // State for modals
   const [selectedConflict, setSelectedConflict] = useState<Conflict | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [resolverModalOpen, setResolverModalOpen] = useState(false);
@@ -53,7 +62,6 @@ export default function Conflicts() {
   const [dismissingConflictId, setDismissingConflictId] = useState<string | null>(null);
   const [dismissingPropertyId, setDismissingPropertyId] = useState<string | null>(null);
 
-  // Fetch properties for the filter dropdown
   const { data: propertiesData } = useQuery({
     queryKey: ["properties"],
     queryFn: async () => {
@@ -67,20 +75,16 @@ export default function Conflicts() {
     }
   });
 
-  // Fetch conflicts data
   const { data: conflictsData, isLoading, error, refetch } = useQuery({
     queryKey: ["conflicts", propertyId, status],
     queryFn: async () => {
       try {
         if (propertyId) {
-          // Fetch conflicts for a specific property
           const response = await conflictService.getConflicts(propertyId, {
             status: status !== "" ? status : undefined
           });
           return response.data;
         } else {
-          // For all properties, we would need a separate endpoint in a real app
-          // This is a mock implementation for demo purposes
           const response = await mockFetchAllConflicts(status);
           return response;
         }
@@ -93,7 +97,6 @@ export default function Conflicts() {
   });
 
   const formatRelativeTime = (timestamp: string) => {
-    // Simple relative time formatting
     const date = parseISO(timestamp);
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
@@ -144,7 +147,6 @@ export default function Conflicts() {
   };
 
   const handleResolveConflict = async () => {
-    // This would be implemented with actual API calls
     if (selectedConflict) {
       toast.success("Conflict resolved successfully");
       setResolverModalOpen(false);
@@ -152,10 +154,7 @@ export default function Conflicts() {
     }
   };
 
-  // Mock function to simulate fetching conflicts for all properties
-  const mockFetchAllConflicts = async (status: string) => {
-    // In a real app, this would make an API call to a separate endpoint
-    // For demo purposes, we're returning mock data
+  const mockFetchAllConflicts = async (status: string): Promise<MockConflict[]> => {
     return [
       {
         id: "conf-1",
@@ -190,6 +189,15 @@ export default function Conflicts() {
     ].filter(conflict => status === "" || conflict.status === status);
   };
 
+  const convertMockToConflict = (mockConflict: MockConflict): Conflict => {
+    return {
+      ...mockConflict,
+      conflict_type: mockConflict.conflict_type as ConflictType,
+      severity: mockConflict.severity as ConflictSeverity,
+      status: mockConflict.status as ConflictStatus
+    };
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -199,7 +207,6 @@ export default function Conflicts() {
         </p>
       </div>
       
-      {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <label htmlFor="property-filter" className="text-sm font-medium">
@@ -237,7 +244,6 @@ export default function Conflicts() {
         </div>
       </div>
       
-      {/* Conflicts Table */}
       <div className="border rounded-md">
         {isLoading ? (
           <div className="py-8 text-center">
@@ -266,47 +272,50 @@ export default function Conflicts() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {conflictsData.map((conflict: Conflict) => (
-                <TableRow key={conflict.id}>
-                  <TableCell>{conflict.property?.name || "—"}</TableCell>
-                  <TableCell>
-                    <ConflictTypeBadge type={conflict.conflict_type} />
-                  </TableCell>
-                  <TableCell>
-                    <PlatformsList platforms={conflict.platforms || []} />
-                  </TableCell>
-                  <TableCell>
-                    <DateRange startDate={conflict.start_date} endDate={conflict.end_date} />
-                  </TableCell>
-                  <TableCell>
-                    <SeverityBadge severity={conflict.severity} />
-                  </TableCell>
-                  <TableCell>{formatRelativeTime(conflict.created_at)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => handleViewDetails(conflict)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleOpenResolverModal(conflict)}>
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => handleDismissConflict(conflict.property_id, conflict.id)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {conflictsData.map((mockConflict: MockConflict, index: number) => {
+                const conflict = convertMockToConflict(mockConflict);
+                
+                return (
+                  <TableRow key={conflict.id}>
+                    <TableCell>{mockConflict.property?.name || "—"}</TableCell>
+                    <TableCell>
+                      <ConflictTypeBadge type={conflict.conflict_type} />
+                    </TableCell>
+                    <TableCell>
+                      <PlatformsList platforms={mockConflict.platforms || []} />
+                    </TableCell>
+                    <TableCell>
+                      <DateRange startDate={conflict.start_date} endDate={conflict.end_date} />
+                    </TableCell>
+                    <TableCell>
+                      <SeverityBadge severity={conflict.severity} />
+                    </TableCell>
+                    <TableCell>{formatRelativeTime(conflict.created_at)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="icon" onClick={() => handleViewDetails(conflict)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleOpenResolverModal(conflict)}>
+                          <Check className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => handleDismissConflict(conflict.property_id, conflict.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         )}
       </div>
 
-      {/* Dismiss Confirmation Dialog */}
       <AlertDialog open={dismissDialogOpen} onOpenChange={setDismissDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -324,14 +333,12 @@ export default function Conflicts() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Conflict Details Modal */}
       <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
         <DialogContent className="max-w-3xl">
           {selectedConflict && <ConflictDetailsView conflict={selectedConflict} />}
         </DialogContent>
       </Dialog>
 
-      {/* Conflict Resolver Modal */}
       <Dialog open={resolverModalOpen} onOpenChange={setResolverModalOpen}>
         <DialogContent className="max-w-3xl">
           {selectedConflict && (
