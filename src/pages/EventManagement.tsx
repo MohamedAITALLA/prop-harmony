@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarEvent, Property } from "@/types/api-responses";
@@ -148,6 +147,7 @@ export default function EventManagement() {
                     <SelectValue placeholder="All platforms" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all_platforms">All platforms</SelectItem>
                     <SelectItem value="Airbnb">Airbnb</SelectItem>
                     <SelectItem value="Booking">Booking.com</SelectItem>
                     <SelectItem value="Expedia">Expedia</SelectItem>
@@ -165,6 +165,7 @@ export default function EventManagement() {
                     <SelectValue placeholder="All types" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="all_types">All types</SelectItem>
                     <SelectItem value="booking">Booking</SelectItem>
                     <SelectItem value="blocked">Blocked</SelectItem>
                     <SelectItem value="maintenance">Maintenance</SelectItem>

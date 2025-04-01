@@ -117,7 +117,7 @@ export default function SyncLogs() {
               <SelectValue placeholder="All properties" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All properties</SelectItem>
+              <SelectItem value="all_properties">All properties</SelectItem>
               {propertiesData?.map((property: Property) => (
                 <SelectItem key={property.id} value={property.id}>
                   {property.name}
@@ -136,7 +136,7 @@ export default function SyncLogs() {
               <SelectValue placeholder="All platforms" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All platforms</SelectItem>
+              <SelectItem value="all_platforms">All platforms</SelectItem>
               <SelectItem value={Platform.AIRBNB}>Airbnb</SelectItem>
               <SelectItem value={Platform.BOOKING}>Booking</SelectItem>
               <SelectItem value={Platform.EXPEDIA}>Expedia</SelectItem>
@@ -156,7 +156,7 @@ export default function SyncLogs() {
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All statuses</SelectItem>
+              <SelectItem value="all_statuses">All statuses</SelectItem>
               <SelectItem value={SyncLogStatus.SUCCESS}>Success</SelectItem>
               <SelectItem value={SyncLogStatus.WARNING}>Warning</SelectItem>
               <SelectItem value={SyncLogStatus.FAILURE}>Failure</SelectItem>
