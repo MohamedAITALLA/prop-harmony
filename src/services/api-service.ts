@@ -88,6 +88,13 @@ export const propertyService = {
   }>): Promise<ApiResponse<{ property: Record<string, any> }>> => {
     const response = await api.post<ApiResponse<{ property: Record<string, any> }>>("/properties", propertyData);
     return response.data;
+  },
+  
+  getICalFeedUrl: (propertyId: string): string => {
+    // This function returns the URL for the property's iCal feed
+    // In a real app, this would include the domain of your deployed app
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/api/properties/${propertyId}/ical-feed`;
   }
 };
 
