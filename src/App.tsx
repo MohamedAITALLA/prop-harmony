@@ -23,6 +23,7 @@ import Conflicts from "./pages/Conflicts";
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/layout/MainLayout";
 import ComponentsDemo from "./pages/ComponentsDemo";
+import { ensureMongoId } from "./lib/mongo-helpers";
 
 const queryClient = new QueryClient();
 

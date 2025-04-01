@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminUserService } from '@/services/api-service';
 import { User } from '@/types/api-responses';
 import { format } from 'date-fns';
+import { getMongoId, ensureMongoIds } from '@/lib/mongo-helpers';
 
 // UI Components
 import {
@@ -68,16 +68,17 @@ const UserManagement = () => {
     }),
   });
 
-  const users = data?.data?.users || [];
+  // Ensure all users have both _id and id properties
+  const users = data?.data?.users ? ensureMongoIds(data.data.users) : [];
   const totalPages = data?.data?.total_pages || 1;
 
   const handleView = (user: User) => {
-    setSelectedUser(user);
+    setSelectedUser(ensureMongoId(user));
     setIsViewUserOpen(true);
   };
 
   const handleEdit = (user: User) => {
-    setSelectedUser(user);
+    setSelectedUser(ensureMongoId(user));
     setIsEditUserOpen(true);
   };
 
@@ -211,15 +212,15 @@ const UserManagement = () => {
                 </TableRow>
               ) : (
                 users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.id.substring(0, 8)}</TableCell>
+                  <TableRow key={user._id}>
+                    <TableCell className="font-medium">{user._id.substring(0, 8)}</TableCell>
                     <TableCell>{user.full_name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
                       <RoleBadge value={user.role} />
                     </TableCell>
                     <TableCell>
-                      <StatusToggle value={user.is_active !== false} userId={user.id} />
+                      <StatusToggle value={user.is_active !== false} userId={user._id} />
                     </TableCell>
                     <TableCell>
                       {format(new Date(user.created_at), 'MMM d, yyyy')}

@@ -15,12 +15,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { adminUserService } from '@/services/api-service';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { User } from '@/types/api-responses';
+import { getMongoId } from '@/lib/mongo-helpers';
 
 interface ActionMenuProps {
   user: User;
@@ -31,6 +31,8 @@ interface ActionMenuProps {
 const ActionMenu = ({ user, onEdit, onView }: ActionMenuProps) => {
   const [confirmDelete, setConfirmDelete] = React.useState(false);
   const queryClient = useQueryClient();
+  
+  const userId = getMongoId(user);
   
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -63,6 +65,11 @@ const ActionMenu = ({ user, onEdit, onView }: ActionMenuProps) => {
     },
   });
 
+  if (!userId) {
+    console.error("User ID is missing in ActionMenu component", user);
+    return null;
+  }
+
   return (
     <>
       <DropdownMenu>
@@ -84,7 +91,7 @@ const ActionMenu = ({ user, onEdit, onView }: ActionMenuProps) => {
           
           {user.role !== 'admin' && (
             <DropdownMenuItem 
-              onClick={() => promoteMutation.mutate(user.id)}
+              onClick={() => promoteMutation.mutate(userId)}
               disabled={promoteMutation.isPending}
             >
               <ArrowUp className="mr-2 h-4 w-4" />
@@ -94,7 +101,7 @@ const ActionMenu = ({ user, onEdit, onView }: ActionMenuProps) => {
           
           {user.role === 'admin' && (
             <DropdownMenuItem 
-              onClick={() => demoteMutation.mutate(user.id)}
+              onClick={() => demoteMutation.mutate(userId)}
               disabled={demoteMutation.isPending}
             >
               <ArrowDown className="mr-2 h-4 w-4" />
@@ -129,7 +136,7 @@ const ActionMenu = ({ user, onEdit, onView }: ActionMenuProps) => {
             </Button>
             <Button 
               variant="destructive" 
-              onClick={() => deleteMutation.mutate(user.id)}
+              onClick={() => deleteMutation.mutate(userId)}
               disabled={deleteMutation.isPending}
             >
               Delete

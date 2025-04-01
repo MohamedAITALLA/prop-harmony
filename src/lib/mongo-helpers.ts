@@ -11,30 +11,24 @@
 export function ensureMongoId<T extends Record<string, any>>(obj: T): T & { _id: string; id: string } {
   if (!obj) return obj as any;
   
-  // If we already have _id, use that
+  const result = { ...obj };
+  
+  // If we already have _id, ensure id is also present for backwards compatibility
   if (obj._id) {
-    return {
-      ...obj,
-      id: obj._id // Ensure id is also present for backwards compatibility
-    };
+    result.id = obj._id;
   }
-  
   // If we have id but no _id, use id as _id
-  if (obj.id && !obj._id) {
-    return {
-      ...obj,
-      _id: obj.id
-    };
+  else if (obj.id && !obj._id) {
+    result._id = obj.id;
   }
   
-  // If we have neither id nor _id, this function can't help
-  return obj as any;
+  return result as T & { _id: string; id: string };
 }
 
 /**
  * Maps all objects in an array to ensure they have MongoDB _id fields
  */
-export function ensureMongoIds<T extends Record<string, any>>(arr: T[]): (T & { _id: string })[] {
+export function ensureMongoIds<T extends Record<string, any>>(arr: T[]): (T & { _id: string, id: string })[] {
   if (!arr) return arr as any;
   return arr.map(item => ensureMongoId(item));
 }

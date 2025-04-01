@@ -18,6 +18,7 @@ import { adminUserService } from '@/services/api-service';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { User } from '@/types/api-responses';
+import { getMongoId, ensureMongoId } from '@/lib/mongo-helpers';
 
 interface UserFormProps {
   user?: User;
@@ -35,6 +36,7 @@ const userSchema = z.object({
 const UserForm = ({ user, onSuccess }: UserFormProps) => {
   const isNew = !user;
   const queryClient = useQueryClient();
+  const userId = user ? getMongoId(user) : '';
   
   const form = useForm<z.infer<typeof userSchema>>({
     resolver: zodResolver(
@@ -56,11 +58,11 @@ const UserForm = ({ user, onSuccess }: UserFormProps) => {
     mutationFn: async (data: z.infer<typeof userSchema>) => {
       if (isNew) {
         return adminUserService.createUser(data as any);
-      } else if (user) {
+      } else if (userId) {
         // Only include password if it was provided
         const updateData = { ...data };
         if (!updateData.password) delete updateData.password;
-        return adminUserService.updateUser(user.id, updateData);
+        return adminUserService.updateUser(userId, updateData);
       }
       throw new Error("Invalid operation");
     },

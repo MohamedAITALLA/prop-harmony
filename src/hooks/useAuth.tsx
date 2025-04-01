@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { User } from "@/types/api-responses";
 import { authService, profileService } from "@/services/api-service";
+import { ensureMongoId } from "@/lib/mongo-helpers";
 
 // Enable development mode to bypass authentication
 const DEV_MODE = false; // Set to false to use the actual API
@@ -25,32 +26,6 @@ interface RegisterData {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Helper function to ensure MongoDB _id is present
-const ensureMongoId = (userData: any): User => {
-  if (userData) {
-    // If _id is missing but id exists, use id as _id
-    if (!userData._id && userData.id) {
-      userData._id = userData.id;
-    }
-    
-    // Ensure other required properties match the User interface
-    return {
-      _id: userData._id,
-      id: userData._id, // For backwards compatibility
-      email: userData.email,
-      first_name: userData.first_name,
-      last_name: userData.last_name,
-      full_name: userData.full_name || `${userData.first_name} ${userData.last_name}`,
-      role: userData.role || 'user',
-      is_admin: userData.is_admin || false,
-      is_active: userData.is_active,
-      created_at: userData.created_at || new Date().toISOString(),
-      updated_at: userData.updated_at || new Date().toISOString()
-    };
-  }
-  return userData;
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -62,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (DEV_MODE) {
         const mockUser: User = {
           _id: "dev-user-id",
+          id: "dev-user-id", // For backwards compatibility
           email: "dev@example.com",
           first_name: "Developer",
           last_name: "User",
@@ -113,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (DEV_MODE) {
         const mockUser: User = {
           _id: "dev-user-id",
+          id: "dev-user-id", // For backwards compatibility
           email: email || "dev@example.com",
           first_name: "Developer",
           last_name: "User",
@@ -163,6 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (DEV_MODE) {
         const mockUser: User = {
           _id: "dev-user-id",
+          id: "dev-user-id", // For backwards compatibility
           email: userData.email,
           first_name: userData.firstName,
           last_name: userData.lastName,
