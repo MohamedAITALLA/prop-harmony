@@ -20,6 +20,7 @@ import { adminProfileService } from '@/services/api-service';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { UserProfile } from '@/types/api-responses';
+import { getMongoId } from '@/lib/mongo-helpers';
 
 interface ProfileActionMenuProps {
   profile: UserProfile;
@@ -35,12 +36,19 @@ const ProfileActionMenu = ({ profile, onEdit, onView }: ProfileActionMenuProps) 
     mutationFn: async (userId: string) => {
       return adminProfileService.resetUserProfile(userId);
     },
-    onSuccess: () => {
-      toast.success('User profile reset successfully');
+    onSuccess: (data) => {
+      toast.success(data.message || 'User profile reset successfully');
       queryClient.invalidateQueries({ queryKey: ['userProfiles'] });
       setConfirmReset(false);
     },
   });
+
+  const userId = profile.user_id;
+  
+  if (!userId) {
+    console.error("User ID is missing in ProfileActionMenu component", profile);
+    return null;
+  }
 
   return (
     <>
@@ -87,7 +95,7 @@ const ProfileActionMenu = ({ profile, onEdit, onView }: ProfileActionMenuProps) 
             </Button>
             <Button 
               variant="destructive" 
-              onClick={() => resetMutation.mutate(profile.user_id)}
+              onClick={() => resetMutation.mutate(userId)}
               disabled={resetMutation.isPending}
             >
               Reset Profile

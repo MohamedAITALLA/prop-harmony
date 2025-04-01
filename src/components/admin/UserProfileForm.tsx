@@ -18,6 +18,7 @@ import { adminProfileService } from '@/services/api-service';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { UserProfile, UserPreferences } from '@/types/api-responses';
+import { getMongoId } from '@/lib/mongo-helpers';
 import {
   Select,
   SelectContent,
@@ -67,8 +68,15 @@ const UserProfileForm = ({ profile, onSuccess }: UserProfileFormProps) => {
         onboarding_completed,
       });
     },
-    onSuccess: () => {
-      toast.success('User profile updated successfully');
+    onSuccess: (data) => {
+      const successMessage = data.message || 'User profile updated successfully';
+      toast.success(successMessage);
+      
+      const updatedFields = data.updated_fields || [];
+      if (updatedFields.length > 0) {
+        console.log('Updated profile fields:', updatedFields.join(', '));
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['userProfiles'] });
       if (onSuccess) onSuccess();
     },

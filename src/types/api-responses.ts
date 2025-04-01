@@ -89,6 +89,37 @@ export interface ProfileResponse {
   };
 }
 
+export interface ProfileUpdateResponse {
+  success: boolean;
+  data: UserProfile;
+  message: string;
+  timestamp: string;
+  updated_fields: string[];
+  profile_status: {
+    onboarding_completed: boolean;
+    preferences_set: boolean;
+    contact_info_set: boolean;
+  };
+}
+
+export interface ProfileResetResponse {
+  success: boolean;
+  data: UserProfile;
+  message: string;
+  timestamp: string;
+  action: string;
+  previous_settings: {
+    had_preferences: boolean;
+    had_contact_info: boolean;
+    was_onboarded: boolean;
+  };
+  current_settings: {
+    has_preferences: boolean;
+    has_contact_info: boolean;
+    is_onboarded: boolean;
+  };
+}
+
 // Property Responses
 export interface Address {
   city: string;
@@ -371,10 +402,71 @@ export interface UsersResponse extends ApiResponse<{
   total_pages: number;
 }> {}
 
+// Admin Profile Management Responses
+export interface UserProfileWithUserDetails extends UserProfile {
+  user_details?: {
+    email: string;
+    first_name: string;
+    last_name: string;
+    full_name: string;
+  };
+}
+
 export interface UserProfilesResponse extends ApiResponse<{
   profiles: UserProfile[];
   total: number;
   page: number;
   limit: number;
   total_pages: number;
+  meta?: {
+    profiles_with_onboarding_completed?: number;
+    profiles_with_contact_info?: number;
+    has_next_page?: boolean;
+    has_previous_page?: boolean;
+    next_page?: number | null;
+    previous_page?: number | null;
+  };
+}> {}
+
+export interface AdminProfileResponse extends ApiResponse<{
+  profile: UserProfileWithUserDetails;
+  profile_status?: {
+    onboarding_completed: boolean;
+    preferences_set: boolean;
+    contact_info_set: boolean;
+  };
+}> {}
+
+export interface AdminProfileUpdateResponse extends ApiResponse<{
+  profile: UserProfileWithUserDetails;
+  updated_by: string;
+  updated_fields: string[];
+  previous_values: {
+    preferences: Record<string, any>;
+    contact_info: Record<string, any>;
+    onboarding_completed: boolean;
+  };
+  profile_status: {
+    onboarding_completed: boolean;
+    preferences_set: boolean;
+    contact_info_set: boolean;
+  };
+}> {}
+
+export interface AdminProfileResetResponse extends ApiResponse<{
+  profile: UserProfileWithUserDetails;
+  action: string;
+  reset_by: string;
+  previous_state: {
+    preferences: Record<string, any>;
+    contact_info: Record<string, any>;
+    onboarding_completed: boolean;
+    had_preferences: boolean;
+    had_contact_info: boolean;
+  };
+  current_state: {
+    preferences: Record<string, any>;
+    contact_info: Record<string, any>;
+    onboarding_completed: boolean;
+  };
 }> {}

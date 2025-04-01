@@ -13,10 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { UserPreferences } from "@/types/api-responses";
 import { Loader2, Check, AlertCircle } from "lucide-react";
-
-interface ProfileSettingsProps {
-  // Define any props here
-}
+import { normalizeMongoObject } from "@/lib/mongo-helpers";
 
 export default function ProfileSettings() {
   const queryClient = useQueryClient();
@@ -56,17 +53,26 @@ export default function ProfileSettings() {
   // Populate state when profile data is available
   React.useEffect(() => {
     if (profileData) {
-      setPreferences(profileData.data.preferences);
-      setContactInfo(profileData.data.contact_info);
+      // Normalize the data to ensure consistent ID fields
+      const normalizedData = normalizeMongoObject(profileData.data);
+      setPreferences(normalizedData.preferences);
+      setContactInfo(normalizedData.contact_info);
     }
   }, [profileData]);
   
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: profileService.updateProfile,
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
-      toast.success("Profile updated successfully");
+      
+      // Use message from the API response
+      toast.success(data.message || "Profile updated successfully");
+      
+      // Log updated fields if available
+      if (data.updated_fields && data.updated_fields.length > 0) {
+        console.log('Updated fields:', data.updated_fields.join(', '));
+      }
     },
     onError: (error) => {
       toast.error("Failed to update profile");
@@ -77,9 +83,15 @@ export default function ProfileSettings() {
   // Reset profile mutation
   const resetProfileMutation = useMutation({
     mutationFn: profileService.resetProfile,
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
-      toast.success("Profile preferences reset to default values");
+      toast.success(data.message || "Profile preferences reset to default values");
+      
+      // Update local state with the reset values
+      if (data.data) {
+        setPreferences(data.data.preferences);
+        setContactInfo(data.data.contact_info);
+      }
     },
     onError: (error) => {
       toast.error("Failed to reset profile preferences");
@@ -147,6 +159,13 @@ export default function ProfileSettings() {
       </Alert>
     );
   }
+  
+  const profileStatus = profileData.profile_status || {
+    is_new: false,
+    onboarding_completed: profileData.data.onboarding_completed,
+    preferences_set: Boolean(Object.keys(profileData.data.preferences || {}).length),
+    contact_info_set: Boolean(Object.keys(profileData.data.contact_info || {}).length)
+  };
   
   return (
     <div className="container mx-auto py-10">
@@ -411,8 +430,8 @@ export default function ProfileSettings() {
         </CardContent>
       </Card>
       
-      {/* Onboarding Completion */}
-      {!profileData.data.onboarding_completed && (
+      {/* Show onboarding card only if onboarding is not completed */}
+      {!profileStatus.onboarding_completed && (
         <Card className="mt-6">
           <CardHeader>
             <CardTitle>Complete Onboarding</CardTitle>

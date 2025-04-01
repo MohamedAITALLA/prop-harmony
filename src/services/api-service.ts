@@ -1,8 +1,11 @@
+
 import api from "@/lib/api";
 import { 
   AuthResponse, 
   RegisterResponse, 
   ProfileResponse,
+  ProfileUpdateResponse,
+  ProfileResetResponse,
   PropertiesResponse,
   PropertyResponse,
   ICalConnectionsResponse,
@@ -12,11 +15,15 @@ import {
   ApiResponse,
   UsersResponse,
   UserProfilesResponse,
+  AdminProfileResponse,
+  AdminProfileUpdateResponse,
+  AdminProfileResetResponse,
   SyncLogsResponse,
   User,
   ICalConnection,
   CalendarEvent,
-  NotificationSettings
+  NotificationSettings,
+  UserProfile
 } from "@/types/api-responses";
 
 // Authentication Services
@@ -61,14 +68,13 @@ export const profileService = {
     contact_info: Record<string, any>;
     onboarding_completed: boolean;
     password_update: { current: string; new: string };
-    preferences_reset: boolean;
-  }>): Promise<ProfileResponse> => {
-    const response = await api.put<ProfileResponse>("/user-profile", profileData);
+  }>): Promise<ProfileUpdateResponse> => {
+    const response = await api.put<ProfileUpdateResponse>("/user-profile", profileData);
     return response.data;
   },
   
-  resetProfile: async (): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await api.post<ApiResponse<{ success: boolean }>>("/user-profile/reset");
+  resetProfile: async (): Promise<ProfileResetResponse> => {
+    const response = await api.post<ProfileResetResponse>("/user-profile/reset");
     return response.data;
   }
 };
@@ -487,21 +493,22 @@ export const adminProfileService = {
     return response.data;
   },
   
-  getUserProfile: async (userId: string): Promise<ApiResponse<{ profile: Record<string, any> }>> => {
-    const response = await api.get<ApiResponse<{ profile: Record<string, any> }>>(`/admin/user-profiles/${userId}`);
+  getUserProfile: async (userId: string): Promise<AdminProfileResponse> => {
+    const response = await api.get<AdminProfileResponse>(`/admin/user-profiles/${userId}`);
     return response.data;
   },
   
   updateUserProfile: async (userId: string, profileData: Partial<{
     preferences: Record<string, any>;
+    contact_info: Record<string, any>;
     onboarding_completed: boolean;
-  }>): Promise<ApiResponse<{ profile: Record<string, any> }>> => {
-    const response = await api.put<ApiResponse<{ profile: Record<string, any> }>>(`/admin/user-profiles/${userId}`, profileData);
+  }>): Promise<AdminProfileUpdateResponse> => {
+    const response = await api.put<AdminProfileUpdateResponse>(`/admin/user-profiles/${userId}`, profileData);
     return response.data;
   },
   
-  resetUserProfile: async (userId: string): Promise<ApiResponse<{ profile: Record<string, any> }>> => {
-    const response = await api.post<ApiResponse<{ profile: Record<string, any> }>>(`/admin/user-profiles/${userId}/reset`);
+  resetUserProfile: async (userId: string): Promise<AdminProfileResetResponse> => {
+    const response = await api.post<AdminProfileResetResponse>(`/admin/user-profiles/${userId}/reset`);
     return response.data;
   }
 };

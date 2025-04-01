@@ -20,7 +20,7 @@ import { adminUserService } from '@/services/api-service';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { User } from '@/types/api-responses';
-import { getMongoId } from '@/lib/mongo-helpers';
+import { getMongoId, normalizeMongoObject } from '@/lib/mongo-helpers';
 
 interface ActionMenuProps {
   user: User;
@@ -32,14 +32,16 @@ const ActionMenu = ({ user, onEdit, onView }: ActionMenuProps) => {
   const [confirmDelete, setConfirmDelete] = React.useState(false);
   const queryClient = useQueryClient();
   
-  const userId = getMongoId(user);
+  // Normalize user object to ensure consistent ID fields
+  const normalizedUser = normalizeMongoObject(user);
+  const userId = normalizedUser._id;
   
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       return adminUserService.deleteUser(id);
     },
-    onSuccess: () => {
-      toast.success('User deleted successfully');
+    onSuccess: (data) => {
+      toast.success(data.message || 'User deleted successfully');
       queryClient.invalidateQueries({ queryKey: ['users'] });
       setConfirmDelete(false);
     },
@@ -49,8 +51,8 @@ const ActionMenu = ({ user, onEdit, onView }: ActionMenuProps) => {
     mutationFn: async (id: string) => {
       return adminUserService.promoteUser(id);
     },
-    onSuccess: () => {
-      toast.success('User promoted to admin');
+    onSuccess: (data) => {
+      toast.success(data.message || 'User promoted to admin');
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
@@ -59,8 +61,8 @@ const ActionMenu = ({ user, onEdit, onView }: ActionMenuProps) => {
     mutationFn: async (id: string) => {
       return adminUserService.demoteUser(id);
     },
-    onSuccess: () => {
-      toast.success('User demoted from admin');
+    onSuccess: (data) => {
+      toast.success(data.message || 'User demoted from admin');
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
@@ -80,16 +82,16 @@ const ActionMenu = ({ user, onEdit, onView }: ActionMenuProps) => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onView(user)}>
+          <DropdownMenuItem onClick={() => onView(normalizedUser)}>
             <Eye className="mr-2 h-4 w-4" />
             View
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onEdit(user)}>
+          <DropdownMenuItem onClick={() => onEdit(normalizedUser)}>
             <Edit className="mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
           
-          {user.role !== 'admin' && (
+          {normalizedUser.role !== 'admin' && (
             <DropdownMenuItem 
               onClick={() => promoteMutation.mutate(userId)}
               disabled={promoteMutation.isPending}
@@ -99,7 +101,7 @@ const ActionMenu = ({ user, onEdit, onView }: ActionMenuProps) => {
             </DropdownMenuItem>
           )}
           
-          {user.role === 'admin' && (
+          {normalizedUser.role === 'admin' && (
             <DropdownMenuItem 
               onClick={() => demoteMutation.mutate(userId)}
               disabled={demoteMutation.isPending}

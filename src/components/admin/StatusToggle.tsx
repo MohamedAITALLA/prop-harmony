@@ -5,7 +5,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { adminUserService } from '@/services/api-service';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { getMongoId } from '@/lib/mongo-helpers';
+import { getMongoId, normalizeMongoObject } from '@/lib/mongo-helpers';
 
 interface StatusToggleProps {
   value: boolean;
@@ -18,8 +18,8 @@ const StatusToggle = ({ value, userId }: StatusToggleProps) => {
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
       return adminUserService.updateUser(id, { is_active: isActive });
     },
-    onSuccess: () => {
-      toast.success('User status updated successfully');
+    onSuccess: (data) => {
+      toast.success(data.message || 'User status updated successfully');
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
