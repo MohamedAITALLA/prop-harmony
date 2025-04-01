@@ -14,6 +14,7 @@ import PropertyDetails from "./pages/PropertyDetails";
 import Calendar from "./pages/Calendar";
 import EventManagement from "./pages/EventManagement";
 import Notifications from "./pages/Notifications";
+import ProfileSettings from "./pages/ProfileSettings";
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/layout/MainLayout";
 import ComponentsDemo from "./pages/ComponentsDemo";
@@ -72,10 +73,10 @@ const App = () => (
             <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
             <Route path="/events" element={<ProtectedRoute><EventManagement /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
             <Route path="/conflicts" element={<ProtectedRoute><PlaceholderPage title="Conflicts" /></ProtectedRoute>} />
             <Route path="/sync" element={<ProtectedRoute><PlaceholderPage title="Synchronization" /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><PlaceholderPage title="Analytics" /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><PlaceholderPage title="Profile" /></ProtectedRoute>} />
             <Route path="/preferences" element={<ProtectedRoute><PlaceholderPage title="Preferences" /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><PlaceholderPage title="Admin" /></ProtectedRoute>} />
             
