@@ -71,12 +71,14 @@ export default function Conflicts() {
   const [dismissingConflictId, setDismissingConflictId] = useState<string | null>(null);
   const [dismissingPropertyId, setDismissingPropertyId] = useState<string | null>(null);
 
+  // Fix the properties query to properly handle the response
   const { data: propertiesData } = useQuery({
     queryKey: ["properties"],
     queryFn: async () => {
       try {
         const response = await propertyService.getAllProperties();
-        return Array.isArray(response.data.properties) ? response.data.properties : [];
+        // Ensure we return an array of properties
+        return response?.data?.properties || [];
       } catch (error) {
         console.error("Error fetching properties:", error);
         return [];
@@ -90,7 +92,7 @@ export default function Conflicts() {
       try {
         if (propertyId) {
           const response = await conflictService.getConflicts(propertyId, {
-            status: status !== "" ? status : undefined
+            status: status !== "all" ? status : undefined
           });
           return response.data;
         } else {
@@ -199,7 +201,7 @@ export default function Conflicts() {
         updated_at: "2023-09-15T14:30:00Z",
         platforms: ["Vrbo", "TripAdvisor"]
       }
-    ].filter(conflict => status === "" || conflict.status === status);
+    ].filter(conflict => status === "all" || conflict.status === status);
   };
 
   const convertMockToConflict = (mockConflict: MockConflict): Conflict => {
@@ -211,6 +213,9 @@ export default function Conflicts() {
       platforms: mockConflict.platforms
     };
   };
+
+  // Create a safe array of properties for the select dropdown
+  const propertiesList = Array.isArray(propertiesData) ? propertiesData : [];
 
   return (
     <div className="space-y-6">
@@ -232,7 +237,8 @@ export default function Conflicts() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All properties</SelectItem>
-              {propertiesData?.map((property: Property) => (
+              {/* Use the safe properties list */}
+              {propertiesList.map((property: Property) => (
                 <SelectItem key={property.id} value={property.id}>
                   {property.name}
                 </SelectItem>
@@ -409,4 +415,3 @@ export default function Conflicts() {
     </div>
   );
 }
-
