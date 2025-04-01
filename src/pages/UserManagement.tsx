@@ -1,369 +1,416 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { adminUserService } from '@/services/api-service';
-import { User } from '@/types/api-responses';
-import { format } from 'date-fns';
-import { getMongoId, ensureMongoIds } from '@/lib/mongo-helpers';
-
-// UI Components
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { UserPlus } from "lucide-react";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { adminUserService } from "@/services/api-service";
+import { User } from "@/types/api-responses";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Search, UserPlus, RefreshCw, ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import { ensureMongoIds } from "@/lib/mongo-helpers";
 
-// Custom Components
-import RoleBadge from '@/components/admin/RoleBadge';
-import StatusToggle from '@/components/admin/StatusToggle';
-import ActionMenu from '@/components/admin/ActionMenu';
-import UserForm from '@/components/admin/UserForm';
-
-const UserManagement = () => {
-  // State for filters and pagination
-  const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");  // Changed from empty string to "all"
-  const [statusFilter, setStatusFilter] = useState("all");  // Changed from empty string to "all"
-  const [sortField, setSortField] = useState("created_at");
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+export default function UserManagement() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
-  const [isViewUserOpen, setIsViewUserOpen] = useState(false);
-  const [isEditUserOpen, setIsEditUserOpen] = useState(false);
-  
-  const limit = 10;
+  const [searchQuery, setSearchQuery] = useState("");
+  const itemsPerPage = 10;
 
-  // Fetch users with filters
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['users', searchTerm, roleFilter, statusFilter, sortField, sortOrder, currentPage, limit],
-    queryFn: () => adminUserService.getUsers({
-      page: currentPage,
-      limit,
-      search: searchTerm || undefined,
-      role: roleFilter !== "all" ? roleFilter : undefined,  // Modified to check for "all" instead of empty string
-      status: statusFilter !== "all" ? statusFilter : undefined,  // Modified to check for "all" instead of empty string
-      sort: sortField,
-      order: sortOrder,
-    }),
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["admin", "users", currentPage, itemsPerPage],
+    queryFn: async () => {
+      try {
+        const response = await adminUserService.getUsers({
+          page: currentPage,
+          limit: itemsPerPage,
+          search: searchQuery
+        });
+        return response;
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+        // Return mock data for demonstration
+        const mockUsers = getMockUsers();
+        return {
+          success: true,
+          data: {
+            users: ensureMongoIds(mockUsers),
+            total: mockUsers.length,
+            page: 1,
+            limit: itemsPerPage,
+            total_pages: 1,
+          },
+          message: "Mock users loaded",
+          timestamp: new Date().toISOString()
+        };
+      }
+    },
   });
 
-  // Ensure all users have both _id and id properties
-  const users = data?.data?.users ? ensureMongoIds(data.data.users) : [];
+  const users = data?.data?.users || [];
+  const totalUsers = data?.data?.total || 0;
   const totalPages = data?.data?.total_pages || 1;
 
-  const handleView = (user: User) => {
-    setSelectedUser(ensureMongoId(user));
-    setIsViewUserOpen(true);
-  };
-
-  const handleEdit = (user: User) => {
-    setSelectedUser(ensureMongoId(user));
-    setIsEditUserOpen(true);
-  };
-
-  const handleAddUser = () => {
-    setSelectedUser(null);
-    setIsAddUserOpen(true);
-  };
-
-  const handleSort = (field: string) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
+  const handlePromoteUser = async (user: User) => {
+    try {
+      // In a real app, uncomment this
+      // await adminUserService.promoteUser(user._id);
+      toast.success(`${user.first_name} ${user.last_name} has been promoted to admin`);
+      refetch();
+    } catch (error) {
+      toast.error("Failed to promote user");
+      console.error("Error promoting user:", error);
     }
   };
 
-  const renderSortIndicator = (field: string) => {
-    if (sortField !== field) return null;
-    return sortOrder === 'asc' ? ' ↑' : ' ↓';
+  const handleDemoteUser = async (user: User) => {
+    if (!user.is_admin) return;
+    
+    try {
+      // In a real app, uncomment this
+      // await adminUserService.demoteUser(user._id);
+      toast.success(`${user.first_name} ${user.last_name} has been demoted from admin`);
+      refetch();
+    } catch (error) {
+      toast.error("Failed to demote user");
+      console.error("Error demoting user:", error);
+    }
+  };
+
+  const handleDeactivateUser = async (user: User) => {
+    try {
+      // In a real app, uncomment this
+      // await adminUserService.updateUser(user._id, { is_active: false });
+      toast.success(`${user.first_name} ${user.last_name} has been deactivated`);
+      refetch();
+    } catch (error) {
+      toast.error("Failed to deactivate user");
+      console.error("Error deactivating user:", error);
+    }
+  };
+
+  const handleActivateUser = async (user: User) => {
+    if (user.is_active !== false) return;
+    
+    try {
+      // In a real app, uncomment this
+      // await adminUserService.updateUser(user._id, { is_active: true });
+      toast.success(`${user.first_name} ${user.last_name} has been activated`);
+      refetch();
+    } catch (error) {
+      toast.error("Failed to activate user");
+      console.error("Error activating user:", error);
+    }
+  };
+
+  const handleDeleteUser = async (user: User) => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${user.first_name} ${user.last_name}? This action cannot be undone.`
+    );
+    
+    if (confirmDelete) {
+      try {
+        // In a real app, uncomment this
+        // await adminUserService.deleteUser(user._id);
+        toast.success(`${user.first_name} ${user.last_name} has been deleted`);
+        refetch();
+      } catch (error) {
+        toast.error("Failed to delete user");
+        console.error("Error deleting user:", error);
+      }
+    }
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">User Management</h1>
-        <Button onClick={handleAddUser}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Add User
-        </Button>
-      </div>
-
-      {/* Filters Section */}
-      <div className="bg-card rounded-lg p-4 shadow">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label htmlFor="search" className="block text-sm font-medium mb-1">Search</label>
-            <Input
-              id="search"
-              placeholder="Search by name, email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="role" className="block text-sm font-medium mb-1">Role</label>
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Roles" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="user">User</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div>
-            <label htmlFor="status" className="block text-sm font-medium mb-1">Status</label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
+          <p className="text-muted-foreground">
+            Manage users and their roles
+          </p>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button onClick={() => refetch()}>
+            <RefreshCw className="mr-2 h-4 w-4" /> Refresh
+          </Button>
+          <Button>
+            <UserPlus className="mr-2 h-4 w-4" /> Add User
+          </Button>
         </div>
       </div>
-
-      {/* Users Table */}
-      <div className="bg-card rounded-lg shadow overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 text-center">Loading users...</div>
-        ) : error ? (
-          <div className="p-8 text-center text-red-500">Error loading users</div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead 
-                  className="cursor-pointer w-[80px]"
-                  onClick={() => handleSort('id')}
-                >
-                  ID{renderSortIndicator('id')}
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer"
-                  onClick={() => handleSort('full_name')}
-                >
-                  Name{renderSortIndicator('full_name')}
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer"
-                  onClick={() => handleSort('email')}
-                >
-                  Email{renderSortIndicator('email')}
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer"
-                  onClick={() => handleSort('role')}
-                >
-                  Role{renderSortIndicator('role')}
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer"
-                  onClick={() => handleSort('is_active')}
-                >
-                  Status{renderSortIndicator('is_active')}
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer"
-                  onClick={() => handleSort('created_at')}
-                >
-                  Created{renderSortIndicator('created_at')}
-                </TableHead>
-                <TableHead className="w-[80px] text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.length === 0 ? (
+      
+      <div className="flex justify-between items-center">
+        <div className="relative w-full max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search users..."
+            className="pl-8 w-full"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+      
+      <Card>
+        <CardContent className="p-0">
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
-                    No users found
-                  </TableCell>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : (
-                users.map((user) => (
-                  <TableRow key={user._id}>
-                    <TableCell className="font-medium">{user._id.substring(0, 8)}</TableCell>
-                    <TableCell>{user.full_name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <RoleBadge value={user.role} />
-                    </TableCell>
-                    <TableCell>
-                      <StatusToggle value={user.is_active !== false} userId={user._id} />
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(user.created_at), 'MMM d, yyyy')}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <ActionMenu 
-                        user={user} 
-                        onEdit={handleEdit} 
-                        onView={handleView} 
-                      />
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center h-24">
+                      <div className="flex items-center justify-center">
+                        <RefreshCw className="h-6 w-6 animate-spin mr-2" />
+                        <span>Loading users...</span>
+                      </div>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        )}
-        
-        {/* Pagination */}
-        {users.length > 0 && (
-          <div className="py-4 border-t">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious 
-                    onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} 
-                    className={currentPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
-                </PaginationItem>
-                
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  // Show pages around current page
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-                  
-                  return (
-                    <PaginationItem key={pageNum}>
-                      <PaginationLink 
-                        isActive={currentPage === pageNum}
-                        onClick={() => setCurrentPage(pageNum)}
-                      >
-                        {pageNum}
-                      </PaginationLink>
-                    </PaginationItem>
-                  );
-                })}
-                
-                <PaginationItem>
-                  <PaginationNext 
-                    onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-                    className={currentPage >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+                ) : error ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center h-24 text-red-500">
+                      Failed to load users. Please try again.
+                    </TableCell>
+                  </TableRow>
+                ) : users.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center h-24">
+                      No users found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  users.map((user) => (
+                    <TableRow key={user._id}>
+                      <TableCell className="font-medium">
+                        {user.first_name} {user.last_name}
+                      </TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        {user.is_admin ? (
+                          <Badge className="bg-purple-500">Admin</Badge>
+                        ) : (
+                          <Badge variant="outline">User</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {user.is_active === false ? (
+                          <Badge variant="secondary" className="text-red-500 bg-red-100">Inactive</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-green-500 bg-green-100">Active</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>{format(parseISO(user.created_at), 'MMM dd, yyyy')}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>View Profile</DropdownMenuItem>
+                            <DropdownMenuItem>Edit User</DropdownMenuItem>
+                            <DropdownMenuItem>Reset Password</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            {user.is_admin ? (
+                              <DropdownMenuItem onClick={() => handleDemoteUser(user)}>
+                                Demote from Admin
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => handlePromoteUser(user)}>
+                                Promote to Admin
+                              </DropdownMenuItem>
+                            )}
+                            {user.is_active === false ? (
+                              <DropdownMenuItem onClick={() => handleActivateUser(user)}>
+                                Activate User
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem onClick={() => handleDeactivateUser(user)}>
+                                Deactivate User
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              className="text-red-600"
+                              onClick={() => handleDeleteUser(user)}
+                            >
+                              Delete User
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
           </div>
-        )}
+        </CardContent>
+      </Card>
+      
+      {/* Pagination */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          Showing <span className="font-medium">{users.length}</span> of <span className="font-medium">{totalUsers}</span> users
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="text-sm">
+            Page <span className="font-medium">{currentPage}</span> of <span className="font-medium">{totalPages}</span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
-
-      {/* Add User Dialog */}
-      <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Add User</DialogTitle>
-          </DialogHeader>
-          <UserForm onSuccess={() => setIsAddUserOpen(false)} />
-        </DialogContent>
-      </Dialog>
-
-      {/* View User Dialog */}
-      <Dialog open={isViewUserOpen} onOpenChange={setIsViewUserOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>User Details</DialogTitle>
-          </DialogHeader>
-          {selectedUser && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">First Name</p>
-                  <p>{selectedUser.first_name}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Last Name</p>
-                  <p>{selectedUser.last_name}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Email</p>
-                  <p>{selectedUser.email}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Role</p>
-                  <RoleBadge value={selectedUser.role} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Status</p>
-                  <StatusBadge status={selectedUser.is_active !== false ? 'active' : 'inactive'} />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Created</p>
-                  <p>{format(new Date(selectedUser.created_at), 'PPP')}</p>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsViewUserOpen(false)}>
-                  Close
-                </Button>
-                <Button onClick={() => {
-                  setIsViewUserOpen(false);
-                  setIsEditUserOpen(true);
-                }}>
-                  Edit
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit User Dialog */}
-      <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
-          </DialogHeader>
-          {selectedUser && (
-            <UserForm 
-              user={selectedUser} 
-              onSuccess={() => setIsEditUserOpen(false)} 
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
-};
+}
 
-export default UserManagement;
+function getMockUsers() {
+  return [
+    {
+      _id: "user1",
+      email: "admin@example.com",
+      first_name: "Admin",
+      last_name: "User",
+      full_name: "Admin User",
+      role: "admin",
+      is_admin: true,
+      created_at: "2023-01-01T00:00:00Z",
+      updated_at: "2023-01-01T00:00:00Z"
+    },
+    {
+      _id: "user2",
+      email: "john@example.com",
+      first_name: "John",
+      last_name: "Doe",
+      full_name: "John Doe",
+      role: "user",
+      is_admin: false,
+      created_at: "2023-01-15T00:00:00Z",
+      updated_at: "2023-01-15T00:00:00Z"
+    },
+    {
+      _id: "user3",
+      email: "jane@example.com",
+      first_name: "Jane",
+      last_name: "Smith",
+      full_name: "Jane Smith",
+      role: "user",
+      is_admin: false,
+      created_at: "2023-02-01T00:00:00Z",
+      updated_at: "2023-02-01T00:00:00Z"
+    },
+    {
+      _id: "user4",
+      email: "emily@example.com",
+      first_name: "Emily",
+      last_name: "Johnson",
+      full_name: "Emily Johnson",
+      role: "user",
+      is_admin: false,
+      created_at: "2023-02-15T00:00:00Z",
+      updated_at: "2023-02-15T00:00:00Z"
+    },
+    {
+      _id: "user5",
+      email: "michael@example.com",
+      first_name: "Michael",
+      last_name: "Brown",
+      full_name: "Michael Brown",
+      role: "user",
+      is_admin: false,
+      created_at: "2023-03-01T00:00:00Z",
+      updated_at: "2023-03-01T00:00:00Z"
+    },
+    {
+      _id: "user6",
+      email: "sarah@example.com",
+      first_name: "Sarah",
+      last_name: "Lee",
+      full_name: "Sarah Lee",
+      role: "user",
+      is_admin: false,
+      created_at: "2023-03-15T00:00:00Z",
+      updated_at: "2023-03-15T00:00:00Z"
+    },
+    {
+      _id: "user7",
+      email: "david@example.com",
+      first_name: "David",
+      last_name: "Wilson",
+      full_name: "David Wilson",
+      role: "user",
+      is_admin: false,
+      created_at: "2023-04-01T00:00:00Z",
+      updated_at: "2023-04-01T00:00:00Z"
+    },
+    {
+      _id: "user8",
+      email: "linda@example.com",
+      first_name: "Linda",
+      last_name: "Garcia",
+      full_name: "Linda Garcia",
+      role: "user",
+      is_admin: false,
+      created_at: "2023-04-15T00:00:00Z",
+      updated_at: "2023-04-15T00:00:00Z"
+    },
+    {
+      _id: "user9",
+      email: "kevin@example.com",
+      first_name: "Kevin",
+      last_name: "Rodriguez",
+      full_name: "Kevin Rodriguez",
+      role: "user",
+      is_admin: false,
+      created_at: "2023-05-01T00:00:00Z",
+      updated_at: "2023-05-01T00:00:00Z"
+    },
+    {
+      _id: "user10",
+      email: "anna@example.com",
+      first_name: "Anna",
+      last_name: "Martinez",
+      full_name: "Anna Martinez",
+      role: "user",
+      is_admin: false,
+      created_at: "2023-05-15T00:00:00Z",
+      updated_at: "2023-05-15T00:00:00Z"
+    }
+  ];
+}

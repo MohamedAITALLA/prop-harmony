@@ -57,3 +57,11 @@ export function getSafeId(obj: Record<string, any> | null | undefined): string |
   if (!obj) return undefined;
   return obj._id || obj.id;
 }
+
+/**
+ * Gets the ID of an object as a string, prioritizing _id and handling edge cases
+ */
+export function getIdString(obj: Record<string, any> | null | undefined): string {
+  if (!obj) return '';
+  return (obj._id || obj.id || '').toString();
+}

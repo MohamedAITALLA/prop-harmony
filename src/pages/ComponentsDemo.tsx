@@ -1,295 +1,161 @@
-import React from "react";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { PlatformIcon } from "@/components/ui/platform-icon";
-import { DateRange } from "@/components/ui/date-range";
-import { ConflictResolver } from "@/components/ui/conflict-resolver";
-import { NotificationsList } from "@/components/ui/notifications-list";
-import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
-import { PropertyCard } from "@/components/properties/PropertyCard";
-import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
-import { Property } from "@/types/api-responses";
-import { PropertyType } from "@/types/enums";
+
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Property } from '@/types/api-responses';
+import { PropertyType } from '@/types/enums';
+
+// Mock data and components for demonstration
+const mockProperty: Property = {
+  _id: "prop-1",
+  name: "Beachfront Villa",
+  property_type: PropertyType.VILLA,
+  address: {
+    street: "123 Ocean Drive",
+    city: "Malibu",
+    stateProvince: "CA",
+    postalCode: "90210",
+    country: "USA"
+  },
+  accommodates: 8,
+  bedrooms: 4,
+  bathrooms: 3.5,
+  images: ["https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop"],
+  description: "A beautiful beachfront villa with stunning views."
+};
 
 export default function ComponentsDemo() {
-  const { toast } = useToast();
-
-  // Sample property data
-  const sampleProperty: Property = {
-    id: "prop-123",
-    name: "Beachfront Villa",
-    property_type: PropertyType.VILLA,
-    address: {
-      city: "Malibu",
-      stateProvince: "CA",
-      country: "USA"
-    },
-    bedrooms: 3,
-    bathrooms: 2,
-    beds: 3,
-    accommodates: 6,
-    amenities: {},
-    policies: {},
-    images: ["https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop"],
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
-
-  // Sample notifications
-  const sampleNotifications = [
-    {
-      id: "1",
-      title: "New Booking",
-      message: "You have a new booking for Beachfront Villa from Airbnb",
-      type: "booking",
-      severity: "info",
-      read: false,
-      created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString() // 30 minutes ago
-    },
-    {
-      id: "2",
-      title: "Sync Complete",
-      message: "All properties have been synced successfully",
-      type: "sync",
-      severity: "success",
-      read: true,
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString() // 3 hours ago
-    },
-    {
-      id: "3",
-      title: "Booking Conflict",
-      message: "Double booking detected for Mountain Cabin on 05/15/2023",
-      type: "conflict",
-      severity: "error",
-      read: false,
-      created_at: new Date(Date.now() - 1000 * 60 * 60 * 1).toISOString() // 1 hour ago
-    }
-  ];
-
-  // Sample conflict events
-  const conflictEvents = [
-    {
-      id: "event-1",
-      platform: "Airbnb",
-      summary: "John Doe - 2 guests",
-      startDate: "2023-05-15T00:00:00Z",
-      endDate: "2023-05-18T00:00:00Z"
-    },
-    {
-      id: "event-2",
-      platform: "Booking.com",
-      summary: "Jane Smith - 3 guests",
-      startDate: "2023-05-16T00:00:00Z",
-      endDate: "2023-05-20T00:00:00Z"
-    }
-  ];
-
-  const handleNotificationMarkRead = (id: string) => {
-    toast({
-      title: "Notification marked as read",
-      description: `Marked notification ${id} as read`
-    });
-  };
-
-  const handleNotificationDelete = (id: string) => {
-    toast({
-      title: "Notification deleted",
-      description: `Deleted notification ${id}`
-    });
-  };
-
-  const handleMarkAllRead = () => {
-    toast({
-      title: "All notifications marked as read",
-      description: "All notifications have been marked as read"
-    });
-  };
-
-  const handleConflictResolve = async (action: string) => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    toast({
-      title: "Conflict Resolved",
-      description: `Action: ${action}`
-    });
-  };
-
   return (
-    <div className="container py-10 space-y-12">
+    <div className="space-y-10 p-10">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Component Library</h1>
-        <p className="text-muted-foreground mb-6">
-          A showcase of all the reusable components for the property management system
+        <h1 className="text-3xl font-bold tracking-tight">UI Components</h1>
+        <p className="text-muted-foreground">
+          This page showcases various UI components used in the application.
         </p>
       </div>
 
-      {/* StatusBadge Component */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Status Badges</h2>
-        <div className="flex flex-wrap gap-4">
-          <StatusBadge status="Active" />
-          <StatusBadge status="Pending" />
-          <StatusBadge status="Error" />
-          <StatusBadge status="Completed" />
-          <StatusBadge status="Inactive" />
-          <StatusBadge status="Processing" />
-        </div>
-        <div className="flex flex-wrap gap-4 mt-4">
-          <StatusBadge status="Success" size="sm" />
-          <StatusBadge status="Warning" size="md" />
-          <StatusBadge status="Error" size="lg" />
-        </div>
-      </section>
-      
-      <Separator />
+      <div className="grid gap-8">
+        {/* Forms Section */}
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">Forms</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Select Component</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a property type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="apartment">Apartment</SelectItem>
+                    <SelectItem value="house">House</SelectItem>
+                    <SelectItem value="villa">Villa</SelectItem>
+                    <SelectItem value="condo">Condo</SelectItem>
+                    <SelectItem value="cabin">Cabin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+            
+            {/* Additional form components would go here */}
+          </div>
+        </section>
 
-      {/* PlatformIcon Component */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Platform Icons</h2>
-        <div className="flex flex-wrap gap-6">
-          <div className="flex flex-col items-center">
-            <PlatformIcon platform="Airbnb" size={32} />
-            <span className="text-sm mt-2">Airbnb</span>
+        {/* Data Display Section */}
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">Data Display</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Scroll Area</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-72 rounded-md border p-4">
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium">Property Details</h4>
+                    <p>Name: {mockProperty.name}</p>
+                    <p>Type: {mockProperty.property_type}</p>
+                    <p>Location: {mockProperty.address.city}, {mockProperty.address.country}</p>
+                    <p>Accommodates: {mockProperty.accommodates} guests</p>
+                    <p>Bedrooms: {mockProperty.bedrooms}</p>
+                    <p>Bathrooms: {mockProperty.bathrooms}</p>
+                    <h4 className="text-sm font-medium pt-4">Description</h4>
+                    <p>{mockProperty.description}</p>
+                    <h4 className="text-sm font-medium pt-4">Address</h4>
+                    <p>{mockProperty.address.street}</p>
+                    <p>{mockProperty.address.city}, {mockProperty.address.stateProvince} {mockProperty.address.postalCode}</p>
+                    <p>{mockProperty.address.country}</p>
+                    <div className="h-20"></div> {/* Extra space to demonstrate scrolling */}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+            
+            {/* Additional data display components would go here */}
           </div>
-          <div className="flex flex-col items-center">
-            <PlatformIcon platform="booking.com" size={32} />
-            <span className="text-sm mt-2">Booking.com</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <PlatformIcon platform="Vrbo" size={32} />
-            <span className="text-sm mt-2">Vrbo</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <PlatformIcon platform="Expedia" size={32} />
-            <span className="text-sm mt-2">Expedia</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <PlatformIcon platform="TripAdvisor" size={32} />
-            <span className="text-sm mt-2">TripAdvisor</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <PlatformIcon platform="Direct" size={32} />
-            <span className="text-sm mt-2">Direct</span>
-          </div>
-          <div className="flex flex-col items-center">
-            <PlatformIcon platform="Unknown" size={32} />
-            <span className="text-sm mt-2">Unknown</span>
-          </div>
-        </div>
-      </section>
-      
-      <Separator />
+        </section>
 
-      {/* DateRange Component */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Date Range</h2>
-        <div className="space-y-4">
-          <DateRange 
-            startDate="2023-05-15T00:00:00Z" 
-            endDate="2023-05-20T00:00:00Z" 
-          />
-          <DateRange 
-            startDate="2023-06-01T00:00:00Z" 
-            endDate="2023-06-07T00:00:00Z" 
-            format="MMMM d, yyyy"
-            showIcon={false}
-          />
-          <DateRange 
-            startDate="2023-07-10T00:00:00Z" 
-            endDate="2023-07-15T00:00:00Z" 
-            format="yyyy-MM-dd"
-            className="text-primary"
-          />
-        </div>
-      </section>
-      
-      <Separator />
-
-      {/* SyncStatusBadge Component */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Sync Status Badges</h2>
-        <div className="flex flex-wrap gap-4">
-          <SyncStatusBadge 
-            status="success" 
-            lastSync={new Date(Date.now() - 1000 * 60 * 30).toISOString()} 
-          />
-          <SyncStatusBadge 
-            status="warning" 
-            lastSync={new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString()}
-            message="Some events could not be synced" 
-          />
-          <SyncStatusBadge 
-            status="error" 
-            lastSync={new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString()}
-            message="API error: Cannot connect to server" 
-          />
-          <SyncStatusBadge 
-            status="pending"
-          />
-        </div>
-      </section>
-      
-      <Separator />
-
-      {/* PropertyCard Component */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Property Card</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <PropertyCard property={sampleProperty} />
-          <PropertyCard 
-            property={{
-              ...sampleProperty,
-              id: "prop-456",
-              name: "Mountain Cabin",
-              property_type: PropertyType.CABIN,
-              bedrooms: 2,
-              bathrooms: 1,
-              accommodates: 4,
-              images: ["https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=800&auto=format&fit=crop"]
-            }} 
-          />
-          <PropertyCard 
-            property={{
-              ...sampleProperty,
-              id: "prop-789",
-              name: "Downtown Apartment",
-              property_type: PropertyType.APARTMENT,
-              address: {
-                city: "New York",
-                stateProvince: "NY",
-                country: "USA"
-              },
-              images: []
-            }} 
-          />
-        </div>
-      </section>
-      
-      <Separator />
-
-      {/* NotificationsList Component */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Notifications List</h2>
-        <NotificationsList 
-          notifications={sampleNotifications}
-          onMarkRead={handleNotificationMarkRead}
-          onMarkAllRead={handleMarkAllRead}
-          onDelete={handleNotificationDelete}
-        />
-      </section>
-      
-      <Separator />
-
-      {/* ConflictResolver Component */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Conflict Resolver</h2>
-        <ConflictResolver 
-          conflictId="conflict-123"
-          propertyId="prop-456"
-          events={conflictEvents}
-          onResolve={handleConflictResolve}
-        />
-      </section>
+        {/* Mock Property Examples */}
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">Property Examples</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Example Property 1</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium">Name:</span>
+                    <span>Oceanfront Villa</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Type:</span>
+                    <span>Villa</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Location:</span>
+                    <span>Malibu, USA</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Bedrooms:</span>
+                    <span>4</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Example Property 2</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="font-medium">Name:</span>
+                    <span>Mountain Cabin</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Type:</span>
+                    <span>Cabin</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Location:</span>
+                    <span>Aspen, USA</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Bedrooms:</span>
+                    <span>2</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

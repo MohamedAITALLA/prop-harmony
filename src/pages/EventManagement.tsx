@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarEvent, Property } from "@/types/api-responses";
@@ -17,6 +16,7 @@ import { propertyService, eventService } from "@/services/api-service";
 import { EventTypeBadge } from "@/components/ui/event-type-badge";
 import { format, parseISO } from "date-fns";
 import { DateRange as DateRangeType } from "react-day-picker";
+import { convertToMongoIdFormat } from "@/lib/id-conversion";
 
 export default function EventManagement() {
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
@@ -35,7 +35,7 @@ export default function EventManagement() {
         return response.data.properties;
       } catch (error) {
         console.error("Error fetching properties:", error);
-        return getMockProperties();
+        return convertToMongoIdFormat(getMockProperties());
       }
     },
   });
@@ -44,7 +44,7 @@ export default function EventManagement() {
     queryKey: ["events", selectedProperties, selectedPlatforms, selectedEventTypes, dateRange],
     queryFn: async () => {
       try {
-        return { events: getMockEvents() };
+        return { events: convertToMongoIdFormat(getMockEvents()) };
       } catch (error) {
         console.error("Error fetching events:", error);
         return { events: [] };
@@ -133,7 +133,7 @@ export default function EventManagement() {
                   </SelectTrigger>
                   <SelectContent>
                     {properties.map((property: Property) => (
-                      <SelectItem key={property.id} value={property.id}>
+                      <SelectItem key={property._id} value={property._id}>
                         {property.name}
                       </SelectItem>
                     ))}
@@ -213,7 +213,7 @@ export default function EventManagement() {
                 </TableRow>
               ) : (
                 filteredEvents.map((event) => (
-                  <TableRow key={event.id}>
+                  <TableRow key={event._id}>
                     <TableCell>
                       <Checkbox aria-label={`Select ${event.summary}`} />
                     </TableCell>
@@ -270,7 +270,7 @@ export default function EventManagement() {
                 </SelectTrigger>
                 <SelectContent>
                   {properties.map((property: Property) => (
-                    <SelectItem key={property.id} value={property.id}>
+                    <SelectItem key={property._id} value={property._id}>
                       {property.name}
                     </SelectItem>
                   ))}
@@ -354,19 +354,19 @@ export default function EventManagement() {
 
 function getMockProperties() {
   return [
-    { id: "1", name: "Oceanfront Villa" },
-    { id: "2", name: "Downtown Loft" },
-    { id: "3", name: "Mountain Cabin" },
-    { id: "4", name: "Beachside Condo" },
-    { id: "5", name: "Suburban House" },
+    { _id: "1", name: "Oceanfront Villa" },
+    { _id: "2", name: "Downtown Loft" },
+    { _id: "3", name: "Mountain Cabin" },
+    { _id: "4", name: "Beachside Condo" },
+    { _id: "5", name: "Suburban House" },
   ];
 }
 
 function getMockEvents() {
   return [
     {
-      id: "1",
-      property: { id: "1", name: "Oceanfront Villa" },
+      _id: "1",
+      property: { _id: "1", name: "Oceanfront Villa" },
       platform: "Airbnb",
       summary: "Summer Vacation Booking",
       start_date: "2025-06-15T14:00:00Z",
@@ -376,8 +376,8 @@ function getMockEvents() {
       description: "Guest from NYC, 4 people"
     },
     {
-      id: "2",
-      property: { id: "2", name: "Downtown Loft" },
+      _id: "2",
+      property: { _id: "2", name: "Downtown Loft" },
       platform: "Booking",
       summary: "Business Trip Stay",
       start_date: "2025-05-03T15:00:00Z",
@@ -387,8 +387,8 @@ function getMockEvents() {
       description: "Business traveler from Chicago"
     },
     {
-      id: "3",
-      property: { id: "3", name: "Mountain Cabin" },
+      _id: "3",
+      property: { _id: "3", name: "Mountain Cabin" },
       platform: "manual",
       summary: "Bathroom Renovation",
       start_date: "2025-04-10T08:00:00Z",
@@ -398,8 +398,8 @@ function getMockEvents() {
       description: "Replacing shower and fixtures"
     },
     {
-      id: "4",
-      property: { id: "1", name: "Oceanfront Villa" },
+      _id: "4",
+      property: { _id: "1", name: "Oceanfront Villa" },
       platform: "Vrbo",
       summary: "Family Reunion",
       start_date: "2025-07-01T15:00:00Z",
@@ -409,8 +409,8 @@ function getMockEvents() {
       description: "Large family, 8 people"
     },
     {
-      id: "5",
-      property: { id: "4", name: "Beachside Condo" },
+      _id: "5",
+      property: { _id: "4", name: "Beachside Condo" },
       platform: "TripAdvisor",
       summary: "Weekend Getaway",
       start_date: "2025-05-12T16:00:00Z",
@@ -420,8 +420,8 @@ function getMockEvents() {
       description: "Cancelled due to guest emergency"
     },
     {
-      id: "6",
-      property: { id: "5", name: "Suburban House" },
+      _id: "6",
+      property: { _id: "5", name: "Suburban House" },
       platform: "manual",
       summary: "Owner Block",
       start_date: "2025-04-25T00:00:00Z",
@@ -432,4 +432,3 @@ function getMockEvents() {
     },
   ];
 }
-
