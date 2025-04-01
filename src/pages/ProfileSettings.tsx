@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { profileService } from "@/services/api-service";
 import { toast } from "sonner";
 import { timezones } from "@/lib/timezones";
+import { UserPreferences } from "@/types/api-responses";
 
 // Schema for contact information form
 const contactSchema = z.object({
@@ -84,17 +85,17 @@ const ProfileSettings = () => {
     },
   });
 
-  // Preferences form setup
+  // Preferences form setup with properly typed preferences
   const preferencesForm = useForm({
     resolver: zodResolver(preferencesSchema),
     defaultValues: {
       preferences: {
-        theme: "system",
-        language: "en",
+        theme: "system" as const,
+        language: "en" as const,
         timezone: "America/New_York",
-        date_format: "MM/DD/YYYY",
-        time_format: "12h",
-        currency: "USD",
+        date_format: "MM/DD/YYYY" as const,
+        time_format: "12h" as const,
+        currency: "USD" as const,
         notifications_enabled: true,
       },
     },
@@ -179,15 +180,18 @@ const ProfileSettings = () => {
         },
       });
       
+      // Make sure we properly type the preferences object
+      const typedPreferences: Partial<UserPreferences> = preferences || {};
+      
       preferencesForm.reset({
         preferences: {
-          theme: preferences.theme || "system",
-          language: preferences.language || "en",
-          timezone: preferences.timezone || "America/New_York",
-          date_format: preferences.date_format || "MM/DD/YYYY",
-          time_format: preferences.time_format || "12h",
-          currency: preferences.currency || "USD",
-          notifications_enabled: preferences.notifications_enabled !== false,
+          theme: (typedPreferences.theme as "light" | "dark" | "system") || "system",
+          language: (typedPreferences.language as "en" | "es" | "fr" | "de") || "en",
+          timezone: typedPreferences.timezone || "America/New_York",
+          date_format: (typedPreferences.date_format as "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD") || "MM/DD/YYYY",
+          time_format: (typedPreferences.time_format as "12h" | "24h") || "12h",
+          currency: (typedPreferences.currency as "USD" | "EUR" | "GBP" | "CAD" | "AUD") || "USD",
+          notifications_enabled: typedPreferences.notifications_enabled !== false,
         },
       });
     }
@@ -628,4 +632,3 @@ const Label = ({ children }: { children: React.ReactNode }) => (
 );
 
 export default ProfileSettings;
-
