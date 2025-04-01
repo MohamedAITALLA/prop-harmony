@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { adminProfileService } from '@/services/api-service';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { UserProfile, UserPreferences } from '@/types/api-responses';
+import { UserProfile } from '@/types/api-responses';
 import { getMongoId } from '@/lib/mongo-helpers';
 import {
   Select,

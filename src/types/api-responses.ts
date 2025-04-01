@@ -1,5 +1,5 @@
 
-// Only making the necessary changes to add the missing field
+// API response types with only _id fields
 import { 
   PropertyType, 
   EventType, 
@@ -18,7 +18,6 @@ import {
 // Authentication Responses
 export interface User {
   _id: string;
-  id?: string; // Keep id as optional for backward compatibility with API responses
   email: string;
   first_name: string;
   last_name: string;
@@ -67,7 +66,6 @@ export interface UserPreferences {
 
 export interface UserProfile {
   _id: string;
-  id?: string; // Optional for compatibility
   user_id: string;
   preferences: UserPreferences;
   contact_info: Record<string, any>;
@@ -82,7 +80,7 @@ export interface ProfileResponse {
   data: UserProfile;
   message: string;
   timestamp: string;
-  profile_status: {
+  profile_status?: {
     is_new: boolean;
     onboarding_completed: boolean;
     preferences_set: boolean;
@@ -95,8 +93,8 @@ export interface ProfileUpdateResponse {
   data: UserProfile;
   message: string;
   timestamp: string;
-  updated_fields: string[];
-  profile_status: {
+  updated_fields?: string[];
+  profile_status?: {
     onboarding_completed: boolean;
     preferences_set: boolean;
     contact_info_set: boolean;
@@ -109,12 +107,12 @@ export interface ProfileResetResponse {
   message: string;
   timestamp: string;
   action: string;
-  previous_settings: {
+  previous_settings?: {
     had_preferences: boolean;
     had_contact_info: boolean;
     was_onboarded: boolean;
   };
-  current_settings: {
+  current_settings?: {
     has_preferences: boolean;
     has_contact_info: boolean;
     is_onboarded: boolean;
@@ -136,7 +134,6 @@ export interface Address {
 
 export interface Property {
   _id: string;
-  id?: string; // Optional for compatibility
   name: string;
   property_type: PropertyType;
   address: Address;
@@ -251,7 +248,6 @@ export interface PropertyDeleteResponse {
 // iCal Connection Responses
 export interface ICalConnection {
   _id: string;
-  id?: string; // Optional for compatibility
   property_id: string;
   platform: Platform;
   ical_url: string;
@@ -280,7 +276,6 @@ export interface ICalConnectionsResponse {
 // Events Responses
 export interface CalendarEvent {
   _id: string;
-  id?: string; // Optional for compatibility
   property_id: string;
   ical_uid: string;
   platform: Platform;
@@ -313,11 +308,9 @@ export interface EventsResponse {
 // Conflicts Responses
 export interface Conflict {
   _id: string;
-  id?: string; // Optional for compatibility
   property_id: string;
   property?: {
     _id: string;
-    id?: string; // Optional for compatibility
     name: string;
   };
   event_ids: string[];
@@ -348,7 +341,6 @@ export interface ConflictsResponse {
 // Notification Responses
 export interface Notification {
   _id: string;
-  id?: string; // Optional for compatibility
   user_id: string;
   property_id: string;
   type: NotificationType;
@@ -397,11 +389,9 @@ export interface NotificationsResponse {
 // Sync Log Responses
 export interface SyncLog {
   _id: string;
-  id?: string; // Optional for compatibility
   property_id: string;
   property?: {
     _id: string;
-    id?: string; // Optional for compatibility
     name: string;
   };
   platform: Platform;

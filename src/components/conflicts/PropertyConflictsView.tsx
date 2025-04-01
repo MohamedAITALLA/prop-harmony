@@ -42,10 +42,10 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ConflictType, ConflictSeverity, ConflictStatus } from "@/types/enums";
 
 interface MockConflict {
-  id: string;
+  _id: string;
   property_id: string;
   property?: {
-    id: string;
+    _id: string;
     name: string;
   };
   event_ids: string[];
@@ -153,9 +153,9 @@ export function PropertyConflictsView({ propertyId }: PropertyConflictsViewProps
     // Mock conflicts for the specific property
     return [
       {
-        id: "conf-1",
+        _id: "conf-1",
         property_id: propertyId,
-        property: { id: propertyId, name: "Beach House" },
+        property: { _id: propertyId, name: "Beach House" },
         event_ids: ["evt-1", "evt-2"],
         conflict_type: "overlap",
         start_date: "2023-09-15T00:00:00Z",
@@ -168,9 +168,9 @@ export function PropertyConflictsView({ propertyId }: PropertyConflictsViewProps
         platforms: ["Airbnb", "Booking"]
       },
       {
-        id: "conf-2",
+        _id: "conf-2",
         property_id: propertyId,
-        property: { id: propertyId, name: "Beach House" },
+        property: { _id: propertyId, name: "Beach House" },
         event_ids: ["evt-3", "evt-4"],
         conflict_type: "adjacent",
         start_date: "2023-10-01T00:00:00Z",
@@ -187,10 +187,18 @@ export function PropertyConflictsView({ propertyId }: PropertyConflictsViewProps
 
   const convertMockToConflict = (mockConflict: MockConflict): Conflict => {
     return {
-      ...mockConflict,
+      _id: mockConflict._id,
+      property_id: mockConflict.property_id,
+      property: mockConflict.property,
+      event_ids: mockConflict.event_ids,
       conflict_type: mockConflict.conflict_type as ConflictType,
+      start_date: mockConflict.start_date,
+      end_date: mockConflict.end_date,
       severity: mockConflict.severity as ConflictSeverity,
       status: mockConflict.status as ConflictStatus,
+      description: mockConflict.description,
+      created_at: mockConflict.created_at,
+      updated_at: mockConflict.updated_at,
       platforms: mockConflict.platforms
     };
   };
@@ -247,7 +255,7 @@ export function PropertyConflictsView({ propertyId }: PropertyConflictsViewProps
                   const conflict = convertMockToConflict(mockConflict);
                   
                   return (
-                    <TableRow key={conflict.id}>
+                    <TableRow key={conflict._id}>
                       <TableCell>
                         <ConflictTypeBadge type={conflict.conflict_type} />
                       </TableCell>
@@ -272,7 +280,7 @@ export function PropertyConflictsView({ propertyId }: PropertyConflictsViewProps
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            onClick={() => handleDismissConflict(conflict.id)}
+                            onClick={() => handleDismissConflict(conflict._id)}
                           >
                             <X className="h-4 w-4" />
                           </Button>
@@ -283,7 +291,7 @@ export function PropertyConflictsView({ propertyId }: PropertyConflictsViewProps
                 })
               ) : (
                 conflictsData.map((conflict: Conflict) => (
-                  <TableRow key={conflict.id}>
+                  <TableRow key={conflict._id}>
                     <TableCell>
                       <ConflictTypeBadge type={conflict.conflict_type} />
                     </TableCell>
@@ -308,7 +316,7 @@ export function PropertyConflictsView({ propertyId }: PropertyConflictsViewProps
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          onClick={() => handleDismissConflict(conflict.id)}
+                          onClick={() => handleDismissConflict(conflict._id)}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -349,7 +357,7 @@ export function PropertyConflictsView({ propertyId }: PropertyConflictsViewProps
         <DialogContent className="max-w-3xl">
           {selectedConflict && (
             <ConflictResolver 
-              conflictId={selectedConflict.id} 
+              conflictId={selectedConflict._id} 
               propertyId={propertyId}
               onResolve={handleResolveConflict}
               events={[

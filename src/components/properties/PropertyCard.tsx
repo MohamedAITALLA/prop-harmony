@@ -58,7 +58,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
         <Button 
           variant="default" 
           className="w-full"
-          onClick={() => navigate(`/properties/${property.id}`)}
+          onClick={() => navigate(`/properties/${property._id}`)}
         >
           View Details
         </Button>

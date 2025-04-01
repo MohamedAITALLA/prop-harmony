@@ -7,28 +7,30 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { normalizeMongoObject } from "@/lib/mongo-helpers";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, User } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import { UserPreferences } from "@/types/api-responses";
 
 export default function ProfileSettings() {
   const queryClient = useQueryClient();
-  const [preferences, setPreferences] = useState({
-    theme: "system",
-    language: "en",
-    timezone: "UTC",
-    date_format: "MM/DD/YYYY",
-    time_format: "12h",
-    currency: "USD",
-    notifications_enabled: true
-  });
   
-  const [contactInfo, setContactInfo] = useState({
+  // Define defaultPreferences to avoid type errors
+  const defaultPreferences = {
+    theme: "system" as const,
+    language: "en" as const,
+    timezone: "UTC",
+    date_format: "MM/DD/YYYY" as const,
+    time_format: "12h" as const,
+    currency: "USD" as const,
+    notifications_enabled: true
+  };
+  
+  const defaultContactInfo = {
     phone: "",
     address: "",
     address2: "",
@@ -38,7 +40,10 @@ export default function ProfileSettings() {
     country: "",
     emergency_contact: "",
     emergency_phone: ""
-  });
+  };
+  
+  const [preferences, setPreferences] = useState(defaultPreferences);
+  const [contactInfo, setContactInfo] = useState(defaultContactInfo);
   
   const { data: profileData, isLoading, error } = useQuery({
     queryKey: ["userProfile"],
@@ -58,15 +63,29 @@ export default function ProfileSettings() {
     if (profileData?.data) {
       // Normalize the data to ensure consistent ID fields
       const normalizedData = normalizeMongoObject(profileData.data);
-      setPreferences(normalizedData.preferences || preferences);
-      setContactInfo(normalizedData.contact_info || contactInfo);
+      
+      // Merge preferences with defaults for type safety
+      if (normalizedData.preferences) {
+        setPreferences({
+          ...defaultPreferences,
+          ...normalizedData.preferences
+        });
+      }
+      
+      // Merge contact info with defaults for type safety
+      if (normalizedData.contact_info) {
+        setContactInfo({
+          ...defaultContactInfo,
+          ...normalizedData.contact_info
+        });
+      }
     }
   }, [profileData]);
   
   const updateProfileMutation = useMutation({
     mutationFn: async (formData: {
-      preferences: typeof preferences;
-      contact_info: typeof contactInfo;
+      preferences: UserPreferences;
+      contact_info: Record<string, string>;
     }) => {
       return await profileService.updateProfile(formData);
     },
@@ -93,8 +112,15 @@ export default function ProfileSettings() {
       
       // Update local state with the reset values
       if (data.data) {
-        setPreferences(data.data.preferences || preferences);
-        setContactInfo(data.data.contact_info || contactInfo);
+        setPreferences({
+          ...defaultPreferences,
+          ...(data.data.preferences || {})
+        });
+        
+        setContactInfo({
+          ...defaultContactInfo,
+          ...(data.data.contact_info || {})
+        });
       }
     },
     onError: (error) => {

@@ -5,7 +5,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { adminUserService } from '@/services/api-service';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { getMongoId, normalizeMongoObject } from '@/lib/mongo-helpers';
+import { getMongoId } from '@/lib/mongo-helpers';
 
 interface StatusToggleProps {
   value: boolean;
