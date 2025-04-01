@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -23,6 +22,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { DateRange } from "@/components/ui/date-range";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
@@ -138,7 +145,6 @@ export default function PropertyDetails() {
   };
 
   const handleDateClick = (info: any) => {
-    // Pre-fill with the clicked date
     const clickedDate = info.dateStr;
     setNewEvent(prev => ({
       ...prev,
@@ -202,7 +208,6 @@ export default function PropertyDetails() {
       setIsAddEventOpen(false);
       refetchEvents();
       
-      // Reset form
       setNewEvent({
         property_id: id || "",
         platform: Platform.MANUAL,
@@ -221,7 +226,6 @@ export default function PropertyDetails() {
 
   const handleExport = (format: string) => {
     toast(`Exporting calendar as ${format}...`);
-    // Implementation would depend on the export format
   };
 
   const handlePlatformSelect = (platform: Platform) => {
@@ -446,6 +450,7 @@ export default function PropertyDetails() {
             onExport={handleExport}
             onDateClick={handleDateClick}
             onEventClick={handleEventClick}
+            propertyId={id}
           />
         </TabsContent>
         
@@ -468,7 +473,6 @@ export default function PropertyDetails() {
         </TabsContent>
       </Tabs>
 
-      {/* Add Event Dialog */}
       <PropertyEventDialog
         isOpen={isAddEventOpen}
         onOpenChange={setIsAddEventOpen}
@@ -477,7 +481,6 @@ export default function PropertyDetails() {
         onSubmit={handleSubmitEvent}
       />
       
-      {/* View/Delete Event Dialog */}
       {viewedEvent && (
         <Dialog open={isViewEventOpen} onOpenChange={setIsViewEventOpen}>
           <DialogContent className="sm:max-w-[525px]">

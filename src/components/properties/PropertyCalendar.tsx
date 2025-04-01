@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from "@fullcalendar/interaction";
-import { Download, ChevronDown, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, ChevronDown, Plus, ChevronLeft, ChevronRight, Copy } from "lucide-react";
 import { 
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Platform, EventType } from "@/types/enums";
+import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface PropertyCalendarProps {
   events: any[];
@@ -17,6 +19,7 @@ interface PropertyCalendarProps {
   onExport: (format: string) => void;
   onEventClick?: (eventInfo: any) => void;
   onDateClick?: (dateInfo: any) => void;
+  propertyId?: string;
 }
 
 export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({ 
@@ -25,7 +28,8 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
   onAddEvent, 
   onExport,
   onEventClick,
-  onDateClick
+  onDateClick,
+  propertyId
 }) => {
   const calendarRef = useRef(null);
 
@@ -56,6 +60,16 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
         return "#10b981";
       default:
         return "#6366f1";
+    }
+  };
+
+  // Copy the iCal feed URL to clipboard
+  const copyICalFeedUrl = () => {
+    if (propertyId) {
+      const baseUrl = window.location.origin;
+      const url = `${baseUrl}/api/properties/${propertyId}/ical-feed`;
+      navigator.clipboard.writeText(url);
+      toast.success("iCal feed URL copied to clipboard");
     }
   };
 
@@ -96,6 +110,12 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
               <DropdownMenuItem onClick={() => onExport("iCal")}>
                 Export as iCal
               </DropdownMenuItem>
+              {propertyId && (
+                <DropdownMenuItem onClick={copyICalFeedUrl}>
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copy iCal URL
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
