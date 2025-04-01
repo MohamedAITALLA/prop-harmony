@@ -36,10 +36,7 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
   };
   
   // Get color based on platform and event type
-  const getEventColor = (info: any) => {
-    const platform = info.event.extendedProps.platform;
-    const eventType = info.event.extendedProps.event_type;
-    
+  const getEventColor = (platform?: Platform, eventType?: EventType): string => {
     if (eventType === EventType.BLOCKED) return "#ef4444"; // Red for blocks
     if (eventType === EventType.MAINTENANCE) return "#f97316"; // Orange for maintenance
     
@@ -57,6 +54,19 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
         return "#6366f1";
     }
   };
+
+  // Pre-process events to add color properties directly
+  const eventsWithColors = events.map(event => {
+    const platform = event.extendedProps?.platform;
+    const eventType = event.extendedProps?.event_type;
+    const color = getEventColor(platform, eventType);
+    
+    return {
+      ...event,
+      backgroundColor: color,
+      borderColor: color
+    };
+  });
 
   return (
     <div className="space-y-6">
@@ -117,7 +127,7 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
               plugins={[dayGridPlugin, interactionPlugin]}
               initialView="dayGridMonth"
               headerToolbar={false}
-              events={events}
+              events={eventsWithColors}
               height="100%"
               eventTimeFormat={{
                 hour: '2-digit',
@@ -138,8 +148,6 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
                   </div>
                 );
               }}
-              eventBackgroundColor={(info) => getEventColor(info)}
-              eventBorderColor={(info) => getEventColor(info)}
               dayMaxEvents={true}
               dateClick={(info) => {
                 onAddEvent();
