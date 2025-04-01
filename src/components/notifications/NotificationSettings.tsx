@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { useNotifications } from '@/hooks/useNotifications';
+import { useNotifications, NotificationSettings as NotificationSettingsType } from '@/hooks/useNotifications';
 
 interface NotificationSettingsForm {
   email_notifications: boolean;
@@ -37,7 +37,7 @@ export function NotificationSettings() {
   });
 
   const onSubmit = (data: NotificationSettingsForm) => {
-    updateNotificationSettings(data);
+    updateNotificationSettings(data as NotificationSettingsType);
   };
 
   return (

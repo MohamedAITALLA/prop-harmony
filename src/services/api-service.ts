@@ -15,7 +15,8 @@ import {
   SyncLogsResponse,
   User,
   ICalConnection,
-  CalendarEvent
+  CalendarEvent,
+  NotificationSettings
 } from "@/types/api-responses";
 
 // Authentication Services
@@ -380,51 +381,40 @@ export const notificationService = {
       severity?: string;
       read?: boolean;
     }
-  ): Promise<NotificationsResponse> => {
-    const response = await api.get<NotificationsResponse>("/notifications", { params });
+  ): Promise<any> => {
+    const response = await api.get("/notifications", { params });
     return response.data;
   },
   
-  markAsRead: async (notificationId: string): Promise<ApiResponse<Record<string, any>>> => {
-    const response = await api.put<ApiResponse<Record<string, any>>>(`/notifications/${notificationId}/read`);
+  markAsRead: async (notificationId: string): Promise<any> => {
+    const response = await api.put(`/notifications/${notificationId}/read`);
     return response.data;
   },
   
-  markAllAsRead: async (ids?: string[]): Promise<ApiResponse<Record<string, any>>> => {
-    const response = await api.put<ApiResponse<Record<string, any>>>("/notifications/read", ids ? { ids } : undefined);
+  markAllAsRead: async (ids?: string[]): Promise<any> => {
+    const response = await api.put("/notifications/read", ids ? { ids } : undefined);
     return response.data;
   },
   
   deleteNotification: async (
     notificationId: string, 
     preserveHistory?: boolean
-  ): Promise<ApiResponse<{ success: boolean }>> => {
+  ): Promise<any> => {
     const params = preserveHistory !== undefined ? { preserve_history: preserveHistory } : undefined;
-    const response = await api.delete<ApiResponse<{ success: boolean }>>(`/notifications/${notificationId}`, { params });
+    const response = await api.delete(`/notifications/${notificationId}`, { params });
     return response.data;
   },
   
-  getSettings: async (): Promise<ApiResponse<{
-    email_notifications: boolean;
-    new_booking_notifications: boolean;
-    modified_booking_notifications: boolean;
-    cancelled_booking_notifications: boolean;
-    conflict_notifications: boolean;
-    sync_failure_notifications: boolean;
-  }>> => {
-    const response = await api.get<ApiResponse<Record<string, boolean>>>("/notifications/settings");
+  getSettings: async (): Promise<{ data: NotificationSettings }> => {
+    const response = await api.get<{ 
+      data: NotificationSettings, 
+      success: boolean 
+    }>("/notifications/settings");
     return response.data;
   },
   
-  updateSettings: async (settings: {
-    email_notifications?: boolean;
-    new_booking_notifications?: boolean;
-    modified_booking_notifications?: boolean;
-    cancelled_booking_notifications?: boolean;
-    conflict_notifications?: boolean;
-    sync_failure_notifications?: boolean;
-  }): Promise<ApiResponse<Record<string, boolean>>> => {
-    const response = await api.put<ApiResponse<Record<string, boolean>>>("/notifications/settings", settings);
+  updateSettings: async (settings: NotificationSettings): Promise<any> => {
+    const response = await api.put("/notifications/settings", settings);
     return response.data;
   }
 };

@@ -14,12 +14,21 @@ export interface NotificationFilters {
   limit?: number;
 }
 
+export interface NotificationSettings {
+  email_notifications: boolean;
+  new_booking_notifications: boolean;
+  modified_booking_notifications: boolean;
+  cancelled_booking_notifications: boolean;
+  conflict_notifications: boolean;
+  sync_failure_notifications: boolean;
+}
+
 export function useNotifications(filters?: NotificationFilters) {
   const queryClient = useQueryClient();
   
   // Get all notifications
   const { 
-    data: response = { data: { notifications: [], total: 0, total_pages: 0 } },
+    data: response = { data: { notifications: [], pagination: { total: 0, pages: 0 }, summary: { unread_count: 0 } } },
     isLoading,
     error
   } = useQuery({
@@ -148,8 +157,20 @@ export function useNotifications(filters?: NotificationFilters) {
           return { 
             data: { 
               notifications: filtered,
-              total: mockNotifications.length,
-              total_pages: Math.ceil(mockNotifications.length / (filters?.limit || 10))
+              pagination: {
+                total: mockNotifications.length,
+                page: filters?.page || 1,
+                limit: filters?.limit || 10,
+                pages: Math.ceil(mockNotifications.length / (filters?.limit || 10)),
+                has_next_page: (filters?.page || 1) < Math.ceil(mockNotifications.length / (filters?.limit || 10)),
+                has_previous_page: (filters?.page || 1) > 1
+              },
+              summary: { 
+                total_count: mockNotifications.length,
+                unread_count: mockNotifications.filter(n => !n.read).length,
+                read_count: mockNotifications.filter(n => n.read).length,
+                by_type: {}
+              }
             } 
           };
         }
@@ -174,7 +195,7 @@ export function useNotifications(filters?: NotificationFilters) {
   const notifications = response.data.notifications || [];
   
   // Get unread count
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = response.data.summary?.unread_count || notifications.filter(n => !n.read).length;
 
   // Mark notification as read
   const markAsRead = useMutation({
@@ -272,8 +293,10 @@ export function useNotifications(filters?: NotificationFilters) {
             notifications: old.data.notifications.filter((notification: Notification) => 
               notification.id !== data.id
             ),
-            total: Math.max(0, old.data.total - 1),
-            total_pages: Math.max(1, Math.ceil((old.data.total - 1) / (filters?.limit || 10)))
+            pagination: {
+              ...old.data.pagination,
+              total: Math.max(0, old.data.pagination.total - 1)
+            }
           }
         };
       });
@@ -303,7 +326,7 @@ export function useNotifications(filters?: NotificationFilters) {
               cancelled_booking_notifications: true,
               conflict_notifications: true,
               sync_failure_notifications: true
-            }
+            } as NotificationSettings
           };
         }
         
@@ -318,14 +341,7 @@ export function useNotifications(filters?: NotificationFilters) {
 
   // Update notification settings
   const updateSettings = useMutation({
-    mutationFn: async (newSettings: {
-      email_notifications?: boolean;
-      new_booking_notifications?: boolean;
-      modified_booking_notifications?: boolean;
-      cancelled_booking_notifications?: boolean;
-      conflict_notifications?: boolean;
-      sync_failure_notifications?: boolean;
-    }) => {
+    mutationFn: async (newSettings: NotificationSettings) => {
       try {
         await notificationService.updateSettings(newSettings);
         return newSettings;
@@ -353,15 +369,22 @@ export function useNotifications(filters?: NotificationFilters) {
 
   return {
     notifications,
-    totalNotifications: response.data.total,
-    totalPages: response.data.total_pages,
+    totalNotifications: response.data.pagination?.total || 0,
+    totalPages: response.data.pagination?.pages || 0,
     unreadCount,
     isLoading,
     error,
     markAsRead: (id: string) => markAsRead.mutate(id),
     markAllAsRead: () => markAllAsRead.mutate(),
     deleteNotification: (id: string) => deleteNotification.mutate(id),
-    notificationSettings: settings?.data || {},
-    updateNotificationSettings: (newSettings: any) => updateSettings.mutate(newSettings)
+    notificationSettings: settings?.data || {
+      email_notifications: true,
+      new_booking_notifications: true,
+      modified_booking_notifications: true,
+      cancelled_booking_notifications: true,
+      conflict_notifications: true,
+      sync_failure_notifications: true
+    } as NotificationSettings,
+    updateNotificationSettings: (newSettings: NotificationSettings) => updateSettings.mutate(newSettings)
   };
 }

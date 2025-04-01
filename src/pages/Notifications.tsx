@@ -79,7 +79,9 @@ export default function Notifications() {
       if (key !== 'page') {
         return { ...prev, [key]: value, page: 1 };
       }
-      return { ...prev, [key]: value };
+      // Ensure page is a number
+      const newPage = key === 'page' ? Number(value) : prev.page;
+      return { ...prev, [key]: key === 'page' ? newPage : value };
     });
   };
 
