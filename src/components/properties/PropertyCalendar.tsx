@@ -15,13 +15,17 @@ interface PropertyCalendarProps {
   eventsLoading: boolean;
   onAddEvent: () => void;
   onExport: (format: string) => void;
+  onEventClick?: (eventInfo: any) => void;
+  onDateClick?: (dateInfo: any) => void;
 }
 
 export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({ 
   events, 
   eventsLoading, 
   onAddEvent, 
-  onExport 
+  onExport,
+  onEventClick,
+  onDateClick
 }) => {
   const calendarRef = useRef(null);
 
@@ -150,8 +154,16 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
               }}
               dayMaxEvents={true}
               dateClick={(info) => {
-                onAddEvent();
-                // Here you could also pass the clicked date to pre-fill the form
+                if (onDateClick) {
+                  onDateClick(info);
+                } else {
+                  onAddEvent();
+                }
+              }}
+              eventClick={(info) => {
+                if (onEventClick) {
+                  onEventClick(info);
+                }
               }}
               datesSet={(dateInfo) => {
                 // Update the calendar title

@@ -14,7 +14,8 @@ import {
   UserProfilesResponse,
   SyncLogsResponse,
   User,
-  ICalConnection
+  ICalConnection,
+  CalendarEvent
 } from "@/types/api-responses";
 
 // Authentication Services
@@ -262,13 +263,92 @@ export const icalConnectionService = {
   }
 };
 
+// Calendar and Event Services
+export const calendarService = {
+  getCalendar: async (
+    propertyId: string,
+    params?: {
+      start_date?: string;
+      end_date?: string;
+      platforms?: string[];
+      event_types?: string[];
+    }
+  ): Promise<ApiResponse<Record<string, any>>> => {
+    const response = await api.get<ApiResponse<Record<string, any>>>(
+      `/properties/${propertyId}/calendar`,
+      { params }
+    );
+    return response.data;
+  },
+  
+  checkAvailability: async (
+    propertyId: string,
+    startDate: string,
+    endDate: string
+  ): Promise<ApiResponse<{ available: boolean; conflicts?: any[] }>> => {
+    const params = { start_date: startDate, end_date: endDate };
+    const response = await api.get<ApiResponse<{ available: boolean; conflicts?: any[] }>>(
+      `/properties/${propertyId}/calendar/availability`,
+      { params }
+    );
+    return response.data;
+  },
+  
+  getICalFeed: async (propertyId: string): Promise<ApiResponse<string>> => {
+    const response = await api.get<ApiResponse<string>>(
+      `/properties/${propertyId}/ical-feed`
+    );
+    return response.data;
+  }
+};
+
 // Calendar Event Services
 export const eventService = {
   getEvents: async (
     propertyId: string,
-    params?: { start_date?: string; end_date?: string; platforms?: string[] }
+    params?: {
+      start_date?: string;
+      end_date?: string;
+      platforms?: string[];
+      event_types?: string[];
+    }
   ): Promise<EventsResponse> => {
-    const response = await api.get<EventsResponse>(`/properties/${propertyId}/events`, { params });
+    const response = await api.get<EventsResponse>(
+      `/properties/${propertyId}/events`,
+      { params }
+    );
+    return response.data;
+  },
+  
+  createEvent: async (
+    propertyId: string,
+    eventData: {
+      platform?: string;
+      summary: string;
+      start_date: string;
+      end_date: string;
+      event_type: string;
+      status?: string;
+      description?: string;
+    }
+  ): Promise<ApiResponse<CalendarEvent>> => {
+    const response = await api.post<ApiResponse<CalendarEvent>>(
+      `/properties/${propertyId}/events`,
+      eventData
+    );
+    return response.data;
+  },
+  
+  deleteEvent: async (
+    propertyId: string,
+    eventId: string,
+    preserveHistory?: boolean
+  ): Promise<ApiResponse<{ success: boolean }>> => {
+    const params = preserveHistory !== undefined ? { preserve_history: preserveHistory } : undefined;
+    const response = await api.delete<ApiResponse<{ success: boolean }>>(
+      `/properties/${propertyId}/events/${eventId}`,
+      { params }
+    );
     return response.data;
   }
 };

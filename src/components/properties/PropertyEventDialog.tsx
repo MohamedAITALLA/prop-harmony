@@ -32,6 +32,10 @@ interface PropertyEventDialogProps {
   formData: EventFormData;
   onInputChange: (field: string, value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
+  title?: string;
+  description?: string;
+  submitLabel?: string;
+  readOnly?: boolean;
 }
 
 export const PropertyEventDialog: React.FC<PropertyEventDialogProps> = ({
@@ -39,15 +43,19 @@ export const PropertyEventDialog: React.FC<PropertyEventDialogProps> = ({
   onOpenChange,
   formData,
   onInputChange,
-  onSubmit
+  onSubmit,
+  title = "Add New Calendar Event",
+  description = "Create a new event for this property.",
+  submitLabel = "Create Event",
+  readOnly = false
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
-          <DialogTitle>Add New Calendar Event</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Create a new event for this property.
+            {description}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit}>
@@ -58,6 +66,7 @@ export const PropertyEventDialog: React.FC<PropertyEventDialogProps> = ({
                 <Select 
                   value={formData.platform} 
                   onValueChange={(value) => onInputChange("platform", value)}
+                  disabled={readOnly}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select Platform" />
@@ -79,6 +88,7 @@ export const PropertyEventDialog: React.FC<PropertyEventDialogProps> = ({
                   value={formData.summary}
                   onChange={(e) => onInputChange("summary", e.target.value)}
                   placeholder="Event title"
+                  readOnly={readOnly}
                 />
               </div>
               
@@ -90,6 +100,7 @@ export const PropertyEventDialog: React.FC<PropertyEventDialogProps> = ({
                     type="datetime-local"
                     value={formData.start_date}
                     onChange={(e) => onInputChange("start_date", e.target.value)}
+                    readOnly={readOnly}
                   />
                 </div>
                 <div className="space-y-2">
@@ -99,6 +110,7 @@ export const PropertyEventDialog: React.FC<PropertyEventDialogProps> = ({
                     type="datetime-local"
                     value={formData.end_date}
                     onChange={(e) => onInputChange("end_date", e.target.value)}
+                    readOnly={readOnly}
                   />
                 </div>
               </div>
@@ -109,6 +121,7 @@ export const PropertyEventDialog: React.FC<PropertyEventDialogProps> = ({
                   <Select 
                     value={formData.event_type} 
                     onValueChange={(value) => onInputChange("event_type", value)}
+                    disabled={readOnly}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select Event Type" />
@@ -127,6 +140,7 @@ export const PropertyEventDialog: React.FC<PropertyEventDialogProps> = ({
                   <Select 
                     value={formData.status} 
                     onValueChange={(value) => onInputChange("status", value)}
+                    disabled={readOnly}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select Status" />
@@ -148,15 +162,16 @@ export const PropertyEventDialog: React.FC<PropertyEventDialogProps> = ({
                   onChange={(e) => onInputChange("description", e.target.value)}
                   placeholder="Add any additional details..."
                   rows={3}
+                  readOnly={readOnly}
                 />
               </div>
             </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {readOnly ? "Close" : "Cancel"}
             </Button>
-            <Button type="submit">Create Event</Button>
+            {!readOnly && <Button type="submit">{submitLabel}</Button>}
           </DialogFooter>
         </form>
       </DialogContent>

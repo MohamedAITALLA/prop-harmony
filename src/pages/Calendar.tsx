@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 
   Plus, Download, Filter, ChevronDown, X,
@@ -29,6 +29,7 @@ import { propertyService, eventService } from "@/services/api-service";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import { format } from "date-fns";
 
 const Calendar = () => {
   const calendarRef = useRef(null);
@@ -58,22 +59,62 @@ const Calendar = () => {
   // Fetch properties
   const { data: propertiesData, isLoading: propertiesLoading } = useQuery({
     queryKey: ["properties"],
-    queryFn: () => propertyService.getAllProperties(),
+    queryFn: async () => {
+      try {
+        const response = await propertyService.getAllProperties();
+        return response;
+      } catch (error) {
+        console.error("Error fetching properties:", error);
+        toast.error("Failed to load properties");
+        return { data: { properties: [] } };
+      }
+    },
   });
 
   // Fetch all events across properties
-  const { data: eventsData, isLoading: eventsLoading } = useQuery({
+  const { data: eventsData, isLoading: eventsLoading, refetch: refetchEvents } = useQuery({
     queryKey: ["all-events", selectedProperties, selectedPlatforms, selectedEventTypes, dateRange],
     queryFn: async () => {
+      if (selectedProperties.length === 0) return [];
+      
       try {
-        // In a real implementation, we would call an API that fetches events
-        // with filters applied. For demonstration purposes, we'll return mock data
-        return [];
+        // Create an array of promises for each property
+        const eventPromises = selectedProperties.map(propertyId => {
+          const params: any = {};
+          
+          if (dateRange.from && dateRange.to) {
+            params.start_date = format(dateRange.from, "yyyy-MM-dd");
+            params.end_date = format(dateRange.to, "yyyy-MM-dd");
+          }
+          
+          if (selectedPlatforms.length > 0) {
+            params.platforms = selectedPlatforms;
+          }
+          
+          if (selectedEventTypes.length > 0) {
+            params.event_types = selectedEventTypes;
+          }
+          
+          return eventService.getEvents(propertyId, params)
+            .then(response => response.data || [])
+            .catch(error => {
+              console.error(`Error fetching events for property ${propertyId}:`, error);
+              return [];
+            });
+        });
+        
+        // Wait for all promises to resolve
+        const eventsArrays = await Promise.all(eventPromises);
+        
+        // Flatten the array of arrays
+        return eventsArrays.flat();
       } catch (error) {
         console.error("Error fetching events:", error);
+        toast.error("Failed to load calendar events");
         return [];
       }
     },
+    enabled: selectedProperties.length > 0,
   });
 
   const properties = propertiesData?.data?.properties || [];
@@ -96,7 +137,8 @@ const Calendar = () => {
           platform: event.platform,
           event_type: event.event_type,
           status: event.status,
-          description: event.description
+          description: event.description,
+          property_id: event.property_id
         }
       };
     });
@@ -123,7 +165,7 @@ const Calendar = () => {
   }
 
   // Handle form input changes
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: any) => {
     setNewEvent(prev => ({ ...prev, [field]: value }));
   };
 
@@ -131,10 +173,35 @@ const Calendar = () => {
   const handleSubmitEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!newEvent.property_id) {
+      toast.error("Please select a property");
+      return;
+    }
+    
+    if (!newEvent.summary) {
+      toast.error("Please enter a title");
+      return;
+    }
+    
+    if (!newEvent.start_date || !newEvent.end_date) {
+      toast.error("Please select start and end dates");
+      return;
+    }
+    
     try {
-      console.log("Creating event:", newEvent);
+      await eventService.createEvent(newEvent.property_id, {
+        platform: newEvent.platform,
+        summary: newEvent.summary,
+        start_date: newEvent.start_date,
+        end_date: newEvent.end_date,
+        event_type: newEvent.event_type,
+        status: newEvent.status,
+        description: newEvent.description
+      });
+      
       toast.success("Event created successfully");
       setIsAddEventOpen(false);
+      refetchEvents();
       
       // Reset form
       setNewEvent({
@@ -150,6 +217,19 @@ const Calendar = () => {
     } catch (error) {
       console.error("Error creating event:", error);
       toast.error("Failed to create event");
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string, propertyId: string) => {
+    if (window.confirm("Are you sure you want to delete this event?")) {
+      try {
+        await eventService.deleteEvent(propertyId, eventId);
+        toast.success("Event deleted successfully");
+        refetchEvents();
+      } catch (error) {
+        console.error("Error deleting event:", error);
+        toast.error("Failed to delete event");
+      }
     }
   };
 
@@ -178,6 +258,17 @@ const Calendar = () => {
       end_date: info.dateStr
     }));
     setIsAddEventOpen(true);
+  };
+
+  // Handle event click
+  const handleEventClick = (info: any) => {
+    const event = info.event;
+    const eventId = event.id;
+    const propertyId = event.extendedProps.property_id;
+    
+    if (window.confirm(`Do you want to delete the event "${event.title}"?`)) {
+      handleDeleteEvent(eventId, propertyId);
+    }
   };
 
   const handlePropertySelect = (propertyId: string) => {
@@ -263,20 +354,28 @@ const Calendar = () => {
           </PopoverTrigger>
           <PopoverContent className="w-[250px] p-0">
             <div className="p-2 space-y-1 max-h-[250px] overflow-y-auto">
-              {properties.map((property) => (
-                <div key={property.id} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id={`property-${property.id}`}
-                    checked={selectedProperties.includes(property.id)}
-                    onChange={() => handlePropertySelect(property.id)}
-                    className="rounded border-gray-300"
-                  />
-                  <label htmlFor={`property-${property.id}`} className="text-sm">
-                    {property.name}
-                  </label>
+              {propertiesLoading ? (
+                <div className="flex justify-center p-4">
+                  <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>
                 </div>
-              ))}
+              ) : properties.length === 0 ? (
+                <p className="text-center py-2 text-sm text-muted-foreground">No properties found</p>
+              ) : (
+                properties.map((property) => (
+                  <div key={property.id} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={`property-${property.id}`}
+                      checked={selectedProperties.includes(property.id)}
+                      onChange={() => handlePropertySelect(property.id)}
+                      className="rounded border-gray-300"
+                    />
+                    <label htmlFor={`property-${property.id}`} className="text-sm">
+                      {property.name}
+                    </label>
+                  </div>
+                ))
+              )}
             </div>
           </PopoverContent>
         </Popover>
@@ -406,77 +505,117 @@ const Calendar = () => {
         </div>
       )}
       
+      {/* No Properties Selected Message */}
+      {selectedProperties.length === 0 && (
+        <Card className="p-8 text-center">
+          <h3 className="text-lg font-semibold mb-2">No Properties Selected</h3>
+          <p className="text-muted-foreground mb-4">
+            Please select at least one property to view its calendar events.
+          </p>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button>Select Properties</Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[250px] p-0">
+              <div className="p-2 space-y-1 max-h-[250px] overflow-y-auto">
+                {propertiesLoading ? (
+                  <div className="flex justify-center p-4">
+                    <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>
+                  </div>
+                ) : properties.length === 0 ? (
+                  <p className="text-center py-2 text-sm text-muted-foreground">No properties found</p>
+                ) : (
+                  properties.map((property) => (
+                    <div key={property.id} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`property-select-${property.id}`}
+                        checked={selectedProperties.includes(property.id)}
+                        onChange={() => handlePropertySelect(property.id)}
+                        className="rounded border-gray-300"
+                      />
+                      <label htmlFor={`property-select-${property.id}`} className="text-sm">
+                        {property.name}
+                      </label>
+                    </div>
+                  ))
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </Card>
+      )}
+      
       {/* Calendar view */}
-      <Card className="p-4">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('prev')}>
-              <ChevronLeft className="h-4 w-4 mr-1" /> Previous
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('today')}>
-              Today
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('next')}>
-              Next <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
+      {selectedProperties.length > 0 && (
+        <Card className="p-4">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('prev')}>
+                <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('today')}>
+                Today
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('next')}>
+                Next <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+            
+            <div id="calendar-title" className="text-lg font-medium">
+              {/* FullCalendar will update this with current month/year */}
+            </div>
           </div>
           
-          <div id="calendar-title" className="text-lg font-medium">
-            {/* FullCalendar will update this with current month/year */}
-          </div>
-        </div>
-        
-        {eventsLoading ? (
-          <div className="flex items-center justify-center h-80">
-            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-            <p className="ml-3">Loading events...</p>
-          </div>
-        ) : (
-          <div className="h-[600px]">
-            <FullCalendar
-              ref={calendarRef}
-              plugins={[dayGridPlugin, interactionPlugin]}
-              initialView="dayGridMonth"
-              headerToolbar={false}
-              events={formattedEvents}
-              height="100%"
-              eventTimeFormat={{
-                hour: '2-digit',
-                minute: '2-digit',
-                meridiem: 'short'
-              }}
-              eventContent={(info) => {
-                return (
-                  <div className="fc-event-main-frame p-1">
-                    <div className="fc-event-title-container">
-                      <div className="fc-event-title font-medium text-xs">
-                        {info.event.title}
-                      </div>
-                      <div className="text-[10px] opacity-70">
-                        {info.event.extendedProps.platform}
+          {eventsLoading ? (
+            <div className="flex items-center justify-center h-80">
+              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+              <p className="ml-3">Loading events...</p>
+            </div>
+          ) : (
+            <div className="h-[600px]">
+              <FullCalendar
+                ref={calendarRef}
+                plugins={[dayGridPlugin, interactionPlugin]}
+                initialView="dayGridMonth"
+                headerToolbar={false}
+                events={formattedEvents}
+                height="100%"
+                eventTimeFormat={{
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  meridiem: 'short'
+                }}
+                eventContent={(info) => {
+                  return (
+                    <div className="fc-event-main-frame p-1">
+                      <div className="fc-event-title-container">
+                        <div className="fc-event-title font-medium text-xs">
+                          {info.event.title}
+                        </div>
+                        <div className="text-[10px] opacity-70">
+                          {info.event.extendedProps.platform}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              }}
-              eventDisplay="block"
-              dayMaxEvents={true}
-              dateClick={handleDateClick}
-              eventClick={(info) => {
-                console.log("Event clicked:", info.event);
-                // Could open an event details modal here
-              }}
-              datesSet={(dateInfo) => {
-                // Update the calendar title
-                const titleEl = document.getElementById('calendar-title');
-                if (titleEl) {
-                  titleEl.textContent = dateInfo.view.title;
-                }
-              }}
-            />
-          </div>
-        )}
-      </Card>
+                  );
+                }}
+                eventDisplay="block"
+                dayMaxEvents={true}
+                dateClick={handleDateClick}
+                eventClick={handleEventClick}
+                datesSet={(dateInfo) => {
+                  // Update the calendar title
+                  const titleEl = document.getElementById('calendar-title');
+                  if (titleEl) {
+                    titleEl.textContent = dateInfo.view.title;
+                  }
+                }}
+              />
+            </div>
+          )}
+        </Card>
+      )}
       
       {/* Add Event Dialog */}
       <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>

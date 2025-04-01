@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -25,11 +26,14 @@ import {
 import { DateRange } from "@/components/ui/date-range";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
+import { format } from "date-fns";
 
 export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
+  const [isViewEventOpen, setIsViewEventOpen] = useState(false);
+  const [viewedEvent, setViewedEvent] = useState<CalendarEvent | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<EventType[]>([]);
   const [dateRange, setDateRange] = useState<{
@@ -66,12 +70,27 @@ export default function PropertyDetails() {
     },
   });
 
-  const { data: eventsData, isLoading: eventsLoading } = useQuery({
+  const { data: eventsData, isLoading: eventsLoading, refetch: refetchEvents } = useQuery({
     queryKey: ["property-events", id, selectedPlatforms, selectedEventTypes, dateRange],
     queryFn: async () => {
       if (!id) return [];
       try {
-        const response = await eventService.getEvents(id);
+        const params: any = {};
+        
+        if (dateRange.from && dateRange.to) {
+          params.start_date = format(dateRange.from, "yyyy-MM-dd");
+          params.end_date = format(dateRange.to, "yyyy-MM-dd");
+        }
+        
+        if (selectedPlatforms.length > 0) {
+          params.platforms = selectedPlatforms;
+        }
+        
+        if (selectedEventTypes.length > 0) {
+          params.event_types = selectedEventTypes;
+        }
+        
+        const response = await eventService.getEvents(id, params);
         return response.data || [];
       } catch (error) {
         console.error("Error fetching property events:", error);
@@ -84,28 +103,6 @@ export default function PropertyDetails() {
     if (!eventsData) return [];
     
     return eventsData
-      .filter((event: CalendarEvent) => {
-        if (selectedPlatforms.length > 0 && !selectedPlatforms.includes(event.platform)) {
-          return false;
-        }
-        
-        if (selectedEventTypes.length > 0 && !selectedEventTypes.includes(event.event_type)) {
-          return false;
-        }
-        
-        if (dateRange.from && dateRange.to) {
-          const eventStart = new Date(event.start_date);
-          const eventEnd = new Date(event.end_date);
-          const filterStart = new Date(dateRange.from);
-          const filterEnd = new Date(dateRange.to);
-          
-          if (!(eventStart <= filterEnd && eventEnd >= filterStart)) {
-            return false;
-          }
-        }
-        
-        return true;
-      })
       .map((event: CalendarEvent) => ({
         id: event.id,
         title: event.summary,
@@ -115,10 +112,11 @@ export default function PropertyDetails() {
           platform: event.platform,
           event_type: event.event_type,
           status: event.status,
-          description: event.description
+          description: event.description,
+          property_id: id
         }
       }));
-  }, [eventsData, selectedPlatforms, selectedEventTypes, dateRange]);
+  }, [eventsData, id]);
 
   const handleSync = () => {
     toast.success("Property calendar synced successfully");
@@ -139,14 +137,72 @@ export default function PropertyDetails() {
     setNewEvent(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleDateClick = (info: any) => {
+    // Pre-fill with the clicked date
+    const clickedDate = info.dateStr;
+    setNewEvent(prev => ({
+      ...prev,
+      start_date: `${clickedDate}T12:00`,
+      end_date: `${clickedDate}T13:00`
+    }));
+    setIsAddEventOpen(true);
+  };
+
+  const handleEventClick = (info: any) => {
+    const eventId = info.event.id;
+    const event = eventsData.find((e: CalendarEvent) => e.id === eventId);
+    
+    if (event) {
+      setViewedEvent(event);
+      setIsViewEventOpen(true);
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    if (!id) return;
+    
+    if (window.confirm("Are you sure you want to delete this event?")) {
+      try {
+        await eventService.deleteEvent(id, eventId);
+        toast.success("Event deleted successfully");
+        refetchEvents();
+        setIsViewEventOpen(false);
+      } catch (error) {
+        console.error("Error deleting event:", error);
+        toast.error("Failed to delete event");
+      }
+    }
+  };
+
   const handleSubmitEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!newEvent.summary) {
+      toast.error("Please enter a title for the event");
+      return;
+    }
+    
+    if (!newEvent.start_date || !newEvent.end_date) {
+      toast.error("Please set both start and end dates");
+      return;
+    }
+    
     try {
-      console.log("Creating event:", newEvent);
+      await eventService.createEvent(id!, {
+        platform: newEvent.platform,
+        summary: newEvent.summary,
+        start_date: newEvent.start_date,
+        end_date: newEvent.end_date,
+        event_type: newEvent.event_type,
+        status: newEvent.status,
+        description: newEvent.description
+      });
+      
       toast.success("Event created successfully");
       setIsAddEventOpen(false);
+      refetchEvents();
       
+      // Reset form
       setNewEvent({
         property_id: id || "",
         platform: Platform.MANUAL,
@@ -388,21 +444,13 @@ export default function PropertyDetails() {
             eventsLoading={eventsLoading}
             onAddEvent={() => setIsAddEventOpen(true)}
             onExport={handleExport}
+            onDateClick={handleDateClick}
+            onEventClick={handleEventClick}
           />
         </TabsContent>
         
         <TabsContent value="ical" className="space-y-4">
-          <div className="grid gap-6 grid-cols-1">
-            <div className="p-4 border rounded-md">
-              <h2 className="text-xl font-semibold mb-2">Connected Platforms</h2>
-              <p className="text-muted-foreground mb-4">Import and export calendars from various booking platforms.</p>
-              <Button>
-                <Link className="mr-2 h-4 w-4" /> Add Platform
-              </Button>
-            </div>
-            
-            <PropertyICalFeed propertyId={id || ""} />
-          </div>
+          <PropertyICalFeed propertyId={id || ""} />
         </TabsContent>
         
         <TabsContent value="conflicts" className="space-y-4">
@@ -420,6 +468,7 @@ export default function PropertyDetails() {
         </TabsContent>
       </Tabs>
 
+      {/* Add Event Dialog */}
       <PropertyEventDialog
         isOpen={isAddEventOpen}
         onOpenChange={setIsAddEventOpen}
@@ -427,6 +476,71 @@ export default function PropertyDetails() {
         onInputChange={handleInputChange}
         onSubmit={handleSubmitEvent}
       />
+      
+      {/* View/Delete Event Dialog */}
+      {viewedEvent && (
+        <Dialog open={isViewEventOpen} onOpenChange={setIsViewEventOpen}>
+          <DialogContent className="sm:max-w-[525px]">
+            <DialogHeader>
+              <DialogTitle>Event Details</DialogTitle>
+              <DialogDescription>
+                View details for this event
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div className="flex justify-between">
+                  <h3 className="text-lg font-semibold">{viewedEvent.summary}</h3>
+                  <Badge>{viewedEvent.platform}</Badge>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Start Date</p>
+                    <p>{new Date(viewedEvent.start_date).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">End Date</p>
+                    <p>{new Date(viewedEvent.end_date).toLocaleString()}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Type</p>
+                    <Badge variant="outline">{viewedEvent.event_type}</Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Status</p>
+                    <Badge variant="outline">{viewedEvent.status}</Badge>
+                  </div>
+                </div>
+                
+                {viewedEvent.description && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Description</p>
+                    <p className="mt-1">{viewedEvent.description}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={() => handleDeleteEvent(viewedEvent.id)}
+              >
+                Delete Event
+              </Button>
+              <Button type="button" variant="outline" onClick={() => setIsViewEventOpen(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
