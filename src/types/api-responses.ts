@@ -198,6 +198,56 @@ export interface PropertyResponse {
   timestamp: string;
 }
 
+export interface PropertyCreateResponse {
+  success: boolean;
+  data: {
+    property: Property;
+    meta: {
+      property_id: string;
+      created_at: string;
+      property_type: string;
+      location: string;
+    }
+  };
+  message: string;
+  timestamp: string;
+}
+
+export interface PropertyUpdateResponse {
+  success: boolean;
+  data: {
+    property: Property;
+    meta: {
+      property_id: string;
+      updated_fields: string[];
+      update_time: string;
+      changes_count: number;
+    }
+  };
+  message: string;
+  timestamp: string;
+}
+
+export interface PropertyDeleteResponse {
+  success: boolean;
+  data: {
+    property: {
+      _id: string;
+      name: string;
+      property_type: string;
+      location: string;
+    };
+    meta: {
+      action: "deactivate" | "delete";
+      preserve_history: boolean;
+      property_id: string;
+      action_time: string;
+    }
+  };
+  message: string;
+  timestamp: string;
+}
+
 // iCal Connection Responses
 export interface ICalConnection {
   _id: string;

@@ -74,7 +74,7 @@ export default function PropertyDetails() {
       } catch (error) {
         console.error("Error fetching property:", error);
         
-        return getMockPropertyData(id);
+        return ensureMongoId(getMockPropertyData(id));
       }
     },
   });
@@ -561,9 +561,10 @@ export default function PropertyDetails() {
   );
 }
 
-function getMockPropertyData(id: string) {
+function getMockPropertyData(id: string): Property {
   return {
-    id,
+    _id: id,
+    id: id,
     name: "Oceanfront Villa",
     property_type: PropertyType.VILLA,
     address: {

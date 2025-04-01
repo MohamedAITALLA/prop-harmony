@@ -89,6 +89,7 @@ export default function Properties() {
 function getMockProperties(): Property[] {
   return [
     {
+      _id: "1",
       id: "1",
       name: "Oceanfront Villa",
       property_type: PropertyType.VILLA,
@@ -110,6 +111,7 @@ function getMockProperties(): Property[] {
       bookings_count: 2
     },
     {
+      _id: "2",
       id: "2",
       name: "Downtown Loft",
       property_type: PropertyType.APARTMENT,
@@ -131,6 +133,7 @@ function getMockProperties(): Property[] {
       bookings_count: 1
     },
     {
+      _id: "3",
       id: "3",
       name: "Mountain Cabin",
       property_type: PropertyType.CABIN,
@@ -152,6 +155,7 @@ function getMockProperties(): Property[] {
       bookings_count: 0
     },
     {
+      _id: "4",
       id: "4",
       name: "Beachside Condo",
       property_type: PropertyType.CONDO,
@@ -173,6 +177,7 @@ function getMockProperties(): Property[] {
       bookings_count: 3
     },
     {
+      _id: "5",
       id: "5",
       name: "Suburban House",
       property_type: PropertyType.HOUSE,

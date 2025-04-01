@@ -1,4 +1,3 @@
-
 import api from "@/lib/api";
 import { 
   AuthResponse, 
@@ -8,6 +7,9 @@ import {
   ProfileResetResponse,
   PropertiesResponse,
   PropertyResponse,
+  PropertyCreateResponse,
+  PropertyUpdateResponse,
+  PropertyDeleteResponse,
   ICalConnectionsResponse,
   EventsResponse,
   ConflictsResponse,
@@ -136,8 +138,8 @@ export const propertyService = {
       smoking_allowed?: boolean;
     };
     images?: string[];
-  }): Promise<PropertyResponse> => {
-    const response = await api.post<PropertyResponse>("/properties", propertyData);
+  }): Promise<PropertyCreateResponse> => {
+    const response = await api.post<PropertyCreateResponse>("/properties", propertyData);
     return response.data;
   },
   
@@ -182,14 +184,14 @@ export const propertyService = {
       }>;
       images: string[];
     }>
-  ): Promise<PropertyResponse> => {
-    const response = await api.put<PropertyResponse>(`/properties/${id}`, propertyData);
+  ): Promise<PropertyUpdateResponse> => {
+    const response = await api.put<PropertyUpdateResponse>(`/properties/${id}`, propertyData);
     return response.data;
   },
   
-  deleteProperty: async (id: string, preserveHistory?: boolean): Promise<ApiResponse<{ success: boolean }>> => {
+  deleteProperty: async (id: string, preserveHistory?: boolean): Promise<PropertyDeleteResponse> => {
     const params = preserveHistory !== undefined ? { preserve_history: preserveHistory } : undefined;
-    const response = await api.delete<ApiResponse<{ success: boolean }>>(`/properties/${id}`, { params });
+    const response = await api.delete<PropertyDeleteResponse>(`/properties/${id}`, { params });
     return response.data;
   },
   
