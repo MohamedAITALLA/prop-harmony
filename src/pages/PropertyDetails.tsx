@@ -2,7 +2,7 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { propertyService } from "@/services/api-service";
+import { propertyService, conflictService } from "@/services/api-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Edit, RefreshCw, Trash, Info, Calendar, Link, AlertTriangle, Settings } from "lucide-react";
@@ -11,6 +11,7 @@ import { PropertyICalFeed } from "@/components/properties/PropertyICalFeed";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PropertyType } from "@/types/enums"; // Fixed import for PropertyType enum
+import { PropertyConflictsView } from "@/components/conflicts/PropertyConflictsView";
 
 export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>();
@@ -151,7 +152,7 @@ export default function PropertyDetails() {
         <TabsContent value="conflicts" className="space-y-4">
           <div className="p-4 border rounded-md">
             <h2 className="text-xl font-semibold mb-2">Conflicts</h2>
-            <p className="text-muted-foreground">Conflicts detection will be implemented soon.</p>
+            {id && <PropertyConflictsView propertyId={id} />}
           </div>
         </TabsContent>
         
