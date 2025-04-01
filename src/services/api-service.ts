@@ -10,7 +10,8 @@ import {
   ConflictsResponse,
   NotificationsResponse,
   ApiResponse,
-  UsersResponse
+  UsersResponse,
+  UserProfilesResponse
 } from "@/types/api-responses";
 
 // Authentication Services
@@ -214,6 +215,35 @@ export const adminUserService = {
   
   demoteUser: async (id: string): Promise<ApiResponse<{ user: Record<string, any> }>> => {
     const response = await api.put<ApiResponse<{ user: Record<string, any> }>>(`/admin/users/${id}/demote`);
+    return response.data;
+  }
+};
+
+// Admin User Profile Management Services
+export const adminProfileService = {
+  getUserProfiles: async (params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<UserProfilesResponse> => {
+    const response = await api.get<UserProfilesResponse>("/admin/user-profiles", { params });
+    return response.data;
+  },
+  
+  getUserProfile: async (userId: string): Promise<ApiResponse<{ profile: Record<string, any> }>> => {
+    const response = await api.get<ApiResponse<{ profile: Record<string, any> }>>(`/admin/user-profiles/${userId}`);
+    return response.data;
+  },
+  
+  updateUserProfile: async (userId: string, profileData: Partial<{
+    preferences: Record<string, any>;
+    onboarding_completed: boolean;
+  }>): Promise<ApiResponse<{ profile: Record<string, any> }>> => {
+    const response = await api.put<ApiResponse<{ profile: Record<string, any> }>>(`/admin/user-profiles/${userId}`, profileData);
+    return response.data;
+  },
+  
+  resetUserProfile: async (userId: string): Promise<ApiResponse<{ profile: Record<string, any> }>> => {
+    const response = await api.delete<ApiResponse<{ profile: Record<string, any> }>>(`/admin/user-profiles/${userId}`);
     return response.data;
   }
 };

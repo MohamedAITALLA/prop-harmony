@@ -16,6 +16,7 @@ import EventManagement from "./pages/EventManagement";
 import Notifications from "./pages/Notifications";
 import ProfileSettings from "./pages/ProfileSettings";
 import UserManagement from "./pages/UserManagement";
+import UserProfiles from "./pages/UserProfiles";
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/layout/MainLayout";
 import ComponentsDemo from "./pages/ComponentsDemo";
@@ -102,6 +103,7 @@ const App = () => (
             
             {/* Admin routes */}
             <Route path="/admin/users" element={<AdminRoute><UserManagement /></AdminRoute>} />
+            <Route path="/admin/user-profiles" element={<AdminRoute><UserProfiles /></AdminRoute>} />
             <Route path="/admin" element={<AdminRoute><PlaceholderPage title="Admin" /></AdminRoute>} />
             
             {/* Catch-all route */}

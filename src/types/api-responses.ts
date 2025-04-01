@@ -1,3 +1,4 @@
+
 import { 
   PropertyType, 
   EventType, 
@@ -68,6 +69,7 @@ export interface UserProfile {
   onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
+  user?: User;
 }
 
 export interface ProfileResponse {
@@ -296,6 +298,14 @@ export interface ApiResponse<T> {
 
 export interface UsersResponse extends ApiResponse<{
   users: User[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages: number;
+}> {}
+
+export interface UserProfilesResponse extends ApiResponse<{
+  profiles: UserProfile[];
   total: number;
   page: number;
   limit: number;
