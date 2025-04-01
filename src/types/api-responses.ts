@@ -91,6 +91,10 @@ export interface Address {
   country: string;
   street?: string;
   postalCode?: string;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export interface Property {
@@ -109,7 +113,9 @@ export interface Property {
   updated_at?: string;
   location?: string;
   days_since_creation?: number;
-  description?: string; // Add description property
+  description?: string;
+  bookings_count?: number;
+  sync_status?: string;
 }
 
 export interface PropertiesResponse {

@@ -1,11 +1,20 @@
 
+import React, { useState } from "react";
 import { PropertyList } from "@/components/properties/PropertyList";
+import { PropertyTable } from "@/components/properties/PropertyTable";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "@/services/api-service";
 import { Property } from "@/types/api-responses";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Properties() {
-  // Use our new propertyService to fetch properties
+  const navigate = useNavigate();
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+
+  // Use our propertyService to fetch properties
   const { data, isLoading } = useQuery({
     queryKey: ["properties"],
     queryFn: async () => {
@@ -120,14 +129,33 @@ export default function Properties() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Properties</h1>
-        <p className="text-muted-foreground">
-          Manage your property portfolio
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Properties</h1>
+          <p className="text-muted-foreground">
+            Manage your property portfolio
+          </p>
+        </div>
+        
+        <Button 
+          onClick={() => navigate("/properties/new")}
+        >
+          <Plus className="mr-2 h-4 w-4" /> New Property
+        </Button>
       </div>
       
-      <PropertyList properties={data || []} isLoading={isLoading} />
+      <Tabs defaultValue="grid" onValueChange={(value) => setViewMode(value as "grid" | "table")}>
+        <TabsList>
+          <TabsTrigger value="grid">Grid View</TabsTrigger>
+          <TabsTrigger value="table">Table View</TabsTrigger>
+        </TabsList>
+        <TabsContent value="grid" className="mt-6">
+          <PropertyList properties={data || []} isLoading={isLoading} />
+        </TabsContent>
+        <TabsContent value="table" className="mt-6">
+          <PropertyTable properties={data || []} isLoading={isLoading} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
