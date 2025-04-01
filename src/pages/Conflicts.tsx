@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { conflictService, propertyService } from "@/services/api-service";
@@ -230,7 +231,7 @@ export default function Conflicts() {
               <SelectValue placeholder="All properties" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All properties</SelectItem>
+              <SelectItem value="all">All properties</SelectItem>
               {propertiesData?.map((property: Property) => (
                 <SelectItem key={property.id} value={property.id}>
                   {property.name}
@@ -251,7 +252,7 @@ export default function Conflicts() {
             <SelectContent>
               <SelectItem value="unresolved">Unresolved</SelectItem>
               <SelectItem value="resolved">Resolved</SelectItem>
-              <SelectItem value="">All</SelectItem>
+              <SelectItem value="all">All</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -408,3 +409,4 @@ export default function Conflicts() {
     </div>
   );
 }
+
