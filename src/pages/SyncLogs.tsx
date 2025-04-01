@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SyncLog, Property } from "@/types/api-responses";
@@ -12,6 +13,27 @@ import { Search, ArrowUpDown, Filter, RefreshCw } from "lucide-react";
 import { syncService, propertyService } from "@/services/api-service";
 import { format, parseISO } from "date-fns";
 import { convertToMongoIdFormat } from "@/lib/id-conversion";
+import { Platform, SyncLogStatus, SyncAction } from "@/types/enums";
+
+// Create a concrete log type that matches what our mock function returns
+interface MockSyncLog {
+  _id: string;
+  property_id: string;
+  property?: { _id: string; name: string };
+  platform: string;
+  action: string;
+  status: string;
+  timestamp: string;
+  duration: number;
+  message: string;
+  details?: {
+    events_processed: number;
+    new_events: number;
+    updated_events: number;
+    deleted_events: number;
+  };
+  created_at: string;
+}
 
 export default function SyncLogs() {
   const [selectedProperty, setSelectedProperty] = useState<string>("");
@@ -19,7 +41,7 @@ export default function SyncLogs() {
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLogDetailsOpen, setIsLogDetailsOpen] = useState(false);
-  const [selectedLog, setSelectedLog] = useState<SyncLog | null>(null);
+  const [selectedLog, setSelectedLog] = useState<MockSyncLog | null>(null);
 
   const { data: syncLogs = [], isLoading: isLogsLoading } = useQuery({
     queryKey: ["sync-logs", selectedProperty, selectedPlatform, selectedStatus],
@@ -48,7 +70,7 @@ export default function SyncLogs() {
     },
   });
 
-  const filteredLogs = syncLogs.filter((log: SyncLog) => {
+  const filteredLogs = syncLogs.filter((log: MockSyncLog) => {
     const matchesSearch = 
       log.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
       log.platform.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -62,7 +84,7 @@ export default function SyncLogs() {
     return matchesSearch && matchesProperty && matchesPlatform && matchesStatus;
   });
 
-  const handleViewLog = (log: SyncLog) => {
+  const handleViewLog = (log: MockSyncLog) => {
     setSelectedLog(log);
     setIsLogDetailsOpen(true);
   };
@@ -177,7 +199,7 @@ export default function SyncLogs() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredLogs.map((log: SyncLog) => (
+                filteredLogs.map((log: MockSyncLog) => (
                   <TableRow 
                     key={log._id} 
                     className="cursor-pointer hover:bg-muted/50"
@@ -208,7 +230,7 @@ export default function SyncLogs() {
       </div>
 
       <LogDetailsModal 
-        log={selectedLog} 
+        log={selectedLog as any} 
         open={isLogDetailsOpen}
         onOpenChange={setIsLogDetailsOpen}
       />
@@ -243,7 +265,6 @@ function getMockLogs() {
         deleted_events: 1
       },
       created_at: new Date().toISOString()
-    },
-    // ... keep existing code (other mock logs)
+    }
   ]);
 }

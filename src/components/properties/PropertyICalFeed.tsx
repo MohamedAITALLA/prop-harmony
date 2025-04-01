@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -70,8 +69,10 @@ export function PropertyICalFeed({ propertyId }: PropertyICalFeedProps) {
         return '';
       }
     },
-    onSuccess: (data) => {
-      setFeedUrl(data);
+    onSettled: (data) => {
+      if (data) {
+        setFeedUrl(data);
+      }
     }
   });
   

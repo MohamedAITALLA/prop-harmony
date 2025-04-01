@@ -1,10 +1,10 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { profileService } from "@/services/api-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserPreferences } from "@/types/api-responses";
 import { toast } from "sonner";
+
 import { UserProfileForm } from "@/components/settings/UserProfileForm";
 import { TimezoneSettings } from "@/components/settings/TimezoneSettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
@@ -12,7 +12,6 @@ import { SecuritySettings } from "@/components/settings/SecuritySettings";
 import { ProfileStatus } from "@/components/settings/ProfileStatus";
 
 export default function ProfileSettings() {
-  // Default values
   const defaultPreferences: UserPreferences = {
     theme: "system",
     language: "en",
@@ -46,13 +45,11 @@ export default function ProfileSettings() {
     sync_failure_notifications: true,
   };
   
-  // State
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
   const [contactInfo, setContactInfo] = useState(defaultContactInfo);
   const [notificationSettings, setNotificationSettings] = useState(defaultNotificationSettings);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Profile status
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
   const preferencesSet = Object.keys(preferences).length > 0;
   const contactInfoSet = contactInfo.phone !== "" || contactInfo.address !== "";
@@ -68,46 +65,44 @@ export default function ProfileSettings() {
         return null;
       }
     },
-    onSuccess: (data) => {
-      if (data) {
-        // Update preferences state
-        setPreferences({
-          ...defaultPreferences,
-          ...data.preferences,
-        });
-        
-        // Update contact info state (safely handle structure)
-        if (data.contact_info) {
-          const contact = data.contact_info as Record<string, any>;
-          setContactInfo({
-            phone: contact.phone || "",
-            address: contact.address || "",
-            city: contact.city || "",
-            state: contact.state || "",
-            country: contact.country || "",
-            postalCode: contact.postalCode || "",
-            emergency_contact: {
-              name: (contact.emergency_contact?.name || ""),
-              phone: (contact.emergency_contact?.phone || ""),
-              relationship: (contact.emergency_contact?.relationship || ""),
-            }
-          });
-        }
-        
-        // Set onboarding status
-        setOnboardingCompleted(data.onboarding_completed);
-      }
-    },
   });
+
+  React.useEffect(() => {
+    if (profileData) {
+      setPreferences({
+        ...defaultPreferences,
+        ...profileData.preferences,
+      });
+      
+      if (profileData.contact_info) {
+        const contact = profileData.contact_info as Record<string, any>;
+        const newContactInfo = {
+          phone: contact.phone || "",
+          address: contact.address || "",
+          city: contact.city || "",
+          state: contact.state || "",
+          country: contact.country || "",
+          postalCode: contact.postalCode || "",
+          emergency_contact: {
+            name: (contact.emergency_contact?.name || ""),
+            phone: (contact.emergency_contact?.phone || ""),
+            relationship: (contact.emergency_contact?.relationship || ""),
+          }
+        };
+        setContactInfo(newContactInfo);
+      }
+      
+      setOnboardingCompleted(profileData.onboarding_completed);
+    }
+  }, [profileData]);
   
-  // Handle save profile
   const handleSaveProfile = async () => {
     setIsLoading(true);
     
     try {
       await profileService.updateProfile({
         preferences: preferences,
-        contact_info: contactInfo as Record<string, any>,
+        contact_info: contactInfo as any,
         onboarding_completed: true,
       });
       
@@ -121,7 +116,6 @@ export default function ProfileSettings() {
     }
   };
   
-  // Handle save notification settings
   const handleSaveNotificationSettings = async () => {
     setIsLoading(true);
     
@@ -142,7 +136,6 @@ export default function ProfileSettings() {
     }
   };
   
-  // Handle change password
   const handleChangePassword = async (currentPassword: string, newPassword: string) => {
     setIsLoading(true);
     
@@ -163,7 +156,6 @@ export default function ProfileSettings() {
     }
   };
   
-  // Handle reset profile
   const handleResetProfile = async () => {
     if (window.confirm("Are you sure you want to reset your profile? This will clear all your preferences and settings.")) {
       setIsLoading(true);
@@ -171,7 +163,6 @@ export default function ProfileSettings() {
       try {
         await profileService.resetProfile();
         
-        // Reset states to defaults
         setPreferences(defaultPreferences);
         setContactInfo(defaultContactInfo);
         setOnboardingCompleted(false);

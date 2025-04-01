@@ -3,17 +3,15 @@ import React from 'react';
 import { Badge } from "@/components/ui/badge";
 
 interface RoleBadgeProps {
-  value: string;
+  role: string;
 }
 
-const RoleBadge = ({ value }: RoleBadgeProps) => {
-  const variant = value === 'admin' ? 'destructive' : 'secondary';
+export default function RoleBadge({ role }: RoleBadgeProps) {
+  const variant = role === 'admin' ? 'destructive' : 'secondary';
   
   return (
-    <Badge variant={variant} className="capitalize">
-      {value}
+    <Badge variant={variant as any} className="capitalize">
+      {role}
     </Badge>
   );
-};
-
-export default RoleBadge;
+}
