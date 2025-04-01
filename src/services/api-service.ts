@@ -300,7 +300,7 @@ export const syncService = {
       limit?: number;
     }
   ): Promise<SyncLogsResponse> => {
-    const response = await api.get<SyncLogsResponse>(`/properties/${propertyId}/sync/logs`, { params });
+    const response = await api.get<SyncLogsResponse>(`/properties/${propertyId}/sync`, { params });
     return response.data;
   }
 };
