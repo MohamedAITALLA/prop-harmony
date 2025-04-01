@@ -11,7 +11,8 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Properties from "./pages/Properties";
 import PropertyDetails from "./pages/PropertyDetails";
-import Calendar from "./pages/Calendar"; // Import the new Calendar component
+import Calendar from "./pages/Calendar";
+import EventManagement from "./pages/EventManagement"; // Import the new EventManagement page
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/layout/MainLayout";
 import ComponentsDemo from "./pages/ComponentsDemo";
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
             <Route path="/properties/:id" element={<ProtectedRoute><PropertyDetails /></ProtectedRoute>} />
             <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+            <Route path="/events" element={<ProtectedRoute><EventManagement /></ProtectedRoute>} /> {/* Add new route */}
             <Route path="/notifications" element={<ProtectedRoute><PlaceholderPage title="Notifications" /></ProtectedRoute>} />
             <Route path="/conflicts" element={<ProtectedRoute><PlaceholderPage title="Conflicts" /></ProtectedRoute>} />
             <Route path="/sync" element={<ProtectedRoute><PlaceholderPage title="Synchronization" /></ProtectedRoute>} />
