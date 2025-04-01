@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from "@fullcalendar/interaction";
-import { Download, ChevronDown, Plus, ChevronLeft, ChevronRight, Copy } from "lucide-react";
+import { Download, ChevronDown, Plus, ChevronLeft, ChevronRight, Copy, AlertTriangle } from "lucide-react";
 import { 
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
@@ -20,6 +20,8 @@ interface PropertyCalendarProps {
   onEventClick?: (eventInfo: any) => void;
   onDateClick?: (dateInfo: any) => void;
   propertyId?: string;
+  hasConflicts?: boolean;
+  onViewConflicts?: () => void;
 }
 
 export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({ 
@@ -29,7 +31,9 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
   onExport,
   onEventClick,
   onDateClick,
-  propertyId
+  propertyId,
+  hasConflicts,
+  onViewConflicts
 }) => {
   const calendarRef = useRef(null);
 
@@ -91,6 +95,25 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Property Calendar</h2>
         <div className="flex space-x-2">
+          {hasConflicts && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="destructive" 
+                    onClick={onViewConflicts}
+                    className="flex items-center gap-1"
+                  >
+                    <AlertTriangle className="mr-1 h-4 w-4" />
+                    View Conflicts
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>This property has booking conflicts that need attention</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
           <Button onClick={onAddEvent}>
             <Plus className="mr-2 h-4 w-4" />
             Add Event

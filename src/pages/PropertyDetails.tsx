@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { propertyService, eventService } from "@/services/api-service";
+import { propertyService, eventService, syncService } from "@/services/api-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Edit, RefreshCw, Trash, Info, Calendar, Link, AlertTriangle, Settings, Filter } from "lucide-react";
@@ -13,6 +13,7 @@ import { Platform, EventType, PropertyType } from "@/types/enums";
 import { PropertyConflictsView } from "@/components/conflicts/PropertyConflictsView";
 import { PropertyCalendar } from "@/components/properties/PropertyCalendar";
 import { PropertyEventDialog } from "@/components/properties/PropertyEventDialog";
+import { SyncDialog } from "@/components/ui/sync-dialog";
 import { CalendarEvent } from "@/types/api-responses";
 import { 
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
@@ -40,6 +41,7 @@ export default function PropertyDetails() {
   const navigate = useNavigate();
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [isViewEventOpen, setIsViewEventOpen] = useState(false);
+  const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false);
   const [viewedEvent, setViewedEvent] = useState<CalendarEvent | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<EventType[]>([]);
@@ -126,7 +128,7 @@ export default function PropertyDetails() {
   }, [eventsData, id]);
 
   const handleSync = () => {
-    toast.success("Property calendar synced successfully");
+    setIsSyncDialogOpen(true);
   };
 
   const handleDelete = () => {
@@ -252,6 +254,10 @@ export default function PropertyDetails() {
 
   const handleDateRangeChange = (range: { from: Date | undefined; to: Date | undefined }) => {
     setDateRange(range);
+  };
+
+  const handleSyncComplete = () => {
+    refetchEvents();
   };
 
   if (isLoading) {
@@ -544,6 +550,13 @@ export default function PropertyDetails() {
           </DialogContent>
         </Dialog>
       )}
+      
+      <SyncDialog
+        open={isSyncDialogOpen}
+        onOpenChange={setIsSyncDialogOpen}
+        propertyId={id}
+        onSyncComplete={handleSyncComplete}
+      />
     </div>
   );
 }
