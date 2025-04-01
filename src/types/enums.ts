@@ -45,18 +45,18 @@ export enum ConflictStatus {
 
 // Enum for Notification Types
 export enum NotificationType {
-    NEW_BOOKING = 'new_booking',
-    MODIFIED_BOOKING = 'modified_booking',
-    CANCELLED_BOOKING = 'cancelled_booking',
-    BOOKING_CONFLICT = 'booking_conflict',
-    SYNC_FAILURE = 'sync_failure',
+    NEW_BOOKING = "new_booking",
+    MODIFIED_BOOKING = "modified_booking",
+    CANCELLED_BOOKING = "cancelled_booking",
+    BOOKING_CONFLICT = "booking_conflict",
+    SYNC_FAILURE = "sync_failure"
 }
 
 // Enum for Notification Severities
 export enum NotificationSeverity {
-    CRITICAL = 'critical',
-    WARNING = 'warning',
-    INFO = 'info',
+    CRITICAL = "critical",
+    WARNING = "warning",
+    INFO = "info"
 }
 
 // Enum for Platforms

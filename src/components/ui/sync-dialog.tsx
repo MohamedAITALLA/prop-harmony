@@ -13,6 +13,7 @@ import { RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { syncService } from "@/services/api-service";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface SyncDialogProps {
   open: boolean;
@@ -31,6 +32,9 @@ export function SyncDialog({
   const [syncComplete, setSyncComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
+  
+  // Add QueryClient to invalidate notifications query after sync
+  const queryClient = useQueryClient();
 
   const handleSync = async () => {
     setSyncing(true);
@@ -51,6 +55,11 @@ export function SyncDialog({
       
       setSyncComplete(true);
       setStatus("success");
+      
+      // Invalidate notifications query to fetch any new notifications from the sync
+      queryClient.invalidateQueries({
+        queryKey: ["notifications"],
+      });
       
       // Notify parent component that sync is complete
       if (onSyncComplete) {

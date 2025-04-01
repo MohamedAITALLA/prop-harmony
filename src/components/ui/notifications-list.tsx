@@ -15,6 +15,8 @@ export interface Notification {
   severity: string;
   read: boolean;
   created_at: string;
+  property_id?: string;
+  user_id?: string;
   [key: string]: any;
 }
 
@@ -24,7 +26,10 @@ export interface NotificationsListProps extends React.HTMLAttributes<HTMLDivElem
   onMarkAllRead?: () => void;
   onDelete?: (id: string) => void;
   maxHeight?: string | number;
-  isLoading?: boolean; // Add the isLoading prop
+  isLoading?: boolean;
+  emptyMessage?: string;
+  showActions?: boolean;
+  showHeader?: boolean;
 }
 
 export function NotificationsList({
@@ -34,6 +39,9 @@ export function NotificationsList({
   onDelete,
   maxHeight = "300px",
   isLoading = false,
+  emptyMessage = "No notifications",
+  showActions = true,
+  showHeader = true,
   className,
   ...props
 }: NotificationsListProps) {
@@ -48,9 +56,14 @@ export function NotificationsList({
         return <Clock className={`h-5 w-5 ${iconClass}`} />;
       case "booking":
       case "reservation":
+      case "new_booking":
+      case "modified_booking":
         return <Bell className={`h-5 w-5 ${iconClass}`} />;
       case "error":
       case "conflict":
+      case "booking_conflict":
+      case "cancelled_booking":
+      case "sync_failure":
         return <Bell className={`h-5 w-5 text-destructive`} />;
       default:
         return <Bell className={`h-5 w-5 ${iconClass}`} />;
@@ -77,26 +90,28 @@ export function NotificationsList({
   
   return (
     <div className={cn("w-full", className)} {...props}>
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold">Notifications</h3>
-          {unreadCount > 0 && (
-            <StatusBadge status={`${unreadCount} Unread`} variant="info" size="sm" />
+      {showHeader && (
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">Notifications</h3>
+            {unreadCount > 0 && (
+              <StatusBadge status={`${unreadCount} Unread`} variant="info" size="sm" />
+            )}
+          </div>
+          {unreadCount > 0 && onMarkAllRead && showActions && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onMarkAllRead}
+              className="text-xs"
+            >
+              <CheckCircle className="mr-1 h-3 w-3" /> Mark all read
+            </Button>
           )}
         </div>
-        {unreadCount > 0 && onMarkAllRead && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={onMarkAllRead}
-            className="text-xs"
-          >
-            <CheckCircle className="mr-1 h-3 w-3" /> Mark all read
-          </Button>
-        )}
-      </div>
+      )}
       
-      <ScrollArea className={cn("rounded-md border", `max-h-[${maxHeight}]`)}>
+      <ScrollArea className={cn("rounded-md border", typeof maxHeight === 'number' ? `max-h-[${maxHeight}px]` : `max-h-[${maxHeight}]`)}>
         {isLoading ? (
           <div className="p-6 flex justify-center items-center">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -126,28 +141,30 @@ export function NotificationsList({
                     <span title={formatDate(notification.created_at)}>
                       {formatTimeAgo(notification.created_at)}
                     </span>
-                    <div className="flex gap-2">
-                      {!notification.read && onMarkRead && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-6 px-2 text-xs"
-                          onClick={() => onMarkRead(notification.id)}
-                        >
-                          Mark read
-                        </Button>
-                      )}
-                      {onDelete && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-6 px-2 text-xs text-destructive hover:text-destructive"
-                          onClick={() => onDelete(notification.id)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
+                    {showActions && (
+                      <div className="flex gap-2">
+                        {!notification.read && onMarkRead && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 px-2 text-xs"
+                            onClick={() => onMarkRead(notification.id)}
+                          >
+                            Mark read
+                          </Button>
+                        )}
+                        {onDelete && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 px-2 text-xs text-destructive hover:text-destructive"
+                            onClick={() => onDelete(notification.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -155,7 +172,7 @@ export function NotificationsList({
           </div>
         ) : (
           <div className="flex items-center justify-center p-6 text-center text-muted-foreground">
-            <p>No notifications</p>
+            <p>{emptyMessage}</p>
           </div>
         )}
       </ScrollArea>

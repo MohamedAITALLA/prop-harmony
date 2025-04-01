@@ -14,11 +14,15 @@ export function SeverityBadge({ severity, className }: SeverityBadgeProps) {
   const getVariant = (severity: string) => {
     switch (severity.toLowerCase()) {
       case ConflictSeverity.HIGH:
+      case "critical":
         return "destructive";
       case ConflictSeverity.MEDIUM:
+      case "warning":
         return "warning";
       case ConflictSeverity.LOW:
-        return "outline";
+      case "info":
+      case "success":
+        return severity.toLowerCase() === "success" ? "success" : "outline";
       default:
         return "secondary";
     }
@@ -27,10 +31,14 @@ export function SeverityBadge({ severity, className }: SeverityBadgeProps) {
   const getSeverityIcon = (severity: string) => {
     switch (severity.toLowerCase()) {
       case ConflictSeverity.HIGH:
+      case "critical":
         return <AlertCircle className="h-3 w-3 mr-1" />;
       case ConflictSeverity.MEDIUM:
+      case "warning":
         return <AlertTriangle className="h-3 w-3 mr-1" />;
       case ConflictSeverity.LOW:
+      case "info":
+      case "success":
         return <Info className="h-3 w-3 mr-1" />;
       default:
         return null;
@@ -42,7 +50,7 @@ export function SeverityBadge({ severity, className }: SeverityBadgeProps) {
 
   return (
     <Badge
-      variant={variant as "default" | "destructive" | "outline" | "secondary"}
+      variant={variant as "default" | "destructive" | "outline" | "secondary" | "success" | "warning"}
       className={cn("capitalize flex items-center", className)}
     >
       {icon}

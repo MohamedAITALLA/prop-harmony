@@ -10,7 +10,7 @@ interface RecentNotificationsProps {
   action?: string;
 }
 
-export function RecentNotifications({ limit = 5, action }: RecentNotificationsProps) {
+export function RecentNotifications({ limit = 5, action = "View all notifications" }: RecentNotificationsProps) {
   const navigate = useNavigate();
   const { 
     notifications, 
@@ -18,7 +18,10 @@ export function RecentNotifications({ limit = 5, action }: RecentNotificationsPr
     markAsRead, 
     markAllAsRead, 
     deleteNotification 
-  } = useNotifications();
+  } = useNotifications({ 
+    limit,
+    page: 1
+  });
 
   return (
     <div>

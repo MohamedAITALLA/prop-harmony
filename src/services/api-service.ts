@@ -372,7 +372,14 @@ export const conflictService = {
 // Notification Services
 export const notificationService = {
   getNotifications: async (
-    params?: { page?: number; limit?: number; read?: boolean; type?: string }
+    params?: { 
+      page?: number; 
+      limit?: number; 
+      property_id?: string;
+      type?: string; 
+      severity?: string;
+      read?: boolean;
+    }
   ): Promise<NotificationsResponse> => {
     const response = await api.get<NotificationsResponse>("/notifications", { params });
     return response.data;
@@ -383,8 +390,41 @@ export const notificationService = {
     return response.data;
   },
   
-  markAllAsRead: async (): Promise<ApiResponse<Record<string, any>>> => {
-    const response = await api.put<ApiResponse<Record<string, any>>>("/notifications/read");
+  markAllAsRead: async (ids?: string[]): Promise<ApiResponse<Record<string, any>>> => {
+    const response = await api.put<ApiResponse<Record<string, any>>>("/notifications/read", ids ? { ids } : undefined);
+    return response.data;
+  },
+  
+  deleteNotification: async (
+    notificationId: string, 
+    preserveHistory?: boolean
+  ): Promise<ApiResponse<{ success: boolean }>> => {
+    const params = preserveHistory !== undefined ? { preserve_history: preserveHistory } : undefined;
+    const response = await api.delete<ApiResponse<{ success: boolean }>>(`/notifications/${notificationId}`, { params });
+    return response.data;
+  },
+  
+  getSettings: async (): Promise<ApiResponse<{
+    email_notifications: boolean;
+    new_booking_notifications: boolean;
+    modified_booking_notifications: boolean;
+    cancelled_booking_notifications: boolean;
+    conflict_notifications: boolean;
+    sync_failure_notifications: boolean;
+  }>> => {
+    const response = await api.get<ApiResponse<Record<string, boolean>>>("/notifications/settings");
+    return response.data;
+  },
+  
+  updateSettings: async (settings: {
+    email_notifications?: boolean;
+    new_booking_notifications?: boolean;
+    modified_booking_notifications?: boolean;
+    cancelled_booking_notifications?: boolean;
+    conflict_notifications?: boolean;
+    sync_failure_notifications?: boolean;
+  }): Promise<ApiResponse<Record<string, boolean>>> => {
+    const response = await api.put<ApiResponse<Record<string, boolean>>>("/notifications/settings", settings);
     return response.data;
   }
 };

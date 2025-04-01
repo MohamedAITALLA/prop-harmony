@@ -25,53 +25,28 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Check, Settings } from "lucide-react";
-import { Property, Notification } from "@/types/api-responses";
+import { Property } from "@/types/api-responses";
 import { propertyService } from "@/services/api-service";
 import { NotificationType, NotificationSeverity } from "@/types/enums";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { NotificationSettings } from "@/components/notifications/NotificationSettings";
 
 interface NotificationFilters {
   property_id?: string;
   type?: string;
   severity?: string;
   read?: string;
+  page?: number;
+  limit?: number;
   search?: string;
 }
 
-interface NotificationSettingsForm {
-  email_notifications: boolean;
-  new_booking_notifications: boolean;
-  modified_booking_notifications: boolean;
-  cancelled_booking_notifications: boolean;
-  conflict_notifications: boolean;
-  sync_failure_notifications: boolean;
-}
-
-const initialSettings: NotificationSettingsForm = {
-  email_notifications: true,
-  new_booking_notifications: true,
-  modified_booking_notifications: true,
-  cancelled_booking_notifications: true,
-  conflict_notifications: true,
-  sync_failure_notifications: true,
-};
-
 export default function Notifications() {
   const [filters, setFilters] = useState<NotificationFilters>({
+    page: 1,
+    limit: 20,
     read: "",
   });
   const [searchQuery, setSearchQuery] = useState("");
@@ -79,75 +54,38 @@ export default function Notifications() {
   const { 
     notifications, 
     isLoading, 
+    totalPages,
     markAsRead, 
     markAllAsRead, 
     deleteNotification 
-  } = useNotifications();
+  } = useNotifications({
+    ...filters,
+    read: filters.read === "true" ? true : filters.read === "false" ? false : undefined,
+  });
 
   // Get properties for the filter dropdown
   const { data: properties = [] } = useQuery<Property[]>({
     queryKey: ["properties", "list"],
     queryFn: async () => {
-      // In a real app, this would call the API
       const response = await propertyService.getAllProperties();
       return response.data.properties;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const form = useForm<NotificationSettingsForm>({
-    defaultValues: initialSettings,
-  });
-
   const handleFilterChange = (key: keyof NotificationFilters, value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setFilters((prev) => {
+      // Reset page to 1 when changing filters other than page
+      if (key !== 'page') {
+        return { ...prev, [key]: value, page: 1 };
+      }
+      return { ...prev, [key]: value };
+    });
   };
 
-  const handleSubmitSettings = (data: NotificationSettingsForm) => {
-    // In a real app, this would submit to the API
-    console.log("Notification settings:", data);
-    toast.success("Notification settings updated");
+  const handleSearch = () => {
+    setFilters(prev => ({ ...prev, search: searchQuery, page: 1 }));
   };
-
-  // Filter notifications based on selected filters
-  const filteredNotifications = notifications.filter((notification: Notification) => {
-    // Apply property filter
-    if (filters.property_id && notification.property_id !== filters.property_id) {
-      return false;
-    }
-
-    // Apply type filter
-    if (filters.type && notification.type !== filters.type) {
-      return false;
-    }
-
-    // Apply severity filter
-    if (filters.severity && notification.severity !== filters.severity) {
-      return false;
-    }
-
-    // Apply read status filter
-    if (filters.read === "true" && !notification.read) {
-      return false;
-    }
-    if (filters.read === "false" && notification.read) {
-      return false;
-    }
-
-    // Apply search filter
-    if (
-      searchQuery &&
-      !notification.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !notification.message.toLowerCase().includes(searchQuery.toLowerCase())
-    ) {
-      return false;
-    }
-
-    return true;
-  });
 
   return (
     <div className="container py-6 space-y-6">
@@ -157,7 +95,7 @@ export default function Notifications() {
           <Button
             variant="outline"
             onClick={markAllAsRead}
-            disabled={notifications.every((n) => n.read)}
+            disabled={!notifications?.some(n => !n.read)}
             className="gap-2"
           >
             <Check className="h-4 w-4" /> Mark All as Read
@@ -176,140 +114,7 @@ export default function Notifications() {
                   Customize how and when you receive notifications.
                 </DialogDescription>
               </DialogHeader>
-              
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmitSettings)} className="space-y-4 py-4">
-                  <FormField
-                    control={form.control}
-                    name="email_notifications"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Email Notifications</FormLabel>
-                          <FormDescription>
-                            Receive notifications via email
-                          </FormDescription>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="new_booking_notifications"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>New Bookings</FormLabel>
-                          <FormDescription>
-                            Get notified when new bookings are created
-                          </FormDescription>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="modified_booking_notifications"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Modified Bookings</FormLabel>
-                          <FormDescription>
-                            Get notified when existing bookings are modified
-                          </FormDescription>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="cancelled_booking_notifications"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Cancelled Bookings</FormLabel>
-                          <FormDescription>
-                            Get notified when bookings are cancelled
-                          </FormDescription>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="conflict_notifications"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Booking Conflicts</FormLabel>
-                          <FormDescription>
-                            Get notified when booking conflicts are detected
-                          </FormDescription>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="sync_failure_notifications"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Sync Failures</FormLabel>
-                          <FormDescription>
-                            Get notified when calendar synchronization fails
-                          </FormDescription>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <DialogFooter>
-                    <Button type="submit">Save Changes</Button>
-                  </DialogFooter>
-                </form>
-              </Form>
+              <NotificationSettings />
             </DialogContent>
           </Dialog>
         </div>
@@ -332,12 +137,13 @@ export default function Notifications() {
                 className="pl-8"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
             </div>
             
             <Select
               value={filters.property_id || ""}
-              onValueChange={(value) => handleFilterChange("property_id", value)}
+              onValueChange={(value) => handleFilterChange("property_id", value === "all_properties" ? "" : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Property" />
@@ -354,39 +160,39 @@ export default function Notifications() {
             
             <Select
               value={filters.type || ""}
-              onValueChange={(value) => handleFilterChange("type", value)}
+              onValueChange={(value) => handleFilterChange("type", value === "all_types" ? "" : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all_types">All Types</SelectItem>
-                <SelectItem value="new_booking">New Booking</SelectItem>
-                <SelectItem value="modified_booking">Modified Booking</SelectItem>
-                <SelectItem value="cancelled_booking">Cancelled Booking</SelectItem>
-                <SelectItem value="booking_conflict">Booking Conflict</SelectItem>
-                <SelectItem value="sync_failure">Sync Failure</SelectItem>
+                <SelectItem value={NotificationType.NEW_BOOKING}>New Booking</SelectItem>
+                <SelectItem value={NotificationType.MODIFIED_BOOKING}>Modified Booking</SelectItem>
+                <SelectItem value={NotificationType.CANCELLED_BOOKING}>Cancelled Booking</SelectItem>
+                <SelectItem value={NotificationType.BOOKING_CONFLICT}>Booking Conflict</SelectItem>
+                <SelectItem value={NotificationType.SYNC_FAILURE}>Sync Failure</SelectItem>
               </SelectContent>
             </Select>
             
             <Select
               value={filters.severity || ""}
-              onValueChange={(value) => handleFilterChange("severity", value)}
+              onValueChange={(value) => handleFilterChange("severity", value === "all_severities" ? "" : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Severity" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all_severities">All Severities</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
-                <SelectItem value="warning">Warning</SelectItem>
-                <SelectItem value="info">Info</SelectItem>
+                <SelectItem value={NotificationSeverity.CRITICAL}>Critical</SelectItem>
+                <SelectItem value={NotificationSeverity.WARNING}>Warning</SelectItem>
+                <SelectItem value={NotificationSeverity.INFO}>Info</SelectItem>
               </SelectContent>
             </Select>
             
             <Select
               value={filters.read}
-              onValueChange={(value) => handleFilterChange("read", value)}
+              onValueChange={(value) => handleFilterChange("read", value === "all_statuses" ? "" : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Status" />
@@ -405,18 +211,47 @@ export default function Notifications() {
         <CardHeader>
           <CardTitle>Notifications</CardTitle>
           <CardDescription>
-            {filteredNotifications.length} notification{filteredNotifications.length !== 1 && 's'} found
+            {notifications.length} notification{notifications.length !== 1 && 's'} found
           </CardDescription>
         </CardHeader>
         <CardContent>
           <NotificationsList
-            notifications={filteredNotifications}
+            notifications={notifications}
             isLoading={isLoading}
             onMarkRead={markAsRead}
             onMarkAllRead={markAllAsRead}
             onDelete={deleteNotification}
             maxHeight="600px"
+            emptyMessage={isLoading ? "Loading notifications..." : "No notifications match your filters."}
           />
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center mt-6">
+              <nav className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => handleFilterChange('page', String(Math.max(1, Number(filters.page) - 1)))}
+                  disabled={Number(filters.page) <= 1}
+                >
+                  Previous
+                </Button>
+                
+                <div className="text-sm">
+                  Page <span className="font-medium">{filters.page}</span> of{" "}
+                  <span className="font-medium">{totalPages}</span>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={() => handleFilterChange('page', String(Math.min(totalPages, Number(filters.page) + 1)))}
+                  disabled={Number(filters.page) >= totalPages}
+                >
+                  Next
+                </Button>
+              </nav>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
