@@ -7,14 +7,14 @@ import { Calendar } from "lucide-react";
 export interface DateRangeDisplayProps extends React.HTMLAttributes<HTMLDivElement> {
   startDate: string;
   endDate: string;
-  formatString?: string;
+  format?: string;
   showIcon?: boolean;
 }
 
 export function DateRangeDisplay({
   startDate,
   endDate,
-  formatString = "MMM d, yyyy",
+  format: formatString = "MMM d, yyyy",
   showIcon = true,
   className,
   ...props

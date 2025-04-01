@@ -173,8 +173,8 @@ export default function EventManagement() {
               <div className="space-y-2">
                 <Label>Date Range</Label>
                 <DateRange 
-                  selected={dateRange} 
-                  onSelect={(value) => setDateRange(value)}
+                  value={dateRange} 
+                  onChange={(value) => setDateRange(value)}
                 />
               </div>
             </CardContent>
