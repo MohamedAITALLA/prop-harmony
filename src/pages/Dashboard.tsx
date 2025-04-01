@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { Building, Calendar, Link as LinkIcon, AlertCircle, BarChart3, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
-import api from "@/lib/api";
 
 interface DashboardStats {
   totalProperties: number;
@@ -74,7 +73,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.firstName || "User"}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.first_name || "User"}</h1>
         <p className="text-muted-foreground">
           Here's an overview of your property portfolio
         </p>

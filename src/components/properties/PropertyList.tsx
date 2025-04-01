@@ -6,21 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Search } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-interface Property {
-  id: string;
-  name: string;
-  propertyType: string;
-  address: {
-    city: string;
-    stateProvince: string;
-    country: string;
-  };
-  bedrooms: number;
-  bathrooms: number;
-  accommodates: number;
-  images?: string[];
-}
+import { Property } from "@/types/api-responses";
 
 interface PropertyListProps {
   properties: Property[];
@@ -36,7 +22,7 @@ export function PropertyList({ properties, isLoading }: PropertyListProps) {
   const filteredProperties = properties.filter((property) => {
     const matchesSearch = property.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            property.address.city.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = propertyType === "" || property.propertyType === propertyType;
+    const matchesType = propertyType === "" || property.property_type === propertyType;
     return matchesSearch && matchesType;
   });
 

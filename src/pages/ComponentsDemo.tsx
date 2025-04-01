@@ -9,15 +9,16 @@ import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { PropertyCard } from "@/components/ui/property-card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { Property } from "@/types/api-responses";
 
 export default function ComponentsDemo() {
   const { toast } = useToast();
 
   // Sample property data
-  const sampleProperty = {
+  const sampleProperty: Property = {
     id: "prop-123",
     name: "Beachfront Villa",
-    propertyType: "villa",
+    property_type: "villa",
     address: {
       city: "Malibu",
       stateProvince: "CA",
@@ -25,8 +26,13 @@ export default function ComponentsDemo() {
     },
     bedrooms: 3,
     bathrooms: 2,
+    beds: 3,
     accommodates: 6,
-    images: ["https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop"]
+    amenities: {},
+    policies: {},
+    images: ["https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop"],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   };
 
   // Sample notifications
@@ -235,7 +241,7 @@ export default function ComponentsDemo() {
               ...sampleProperty,
               id: "prop-456",
               name: "Mountain Cabin",
-              propertyType: "cabin",
+              property_type: "cabin",
               bedrooms: 2,
               bathrooms: 1,
               accommodates: 4,
@@ -247,13 +253,13 @@ export default function ComponentsDemo() {
               ...sampleProperty,
               id: "prop-789",
               name: "Downtown Apartment",
-              propertyType: "apartment",
+              property_type: "apartment",
               address: {
                 city: "New York",
                 stateProvince: "NY",
                 country: "USA"
               },
-              images: undefined
+              images: []
             }} 
           />
         </div>
