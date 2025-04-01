@@ -6,7 +6,7 @@ import { DateRange } from "@/components/ui/date-range";
 import { ConflictResolver } from "@/components/ui/conflict-resolver";
 import { NotificationsList } from "@/components/ui/notifications-list";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
-import { PropertyCard } from "@/components/ui/property-card";
+import { PropertyCard } from "@/components/properties/PropertyCard";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Property } from "@/types/api-responses";
