@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { conflictService, propertyService } from "@/services/api-service";
@@ -41,7 +40,6 @@ import { ConflictDetailsView } from "@/components/conflicts/ConflictDetailsView"
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ConflictType, ConflictSeverity, ConflictStatus } from "@/types/enums";
 
-// Define MockConflict type that extends Conflict with required platforms
 interface MockConflict {
   id: string;
   property_id: string;
@@ -105,6 +103,10 @@ export default function Conflicts() {
       }
     }
   });
+
+  const isMockConflictArray = (data: any[]): data is MockConflict[] => {
+    return data.length === 0 || 'platforms' in data[0];
+  };
 
   const formatRelativeTime = (timestamp: string) => {
     const date = parseISO(timestamp);
@@ -205,7 +207,6 @@ export default function Conflicts() {
       conflict_type: mockConflict.conflict_type as ConflictType,
       severity: mockConflict.severity as ConflictSeverity,
       status: mockConflict.status as ConflictStatus,
-      // Ensure platforms is passed correctly
       platforms: mockConflict.platforms
     };
   };
@@ -284,18 +285,55 @@ export default function Conflicts() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {conflictsData.map((item: MockConflict, index: number) => {
-                // Convert the mock conflict to a proper Conflict type
-                const conflict = convertMockToConflict(item);
-                
-                return (
+              {isMockConflictArray(conflictsData) ? (
+                conflictsData.map((mockConflict: MockConflict) => {
+                  const conflict = convertMockToConflict(mockConflict);
+                  
+                  return (
+                    <TableRow key={conflict.id}>
+                      <TableCell>{mockConflict.property?.name || "—"}</TableCell>
+                      <TableCell>
+                        <ConflictTypeBadge type={conflict.conflict_type} />
+                      </TableCell>
+                      <TableCell>
+                        <PlatformsList platforms={mockConflict.platforms} />
+                      </TableCell>
+                      <TableCell>
+                        <DateRange startDate={conflict.start_date} endDate={conflict.end_date} />
+                      </TableCell>
+                      <TableCell>
+                        <SeverityBadge severity={conflict.severity} />
+                      </TableCell>
+                      <TableCell>{formatRelativeTime(conflict.created_at)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="icon" onClick={() => handleViewDetails(conflict)}>
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleOpenResolverModal(conflict)}>
+                            <Check className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleDismissConflict(conflict.property_id, conflict.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                conflictsData.map((conflict: Conflict) => (
                   <TableRow key={conflict.id}>
-                    <TableCell>{item.property?.name || "—"}</TableCell>
+                    <TableCell>{conflict.property?.name || "—"}</TableCell>
                     <TableCell>
                       <ConflictTypeBadge type={conflict.conflict_type} />
                     </TableCell>
                     <TableCell>
-                      <PlatformsList platforms={item.platforms || []} />
+                      <PlatformsList platforms={conflict.platforms || []} />
                     </TableCell>
                     <TableCell>
                       <DateRange startDate={conflict.start_date} endDate={conflict.end_date} />
@@ -322,8 +360,8 @@ export default function Conflicts() {
                       </div>
                     </TableCell>
                   </TableRow>
-                );
-              })}
+                ))
+              )}
             </TableBody>
           </Table>
         )}
