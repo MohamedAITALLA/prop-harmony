@@ -1,4 +1,3 @@
-
 import { 
   PropertyType, 
   EventType, 
@@ -9,7 +8,9 @@ import {
   NotificationSeverity,
   ConflictType,
   ConflictSeverity,
-  ConflictStatus
+  ConflictStatus,
+  SyncLogStatus,
+  SyncAction
 } from './enums';
 
 // Authentication Responses
@@ -282,6 +283,47 @@ export interface NotificationsResponse {
       unread_count: number;
       read_count: number;
       by_type: Record<string, number>;
+    };
+  };
+  message: string;
+  timestamp: string;
+}
+
+// Sync Log Responses
+export interface SyncLog {
+  id: string;
+  property_id: string;
+  property?: {
+    id: string;
+    name: string;
+  };
+  platform: Platform;
+  action: SyncAction;
+  status: SyncLogStatus;
+  timestamp: string;
+  duration: number;
+  message: string;
+  details?: Record<string, any>;
+  created_at: string;
+}
+
+export interface SyncLogsResponse {
+  success: boolean;
+  data: {
+    logs: SyncLog[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      pages: number;
+      has_next_page: boolean;
+      has_previous_page: boolean;
+    };
+    summary?: {
+      by_status: Record<string, number>;
+      by_platform: Record<string, number>;
+      by_property: Record<string, number>;
+      total_count: number;
     };
   };
   message: string;

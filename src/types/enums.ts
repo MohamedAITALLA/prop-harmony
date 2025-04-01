@@ -1,4 +1,3 @@
-
 // Enum for Property Types
 export enum PropertyType {
     APARTMENT = 'apartment',
@@ -75,4 +74,23 @@ export enum ConnectionStatus {
     ACTIVE = 'active',
     ERROR = 'error',
     INACTIVE = 'inactive',
+}
+
+// Enum for Sync Log Statuses
+export enum SyncLogStatus {
+  SUCCESS = "success",
+  WARNING = "warning",
+  FAILURE = "failure"
+}
+
+// Enum for Sync Actions
+export enum SyncAction {
+  SYNC_START = "sync_start",
+  SYNC_COMPLETE = "sync_complete",
+  FETCH_CALENDAR = "fetch_calendar",
+  PROCESS_EVENTS = "process_events",
+  DETECT_CONFLICTS = "detect_conflicts",
+  RESOLVE_CONFLICTS = "resolve_conflicts",
+  UPDATE_AVAILABILITY = "update_availability",
+  MANUAL_UPDATE = "manual_update"
 }
