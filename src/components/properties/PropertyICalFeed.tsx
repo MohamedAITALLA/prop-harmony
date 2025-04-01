@@ -181,7 +181,7 @@ export function PropertyICalFeed({ propertyId }: PropertyICalFeedProps) {
             <h3 className="text-sm font-medium">Connected Platforms</h3>
             <div className="space-y-2">
               {connections.map((connection) => (
-                <div key={connection.id} className="flex items-center justify-between p-3 rounded-md border">
+                <div key={connection._id} className="flex items-center justify-between p-3 rounded-md border">
                   <div>
                     <p className="font-medium">{connection.platform}</p>
                     <p className="text-xs text-muted-foreground truncate max-w-[200px]">
@@ -199,14 +199,14 @@ export function PropertyICalFeed({ propertyId }: PropertyICalFeedProps) {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => handleTestConnection(connection.id)}
+                      onClick={() => handleTestConnection(connection._id)}
                     >
                       Test
                     </Button>
                     <Button 
                       variant="destructive" 
                       size="sm"
-                      onClick={() => handleDeleteConnection(connection.id)}
+                      onClick={() => handleDeleteConnection(connection._id)}
                     >
                       Delete
                     </Button>

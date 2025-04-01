@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { 
   Table, 
@@ -262,7 +263,7 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
               </TableRow>
             ) : (
               filteredProperties.map((property) => (
-                <TableRow key={property.id} className="hover:bg-muted/50">
+                <TableRow key={property._id} className="hover:bg-muted/50">
                   <TableCell className="font-medium">
                     <div className="flex items-center">
                       {property.images && property.images.length > 0 ? (
@@ -298,17 +299,17 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleAction("View", property.id)}>
+                        <DropdownMenuItem onClick={() => handleAction("View", property._id)}>
                           <Eye className="h-4 w-4 mr-2" /> View
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleAction("Edit", property.id)}>
+                        <DropdownMenuItem onClick={() => handleAction("Edit", property._id)}>
                           <Edit className="h-4 w-4 mr-2" /> Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleAction("Sync Now", property.id)}>
+                        <DropdownMenuItem onClick={() => handleAction("Sync Now", property._id)}>
                           <RefreshCw className="h-4 w-4 mr-2" /> Sync Now
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleAction("Delete", property.id)}
+                          onClick={() => handleAction("Delete", property._id)}
                           className="text-destructive"
                         >
                           <Trash2 className="h-4 w-4 mr-2" /> Delete

@@ -14,7 +14,8 @@ import { PropertyConflictsView } from "@/components/conflicts/PropertyConflictsV
 import { PropertyCalendar } from "@/components/properties/PropertyCalendar";
 import { PropertyEventDialog } from "@/components/properties/PropertyEventDialog";
 import { SyncDialog } from "@/components/ui/sync-dialog";
-import { CalendarEvent } from "@/types/api-responses";
+import { CalendarEvent, Property as PropertyType } from "@/types/api-responses";
+import { normalizeMongoObject } from "@/lib/mongo-helpers";
 import { 
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from "@/components/ui/select";
@@ -74,7 +75,7 @@ export default function PropertyDetails() {
       } catch (error) {
         console.error("Error fetching property:", error);
         
-        return ensureMongoId(getMockPropertyData(id));
+        return normalizeMongoObject(getMockPropertyData(id));
       }
     },
   });
@@ -113,7 +114,7 @@ export default function PropertyDetails() {
     
     return eventsData
       .map((event: CalendarEvent) => ({
-        id: event.id,
+        id: event._id,
         title: event.summary,
         start: event.start_date,
         end: event.end_date,
@@ -158,7 +159,7 @@ export default function PropertyDetails() {
 
   const handleEventClick = (info: any) => {
     const eventId = info.event.id;
-    const event = eventsData.find((e: CalendarEvent) => e.id === eventId);
+    const event = eventsData.find((e: CalendarEvent) => e._id === eventId);
     
     if (event) {
       setViewedEvent(event);
@@ -539,7 +540,7 @@ export default function PropertyDetails() {
               <Button 
                 type="button" 
                 variant="destructive" 
-                onClick={() => handleDeleteEvent(viewedEvent.id)}
+                onClick={() => handleDeleteEvent(viewedEvent._id)}
               >
                 Delete Event
               </Button>
@@ -561,10 +562,9 @@ export default function PropertyDetails() {
   );
 }
 
-function getMockPropertyData(id: string): Property {
+function getMockPropertyData(id: string): PropertyType {
   return {
     _id: id,
-    id: id,
     name: "Oceanfront Villa",
     property_type: PropertyType.VILLA,
     address: {

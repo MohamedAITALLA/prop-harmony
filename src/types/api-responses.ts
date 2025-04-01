@@ -1,4 +1,3 @@
-
 // API response types with only _id fields
 import { 
   PropertyType, 

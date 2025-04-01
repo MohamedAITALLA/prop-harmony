@@ -5,6 +5,7 @@ import { Property } from "@/types/api-responses";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { ensureMongoIds } from "@/lib/mongo-helpers";
 
 interface PropertyCardsProps {
   limit?: number;
@@ -19,9 +20,9 @@ export function PropertyCards({ limit = 3, action }: PropertyCardsProps) {
     queryFn: async () => {
       // In a real app, we would fetch from the API
       // This is mock data for now
-      return [
+      const mockData = [
         {
-          id: "prop-1",
+          _id: "prop-1",
           name: "Beachfront Villa",
           property_type: "villa",
           address: {
@@ -38,7 +39,7 @@ export function PropertyCards({ limit = 3, action }: PropertyCardsProps) {
           images: ["https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop"]
         },
         {
-          id: "prop-2",
+          _id: "prop-2",
           name: "Mountain Cabin",
           property_type: "cabin",
           address: {
@@ -55,7 +56,7 @@ export function PropertyCards({ limit = 3, action }: PropertyCardsProps) {
           images: ["https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?q=80&w=800&auto=format&fit=crop"]
         },
         {
-          id: "prop-3",
+          _id: "prop-3",
           name: "Downtown Apartment",
           property_type: "apartment",
           address: {
@@ -72,6 +73,8 @@ export function PropertyCards({ limit = 3, action }: PropertyCardsProps) {
           images: ["https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=800&auto=format&fit=crop"]
         }
       ] as Property[];
+
+      return ensureMongoIds(mockData);
     },
   });
 
@@ -87,7 +90,7 @@ export function PropertyCards({ limit = 3, action }: PropertyCardsProps) {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {properties.slice(0, limit).map((property) => (
-              <PropertyCard key={property.id} property={property} />
+              <PropertyCard key={property._id} property={property} />
             ))}
           </div>
           

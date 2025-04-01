@@ -37,7 +37,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (DEV_MODE) {
         const mockUser: User = {
           _id: "dev-user-id",
-          id: "dev-user-id", // For backwards compatibility
           email: "dev@example.com",
           first_name: "Developer",
           last_name: "User",
@@ -89,7 +88,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (DEV_MODE) {
         const mockUser: User = {
           _id: "dev-user-id",
-          id: "dev-user-id", // For backwards compatibility
           email: email || "dev@example.com",
           first_name: "Developer",
           last_name: "User",
@@ -140,7 +138,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (DEV_MODE) {
         const mockUser: User = {
           _id: "dev-user-id",
-          id: "dev-user-id", // For backwards compatibility
           email: userData.email,
           first_name: userData.firstName,
           last_name: userData.lastName,
