@@ -21,7 +21,7 @@ export default function Properties() {
     queryKey: ["properties"],
     queryFn: async () => {
       try {
-        // In a production app, this would use the real API
+        // Call the updated API endpoint
         const response = await propertyService.getAllProperties();
         // Ensure we return an array of properties
         return Array.isArray(response.data.properties) ? response.data.properties : getMockProperties();

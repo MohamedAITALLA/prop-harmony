@@ -1,614 +1,436 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { profileService } from "@/services/api-service";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { RefreshCw, Save, User, Phone, MapPin, Settings, Lock } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { profileService } from "@/services/api-service";
 import { toast } from "sonner";
-import { timezones } from "@/lib/timezones";
 import { UserPreferences } from "@/types/api-responses";
+import { Loader2, Check, AlertCircle } from "lucide-react";
 
-const contactSchema = z.object({
-  contact_info: z.object({
-    phone: z.string().optional(),
-    address: z.string().optional(),
-    city: z.string().optional(),
-    state: z.string().optional(),
-    country: z.string().optional(),
-    postal_code: z.string().optional(),
-  }),
-});
-
-const preferencesSchema = z.object({
-  preferences: z.object({
-    theme: z.enum(["light", "dark", "system"]),
-    language: z.enum(["en", "es", "fr", "de"]),
-    timezone: z.string(),
-    date_format: z.enum(["MM/DD/YYYY", "DD/MM/YYYY", "YYYY-MM-DD"]),
-    time_format: z.enum(["12h", "24h"]),
-    currency: z.enum(["USD", "EUR", "GBP", "CAD", "AUD"]),
-    notifications_enabled: z.boolean(),
-  }),
-});
-
-const securitySchema = z.object({
-  current_password: z.string().min(8, "Password must be at least 8 characters"),
-  new_password: z.string().min(8, "Password must be at least 8 characters"),
-  confirm_password: z.string(),
-}).refine((data) => data.new_password === data.confirm_password, {
-  message: "Passwords do not match",
-  path: ["confirm_password"],
-});
-
-interface PasswordUpdate {
-  current_password: string;
-  new_password: string;
+interface ProfileSettingsProps {
+  // Define any props here
 }
 
-const ProfileSettings = () => {
-  const { user } = useAuth();
-  const [resetDialogOpen, setResetDialogOpen] = useState(false);
-
-  const { data: profileData, isLoading: isProfileLoading } = useQuery({
-    queryKey: ["user-profile"],
-    queryFn: () => profileService.getProfile(),
+export default function ProfileSettings() {
+  const queryClient = useQueryClient();
+  
+  // State for form fields
+  const [preferences, setPreferences] = useState<UserPreferences>({
+    theme: "light",
+    language: "en",
+    timezone: "UTC",
+    date_format: "MM/DD/YYYY",
+    time_format: "12h",
+    currency: "USD",
+    notifications_enabled: true
   });
-
-  const contactForm = useForm({
-    resolver: zodResolver(contactSchema),
-    defaultValues: {
-      contact_info: {
-        phone: "",
-        address: "",
-        city: "",
-        state: "",
-        country: "",
-        postal_code: "",
-      },
-    },
+  
+  const [contactInfo, setContactInfo] = useState<Record<string, string>>({
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    country: "",
+    postal_code: ""
   });
-
-  const preferencesForm = useForm<{
-    preferences: UserPreferences;
-  }>({
-    resolver: zodResolver(preferencesSchema),
-    defaultValues: {
-      preferences: {
-        theme: "system",
-        language: "en",
-        timezone: "America/New_York",
-        date_format: "MM/DD/YYYY",
-        time_format: "12h",
-        currency: "USD",
-        notifications_enabled: true,
-      },
-    },
+  
+  const [passwordUpdate, setPasswordUpdate] = useState({
+    current: "",
+    new: "",
+    confirm: ""
   });
-
-  const securityForm = useForm({
-    resolver: zodResolver(securitySchema),
-    defaultValues: {
-      current_password: "",
-      new_password: "",
-      confirm_password: "",
-    },
+  
+  // Fetch profile data
+  const { data: profileData, isLoading, isError } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: profileService.getProfile,
   });
-
-  const contactMutation = useMutation({
-    mutationFn: (data: any) => profileService.updateProfile(data),
-    onSuccess: () => {
-      toast.success("Contact information updated successfully");
-    },
-    onError: (error) => {
-      toast.error("Failed to update contact information");
-    },
-  });
-
-  const preferencesMutation = useMutation({
-    mutationFn: (data: any) => profileService.updateProfile(data),
-    onSuccess: () => {
-      toast.success("Preferences updated successfully");
-    },
-    onError: (error) => {
-      toast.error("Failed to update preferences");
-    },
-  });
-
-  const securityMutation = useMutation({
-    mutationFn: (data: { current_password: string, new_password: string }) => {
-      return profileService.updateProfile({
-        password_update: {
-          current: data.current_password,
-          new: data.new_password,
-        }
-      });
-    },
-    onSuccess: () => {
-      toast.success("Password updated successfully");
-      securityForm.reset();
-    },
-    onError: (error) => {
-      toast.error("Failed to update password");
-    },
-  });
-
-  const resetProfileMutation = useMutation({
-    mutationFn: () => profileService.resetProfile(),
-    onSuccess: () => {
-      toast.success("Profile reset to default settings");
-      window.location.reload();
-    },
-    onError: (error) => {
-      toast.error("Failed to reset profile");
-    },
-  });
-
-  useEffect(() => {
-    if (profileData?.data) {
-      const { contact_info = {}, preferences = {} } = profileData.data;
-      
-      contactForm.reset({
-        contact_info: {
-          phone: contact_info.phone || "",
-          address: contact_info.address || "",
-          city: contact_info.city || "",
-          state: contact_info.state || "",
-          country: contact_info.country || "",
-          postal_code: contact_info.postal_code || "",
-        },
-      });
-      
-      const typedPreferences: UserPreferences = {
-        theme: (preferences.theme as "light" | "dark" | "system") || "system",
-        language: (preferences.language as "en" | "es" | "fr" | "de") || "en",
-        timezone: preferences.timezone || "America/New_York",
-        date_format: (preferences.date_format as "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD") || "MM/DD/YYYY",
-        time_format: (preferences.time_format as "12h" | "24h") || "12h",
-        currency: (preferences.currency as "USD" | "EUR" | "GBP" | "CAD" | "AUD") || "USD",
-        notifications_enabled: preferences.notifications_enabled !== false,
-      };
-      
-      preferencesForm.reset({
-        preferences: typedPreferences,
-      });
+  
+  // Populate state when profile data is available
+  React.useEffect(() => {
+    if (profileData) {
+      setPreferences(profileData.data.preferences);
+      setContactInfo(profileData.data.contact_info);
     }
-  }, [profileData, contactForm, preferencesForm]);
-
-  const onSubmitContact = (data: any) => {
-    contactMutation.mutate(data);
+  }, [profileData]);
+  
+  // Update profile mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: profileService.updateProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      toast.success("Profile updated successfully");
+    },
+    onError: (error) => {
+      toast.error("Failed to update profile");
+      console.error("Profile update error:", error);
+    }
+  });
+  
+  // Reset profile mutation
+  const resetProfileMutation = useMutation({
+    mutationFn: profileService.resetProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      toast.success("Profile preferences reset to default values");
+    },
+    onError: (error) => {
+      toast.error("Failed to reset profile preferences");
+      console.error("Profile reset error:", error);
+    }
+  });
+  
+  // Handle form submissions
+  const handlePreferencesSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateProfileMutation.mutate({ preferences });
   };
-
-  const onSubmitPreferences = (data: any) => {
-    preferencesMutation.mutate(data);
+  
+  const handleContactInfoSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateProfileMutation.mutate({ contact_info: contactInfo });
   };
-
-  const onSubmitSecurity = (data: any) => {
-    securityMutation.mutate(data);
+  
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (passwordUpdate.new !== passwordUpdate.confirm) {
+      toast.error("New passwords do not match");
+      return;
+    }
+    
+    updateProfileMutation.mutate({ 
+      password_update: { 
+        current: passwordUpdate.current, 
+        new: passwordUpdate.new 
+      } 
+    });
+    
+    // Clear password fields after submission
+    setPasswordUpdate({ current: "", new: "", confirm: "" });
   };
-
-  const handleReset = () => {
-    resetProfileMutation.mutate();
-    setResetDialogOpen(false);
+  
+  const handleResetProfile = () => {
+    if (window.confirm("Are you sure you want to reset your profile preferences to default values? This cannot be undone.")) {
+      resetProfileMutation.mutate();
+    }
   };
-
-  return (
-    <div className="container max-w-4xl py-10">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Profile Settings</h1>
-          <p className="text-muted-foreground mt-1">Manage your account settings and preferences</p>
-        </div>
-        <Button
-          variant="outline"
-          onClick={() => setResetDialogOpen(true)}
-        >
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Reset to Defaults
-        </Button>
+  
+  // Handle onboarding completion update
+  const handleCompleteOnboarding = () => {
+    updateProfileMutation.mutate({ onboarding_completed: true });
+  };
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Loading profile settings...
       </div>
-
-      <Card className="mb-6">
-        <CardHeader className="flex flex-row items-center gap-2">
-          <User className="h-5 w-5 text-muted-foreground" />
-          <div>
-            <CardTitle>Personal Information</CardTitle>
-            <CardDescription>Your basic account information</CardDescription>
-          </div>
+    );
+  }
+  
+  if (isError || !profileData) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Failed to load profile settings. Please try again later.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  
+  return (
+    <div className="container mx-auto py-10">
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile Settings</CardTitle>
+          <CardDescription>
+            Manage your profile settings and preferences.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div className="grid gap-3">
-              <Label>First Name</Label>
-              <Input value={user?.first_name || ""} disabled />
-            </div>
-            <div className="grid gap-3">
-              <Label>Last Name</Label>
-              <Input value={user?.last_name || ""} disabled />
-            </div>
-            <div className="grid gap-3 sm:col-span-2">
-              <Label>Email Address</Label>
-              <Input value={user?.email || ""} disabled />
-            </div>
-          </div>
+          <Tabs defaultValue="preferences" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="preferences">Preferences</TabsTrigger>
+              <TabsTrigger value="contact">Contact Info</TabsTrigger>
+              <TabsTrigger value="password">Password</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="preferences">
+              <form onSubmit={handlePreferencesSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="theme">Theme</Label>
+                    <Select 
+                      value={preferences.theme} 
+                      onValueChange={(value) => setPreferences({ ...preferences, theme: value as "light" | "dark" | "system" })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select theme" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="light">Light</SelectItem>
+                        <SelectItem value="dark">Dark</SelectItem>
+                        <SelectItem value="system">System</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="language">Language</Label>
+                    <Select 
+                      value={preferences.language} 
+                      onValueChange={(value) => setPreferences({ ...preferences, language: value as "en" | "es" | "fr" | "de" })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="en">English</SelectItem>
+                        <SelectItem value="es">Spanish</SelectItem>
+                        <SelectItem value="fr">French</SelectItem>
+                        <SelectItem value="de">German</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="timezone">Timezone</Label>
+                    <Input 
+                      type="text" 
+                      id="timezone" 
+                      value={preferences.timezone} 
+                      onChange={(e) => setPreferences({ ...preferences, timezone: e.target.value })} 
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="date_format">Date Format</Label>
+                    <Select 
+                      value={preferences.date_format} 
+                      onValueChange={(value) => setPreferences({ ...preferences, date_format: value as "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD" })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select date format" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
+                        <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
+                        <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="time_format">Time Format</Label>
+                    <Select 
+                      value={preferences.time_format} 
+                      onValueChange={(value) => setPreferences({ ...preferences, time_format: value as "12h" | "24h" })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select time format" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="12h">12h</SelectItem>
+                        <SelectItem value="24h">24h</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="currency">Currency</Label>
+                    <Select 
+                      value={preferences.currency} 
+                      onValueChange={(value) => setPreferences({ ...preferences, currency: value as "USD" | "EUR" | "GBP" | "CAD" | "AUD" })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="EUR">EUR</SelectItem>
+                        <SelectItem value="GBP">GBP</SelectItem>
+                        <SelectItem value="CAD">CAD</SelectItem>
+                        <SelectItem value="AUD">AUD</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Label htmlFor="notifications_enabled">Notifications Enabled</Label>
+                  <Switch 
+                    id="notifications_enabled" 
+                    checked={preferences.notifications_enabled} 
+                    onCheckedChange={(checked) => setPreferences({ ...preferences, notifications_enabled: checked })} 
+                  />
+                </div>
+                
+                <CardFooter>
+                  <Button type="submit" disabled={updateProfileMutation.isPending}>
+                    {updateProfileMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Update Preferences
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="secondary" 
+                    onClick={handleResetProfile}
+                    disabled={resetProfileMutation.isPending}
+                    className="ml-2"
+                  >
+                    {resetProfileMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Reset to Default
+                  </Button>
+                </CardFooter>
+              </form>
+            </TabsContent>
+            
+            <TabsContent value="contact">
+              <form onSubmit={handleContactInfoSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input 
+                      type="text" 
+                      id="phone" 
+                      value={contactInfo.phone || ""} 
+                      onChange={(e) => setContactInfo({ ...contactInfo, phone: e.target.value })} 
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="address">Address</Label>
+                    <Input 
+                      type="text" 
+                      id="address" 
+                      value={contactInfo.address || ""} 
+                      onChange={(e) => setContactInfo({ ...contactInfo, address: e.target.value })} 
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="city">City</Label>
+                    <Input 
+                      type="text" 
+                      id="city" 
+                      value={contactInfo.city || ""} 
+                      onChange={(e) => setContactInfo({ ...contactInfo, city: e.target.value })} 
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="state">State</Label>
+                    <Input 
+                      type="text" 
+                      id="state" 
+                      value={contactInfo.state || ""} 
+                      onChange={(e) => setContactInfo({ ...contactInfo, state: e.target.value })} 
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="country">Country</Label>
+                    <Input 
+                      type="text" 
+                      id="country" 
+                      value={contactInfo.country || ""} 
+                      onChange={(e) => setContactInfo({ ...contactInfo, country: e.target.value })} 
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="postal_code">Postal Code</Label>
+                    <Input 
+                      type="text" 
+                      id="postal_code" 
+                      value={contactInfo.postal_code || ""} 
+                      onChange={(e) => setContactInfo({ ...contactInfo, postal_code: e.target.value })} 
+                    />
+                  </div>
+                </div>
+                
+                <CardFooter>
+                  <Button type="submit" disabled={updateProfileMutation.isPending}>
+                    {updateProfileMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Update Contact Info
+                  </Button>
+                </CardFooter>
+              </form>
+            </TabsContent>
+            
+            <TabsContent value="password">
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="current_password">Current Password</Label>
+                  <Input 
+                    type="password" 
+                    id="current_password" 
+                    value={passwordUpdate.current} 
+                    onChange={(e) => setPasswordUpdate({ ...passwordUpdate, current: e.target.value })} 
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="new_password">New Password</Label>
+                  <Input 
+                    type="password" 
+                    id="new_password" 
+                    value={passwordUpdate.new} 
+                    onChange={(e) => setPasswordUpdate({ ...passwordUpdate, new: e.target.value })} 
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="confirm_password">Confirm New Password</Label>
+                  <Input 
+                    type="password" 
+                    id="confirm_password" 
+                    value={passwordUpdate.confirm} 
+                    onChange={(e) => setPasswordUpdate({ ...passwordUpdate, confirm: e.target.value })} 
+                  />
+                </div>
+                
+                <CardFooter>
+                  <Button type="submit" disabled={updateProfileMutation.isPending}>
+                    {updateProfileMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Update Password
+                  </Button>
+                </CardFooter>
+              </form>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
-
-      <Form {...contactForm}>
-        <form onSubmit={contactForm.handleSubmit(onSubmitContact)}>
-          <Card className="mb-6">
-            <CardHeader className="flex flex-row items-center gap-2">
-              <Phone className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <CardTitle>Contact Information</CardTitle>
-                <CardDescription>Your contact details</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-6">
-                <div className="grid gap-6 sm:grid-cols-2">
-                  <FormField
-                    control={contactForm.control}
-                    name="contact_info.phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <Input placeholder="+1 (555) 123-4567" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={contactForm.control}
-                    name="contact_info.postal_code"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Postal Code</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <FormField
-                  control={contactForm.control}
-                  name="contact_info.address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid gap-6 sm:grid-cols-3">
-                  <FormField
-                    control={contactForm.control}
-                    name="contact_info.city"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>City</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={contactForm.control}
-                    name="contact_info.state"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>State/Province</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={contactForm.control}
-                    name="contact_info.country"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Country</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-end">
-              <Button type="submit" disabled={contactMutation.isPending || !contactForm.formState.isDirty}>
-                {contactMutation.isPending ? "Saving..." : "Save Changes"}
-              </Button>
-            </CardFooter>
-          </Card>
-        </form>
-      </Form>
-
-      <Form {...preferencesForm}>
-        <form onSubmit={preferencesForm.handleSubmit(onSubmitPreferences)}>
-          <Card className="mb-6">
-            <CardHeader className="flex flex-row items-center gap-2">
-              <Settings className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <CardTitle>Preferences</CardTitle>
-                <CardDescription>Customize your experience</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-6 sm:grid-cols-2">
-                <FormField
-                  control={preferencesForm.control}
-                  name="preferences.theme"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Theme</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a theme" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="light">Light</SelectItem>
-                          <SelectItem value="dark">Dark</SelectItem>
-                          <SelectItem value="system">System Default</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={preferencesForm.control}
-                  name="preferences.language"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Language</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a language" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="en">English</SelectItem>
-                          <SelectItem value="es">Español</SelectItem>
-                          <SelectItem value="fr">Français</SelectItem>
-                          <SelectItem value="de">Deutsch</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={preferencesForm.control}
-                  name="preferences.timezone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Timezone</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a timezone" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {timezones.map(tz => (
-                            <SelectItem key={tz.value} value={tz.value}>{tz.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={preferencesForm.control}
-                  name="preferences.date_format"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Date Format</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select date format" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
-                          <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
-                          <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={preferencesForm.control}
-                  name="preferences.time_format"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Time Format</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select time format" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="12h">12-hour (AM/PM)</SelectItem>
-                          <SelectItem value="24h">24-hour</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={preferencesForm.control}
-                  name="preferences.currency"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Currency</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select currency" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="USD">US Dollar ($)</SelectItem>
-                          <SelectItem value="EUR">Euro (€)</SelectItem>
-                          <SelectItem value="GBP">British Pound (£)</SelectItem>
-                          <SelectItem value="CAD">Canadian Dollar (C$)</SelectItem>
-                          <SelectItem value="AUD">Australian Dollar (A$)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={preferencesForm.control}
-                  name="preferences.notifications_enabled"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>Enable Notifications</FormLabel>
-                        <FormDescription>
-                          Show in-app notifications
-                        </FormDescription>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-end">
-              <Button type="submit" disabled={preferencesMutation.isPending || !preferencesForm.formState.isDirty}>
-                {preferencesMutation.isPending ? "Saving..." : "Save Changes"}
-              </Button>
-            </CardFooter>
-          </Card>
-        </form>
-      </Form>
-
-      <Form {...securityForm}>
-        <form onSubmit={securityForm.handleSubmit(onSubmitSecurity)}>
-          <Card className="mb-6">
-            <CardHeader className="flex flex-row items-center gap-2">
-              <Lock className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <CardTitle>Security</CardTitle>
-                <CardDescription>Update your password</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-6">
-                <FormField
-                  control={securityForm.control}
-                  name="current_password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Current Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="••••••••" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid gap-6 sm:grid-cols-2">
-                  <FormField
-                    control={securityForm.control}
-                    name="new_password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>New Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="••••••••" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={securityForm.control}
-                    name="confirm_password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirm New Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="••••••••" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-end">
-              <Button type="submit" disabled={securityMutation.isPending || !securityForm.formState.isDirty}>
-                {securityMutation.isPending ? "Updating..." : "Update Password"}
-              </Button>
-            </CardFooter>
-          </Card>
-        </form>
-      </Form>
-
-      <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reset to Defaults</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to reset all settings to default values? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleReset}>Reset</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      
+      {/* Onboarding Completion */}
+      {!profileData.data.onboarding_completed && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Complete Onboarding</CardTitle>
+            <CardDescription>
+              Finish setting up your profile to unlock all features.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>Click the button below to mark your onboarding as complete.</p>
+          </CardContent>
+          <CardFooter>
+            <Button onClick={handleCompleteOnboarding} disabled={updateProfileMutation.isPending}>
+              {updateProfileMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Complete Onboarding
+            </Button>
+          </CardFooter>
+        </Card>
+      )}
     </div>
   );
-};
-
-const Label = ({ children }: { children: React.ReactNode }) => (
-  <div className="text-sm font-medium">{children}</div>
-);
-
-export default ProfileSettings;
+}

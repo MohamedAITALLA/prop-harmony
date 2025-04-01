@@ -25,7 +25,7 @@ export function PropertyList({ properties = [], isLoading }: PropertyListProps) 
   // Simple filter function
   const filteredProperties = propertiesToFilter.filter((property) => {
     const matchesSearch = property.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           property.address.city.toLowerCase().includes(searchQuery.toLowerCase());
+                           (property.address.city && property.address.city.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesType = propertyType === "" || property.property_type === propertyType;
     return matchesSearch && matchesType;
   });

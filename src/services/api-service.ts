@@ -62,6 +62,11 @@ export const profileService = {
   }>): Promise<ProfileResponse> => {
     const response = await api.put<ProfileResponse>("/user-profile", profileData);
     return response.data;
+  },
+  
+  resetProfile: async (): Promise<ApiResponse<{ success: boolean }>> => {
+    const response = await api.post<ApiResponse<{ success: boolean }>>("/user-profile/reset");
+    return response.data;
   }
 };
 
@@ -78,24 +83,104 @@ export const propertyService = {
     return response.data;
   },
   
-  getProperty: async (id: string): Promise<PropertyResponse> => {
-    const response = await api.get<PropertyResponse>(`/properties/${id}`);
+  getProperty: async (id: string, include?: string): Promise<PropertyResponse> => {
+    const params = include ? { include } : undefined;
+    const response = await api.get<PropertyResponse>(`/properties/${id}`, { params });
     return response.data;
   },
   
-  createProperty: async (propertyData: Partial<{
+  createProperty: async (propertyData: {
     name: string;
     property_type: string;
-    address: Record<string, any>;
+    address: {
+      street: string;
+      city: string;
+      state_province: string;
+      postal_code: string;
+      country: string;
+      coordinates?: {
+        latitude: number;
+        longitude: number;
+      };
+    };
     accommodates: number;
     bedrooms: number;
     beds: number;
     bathrooms: number;
-    amenities: Record<string, any>;
-    policies: Record<string, any>;
-    images: string[];
-  }>): Promise<ApiResponse<{ property: Record<string, any> }>> => {
-    const response = await api.post<ApiResponse<{ property: Record<string, any> }>>("/properties", propertyData);
+    amenities?: {
+      wifi?: boolean;
+      kitchen?: boolean;
+      ac?: boolean;
+      heating?: boolean;
+      tv?: boolean;
+      washer?: boolean;
+      dryer?: boolean;
+      parking?: boolean;
+      elevator?: boolean;
+      pool?: boolean;
+    };
+    policies?: {
+      check_in_time?: string;
+      check_out_time?: string;
+      minimum_stay?: number;
+      pets_allowed?: boolean;
+      smoking_allowed?: boolean;
+    };
+    images?: string[];
+  }): Promise<PropertyResponse> => {
+    const response = await api.post<PropertyResponse>("/properties", propertyData);
+    return response.data;
+  },
+  
+  updateProperty: async (
+    id: string, 
+    propertyData: Partial<{
+      name: string;
+      property_type: string;
+      address: Partial<{
+        street: string;
+        city: string;
+        state_province: string;
+        postal_code: string;
+        country: string;
+        coordinates: {
+          latitude: number;
+          longitude: number;
+        };
+      }>;
+      accommodates: number;
+      bedrooms: number;
+      beds: number;
+      bathrooms: number;
+      amenities: Partial<{
+        wifi: boolean;
+        kitchen: boolean;
+        ac: boolean;
+        heating: boolean;
+        tv: boolean;
+        washer: boolean;
+        dryer: boolean;
+        parking: boolean;
+        elevator: boolean;
+        pool: boolean;
+      }>;
+      policies: Partial<{
+        check_in_time: string;
+        check_out_time: string;
+        minimum_stay: number;
+        pets_allowed: boolean;
+        smoking_allowed: boolean;
+      }>;
+      images: string[];
+    }>
+  ): Promise<PropertyResponse> => {
+    const response = await api.put<PropertyResponse>(`/properties/${id}`, propertyData);
+    return response.data;
+  },
+  
+  deleteProperty: async (id: string, preserveHistory?: boolean): Promise<ApiResponse<{ success: boolean }>> => {
+    const params = preserveHistory !== undefined ? { preserve_history: preserveHistory } : undefined;
+    const response = await api.delete<ApiResponse<{ success: boolean }>>(`/properties/${id}`, { params });
     return response.data;
   },
   
