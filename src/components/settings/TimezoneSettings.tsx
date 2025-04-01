@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -46,15 +46,10 @@ export function TimezoneSettings({ preferences, onChange, onSave }: TimezoneSett
               <SelectValue placeholder="Select timezone" />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(timezones).map(([region, zones]) => (
-                <div key={region}>
-                  <div className="px-2 py-1.5 text-sm font-semibold">{region}</div>
-                  {zones.map((zone) => (
-                    <SelectItem key={zone.value} value={zone.value}>
-                      {zone.label}
-                    </SelectItem>
-                  ))}
-                </div>
+              {timezones.map((timezone) => (
+                <SelectItem key={timezone.value} value={timezone.value}>
+                  {timezone.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

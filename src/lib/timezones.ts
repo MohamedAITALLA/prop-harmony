@@ -1,5 +1,5 @@
 
-interface Timezone {
+export interface Timezone {
   value: string;
   label: string;
 }

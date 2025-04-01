@@ -1,165 +1,120 @@
 
 import React from 'react';
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { adminUserService } from '@/services/api-service';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { User } from '@/types/api-responses';
-import { getMongoId, ensureMongoId } from '@/lib/mongo-helpers';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { User } from "@/types/api-responses";
 
-interface UserFormProps {
+export interface UserFormProps {
   user?: User;
-  onSuccess?: () => void;
+  onSubmit: (userData: any) => void;
+  isEditing?: boolean;
 }
 
-const userSchema = z.object({
-  first_name: z.string().min(1, "First name is required"),
-  last_name: z.string().min(1, "Last name is required"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().optional(),
-  is_active: z.boolean().default(true),
-});
-
-const UserForm = ({ user, onSuccess }: UserFormProps) => {
-  const isNew = !user;
-  const queryClient = useQueryClient();
-  const userId = user ? getMongoId(user) : '';
+export default function UserForm({ user, onSubmit, isEditing = false }: UserFormProps) {
+  const [formData, setFormData] = React.useState({
+    first_name: user?.first_name || '',
+    last_name: user?.last_name || '',
+    email: user?.email || '',
+    password: '',
+    role: user?.role || 'user',
+    is_active: user?.is_active !== undefined ? user.is_active : true
+  });
   
-  const form = useForm<z.infer<typeof userSchema>>({
-    resolver: zodResolver(
-      // Conditionally require password for new users
-      isNew 
-        ? userSchema.extend({ password: z.string().min(6, "Password must be at least 6 characters") })
-        : userSchema
-    ),
-    defaultValues: {
-      first_name: user?.first_name || "",
-      last_name: user?.last_name || "",
-      email: user?.email || "",
-      password: "",
-      is_active: user?.is_active !== false,
-    },
-  });
-
-  const mutation = useMutation({
-    mutationFn: async (data: z.infer<typeof userSchema>) => {
-      if (isNew) {
-        return adminUserService.createUser(data as any);
-      } else if (userId) {
-        // Only include password if it was provided
-        const updateData = { ...data };
-        if (!updateData.password) delete updateData.password;
-        return adminUserService.updateUser(userId, updateData);
-      }
-      throw new Error("Invalid operation");
-    },
-    onSuccess: () => {
-      toast.success(isNew ? 'User created successfully' : 'User updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      if (onSuccess) onSuccess();
-    },
-  });
-
-  const onSubmit = (data: z.infer<typeof userSchema>) => {
-    mutation.mutate(data);
+  const handleChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
-
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // If editing and password is empty, remove it from submission
+    if (isEditing && !formData.password) {
+      const { password, ...rest } = formData;
+      onSubmit(rest);
+    } else {
+      onSubmit(formData);
+    }
+  };
+  
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="first_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>First Name</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="first_name">First Name</Label>
+          <Input 
+            id="first_name"
+            value={formData.first_name}
+            onChange={(e) => handleChange('first_name', e.target.value)}
+            required
+          />
+        </div>
         
-        <FormField
-          control={form.control}
-          name="last_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Last Name</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <div className="space-y-2">
+          <Label htmlFor="last_name">Last Name</Label>
+          <Input 
+            id="last_name"
+            value={formData.last_name}
+            onChange={(e) => handleChange('last_name', e.target.value)}
+            required
+          />
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input 
+          id="email"
+          type="email"
+          value={formData.email}
+          onChange={(e) => handleChange('email', e.target.value)}
+          required
         />
-        
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email Address</FormLabel>
-              <FormControl>
-                <Input {...field} type="email" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="password">
+          {isEditing ? 'Password (leave blank to keep current)' : 'Password'}
+        </Label>
+        <Input 
+          id="password"
+          type="password"
+          value={formData.password}
+          onChange={(e) => handleChange('password', e.target.value)}
+          required={!isEditing}
         />
-        
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{isNew ? "Password" : "New Password (leave blank to keep current)"}</FormLabel>
-              <FormControl>
-                <Input {...field} type="password" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="role">Role</Label>
+        <Select 
+          value={formData.role} 
+          onValueChange={(value) => handleChange('role', value)}
+        >
+          <SelectTrigger id="role">
+            <SelectValue placeholder="Select role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="user">User</SelectItem>
+            <SelectItem value="admin">Admin</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="flex items-center space-x-2">
+        <Switch 
+          id="is_active"
+          checked={formData.is_active}
+          onCheckedChange={(checked) => handleChange('is_active', checked)}
         />
-        
-        <FormField
-          control={form.control}
-          name="is_active"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>Active</FormLabel>
-              </div>
-            </FormItem>
-          )}
-        />
-        
-        <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? "Saving..." : isNew ? "Create User" : "Update User"}
-        </Button>
-      </form>
-    </Form>
+        <Label htmlFor="is_active">Active Account</Label>
+      </div>
+      
+      <Button type="submit" className="w-full">
+        {isEditing ? 'Update User' : 'Create User'}
+      </Button>
+    </form>
   );
-};
-
-export default UserForm;
+}

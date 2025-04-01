@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Table, 
@@ -270,7 +269,9 @@ export default function UserManagement() {
                         <ActionMenu
                           onEdit={() => handleEditUser(user)}
                           onDelete={() => handleDelete(user._id)}
-                          onViewProfile={() => window.location.href = `/admin/user-profiles/${user._id}`}
+                          onViewProfile={() => {
+                            window.location.href = `/admin/user-profiles/${user._id}`;
+                          }}
                           isAdmin={user.is_admin}
                         />
                       </TableCell>

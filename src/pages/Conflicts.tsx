@@ -161,7 +161,10 @@ export default function Conflicts() {
               </SelectContent>
             </Select>
             
-            <Select value={selectedSeverity} onValueChange={setSelectedSeverity}>
+            <Select 
+              value={selectedSeverity} 
+              onValueChange={(value) => setSelectedSeverity(value as ConflictSeverity | "")}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="All Severities" />
               </SelectTrigger>

@@ -1,153 +1,45 @@
 
 import React from 'react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Eye, Edit, ArrowUp, ArrowDown, Trash } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { adminUserService } from '@/services/api-service';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { User } from '@/types/api-responses';
-import { getMongoId, normalizeMongoObject } from '@/lib/mongo-helpers';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Edit, Trash, User } from "lucide-react";
 
-interface ActionMenuProps {
-  user: User;
-  onEdit: (user: User) => void;
-  onView: (user: User) => void;
+export interface ActionMenuProps {
+  onEdit: () => void;
+  onDelete: () => Promise<void>;
+  onViewProfile: () => void;
+  isAdmin: boolean;
 }
 
-const ActionMenu = ({ user, onEdit, onView }: ActionMenuProps) => {
-  const [confirmDelete, setConfirmDelete] = React.useState(false);
-  const queryClient = useQueryClient();
-  
-  // Normalize user object to ensure consistent ID fields
-  const normalizedUser = normalizeMongoObject(user);
-  const userId = normalizedUser._id;
-  
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return adminUserService.deleteUser(id);
-    },
-    onSuccess: (data) => {
-      toast.success(data.message || 'User deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      setConfirmDelete(false);
-    },
-  });
-  
-  const promoteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return adminUserService.promoteUser(id);
-    },
-    onSuccess: (data) => {
-      toast.success(data.message || 'User promoted to admin');
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-    },
-  });
-  
-  const demoteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return adminUserService.demoteUser(id);
-    },
-    onSuccess: (data) => {
-      toast.success(data.message || 'User demoted from admin');
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-    },
-  });
-
-  if (!userId) {
-    console.error("User ID is missing in ActionMenu component", user);
-    return null;
-  }
-
+export default function ActionMenu({ onEdit, onDelete, onViewProfile, isAdmin }: ActionMenuProps) {
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onView(normalizedUser)}>
-            <Eye className="mr-2 h-4 w-4" />
-            View
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onEdit(normalizedUser)}>
-            <Edit className="mr-2 h-4 w-4" />
-            Edit
-          </DropdownMenuItem>
-          
-          {normalizedUser.role !== 'admin' && (
-            <DropdownMenuItem 
-              onClick={() => promoteMutation.mutate(userId)}
-              disabled={promoteMutation.isPending}
-            >
-              <ArrowUp className="mr-2 h-4 w-4" />
-              Promote to Admin
-            </DropdownMenuItem>
-          )}
-          
-          {normalizedUser.role === 'admin' && (
-            <DropdownMenuItem 
-              onClick={() => demoteMutation.mutate(userId)}
-              disabled={demoteMutation.isPending}
-            >
-              <ArrowDown className="mr-2 h-4 w-4" />
-              Demote from Admin
-            </DropdownMenuItem>
-          )}
-          
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={onViewProfile}>
+          <User className="mr-2 h-4 w-4" /> View Profile
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onEdit}>
+          <Edit className="mr-2 h-4 w-4" /> Edit
+        </DropdownMenuItem>
+        {!isAdmin && (
           <DropdownMenuItem 
+            onClick={onDelete}
             className="text-red-600 focus:text-red-600"
-            onClick={() => setConfirmDelete(true)}
           >
-            <Trash className="mr-2 h-4 w-4" />
-            Delete
+            <Trash className="mr-2 h-4 w-4" /> Delete
           </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      
-      <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete User</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this user? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setConfirmDelete(false)}
-            >
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={() => deleteMutation.mutate(userId)}
-              disabled={deleteMutation.isPending}
-            >
-              Delete
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
-};
-
-export default ActionMenu;
+}

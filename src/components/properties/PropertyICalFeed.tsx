@@ -69,7 +69,7 @@ export function PropertyICalFeed({ propertyId }: PropertyICalFeedProps) {
         return '';
       }
     },
-    onSettled: (data) => {
+    onSuccess: (data) => {
       if (data) {
         setFeedUrl(data);
       }
