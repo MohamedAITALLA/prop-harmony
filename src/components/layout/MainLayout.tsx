@@ -90,7 +90,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
               <Home className="h-6 w-6 text-primary" />
               <span className="font-semibold text-xl">PropertySync</span>
             </div>
-            <SidebarTrigger asChild>
+            <SidebarTrigger>
               <Button variant="ghost" size="icon" className="md:hidden">
                 <Menu className="h-5 w-5" />
               </Button>
