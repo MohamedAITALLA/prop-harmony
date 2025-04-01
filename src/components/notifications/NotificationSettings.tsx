@@ -1,178 +1,142 @@
 
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useState } from "react";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { useNotifications, NotificationSettings as NotificationSettingsType } from '@/hooks/useNotifications';
-
-interface NotificationSettingsForm {
-  email_notifications: boolean;
-  new_booking_notifications: boolean;
-  modified_booking_notifications: boolean;
-  cancelled_booking_notifications: boolean;
-  conflict_notifications: boolean;
-  sync_failure_notifications: boolean;
-}
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
+import { useNotifications } from "@/hooks/useNotifications";
+import { NotificationSettings as NotificationSettingsType } from "@/types/api-responses";
 
 export function NotificationSettings() {
-  const { notificationSettings, updateNotificationSettings } = useNotifications();
-  
-  const form = useForm<NotificationSettingsForm>({
-    defaultValues: {
-      email_notifications: notificationSettings.email_notifications !== false,
-      new_booking_notifications: notificationSettings.new_booking_notifications !== false,
-      modified_booking_notifications: notificationSettings.modified_booking_notifications !== false,
-      cancelled_booking_notifications: notificationSettings.cancelled_booking_notifications !== false,
-      conflict_notifications: notificationSettings.conflict_notifications !== false,
-      sync_failure_notifications: notificationSettings.sync_failure_notifications !== false,
-    }
+  const { settings, updateSettings } = useNotifications();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [localSettings, setLocalSettings] = useState<NotificationSettingsType>({
+    email_notifications: settings.email_notifications || false,
+    new_booking_notifications: settings.new_booking_notifications || false,
+    modified_booking_notifications: settings.modified_booking_notifications || false,
+    cancelled_booking_notifications: settings.cancelled_booking_notifications || false,
+    conflict_notifications: settings.conflict_notifications || false,
+    sync_failure_notifications: settings.sync_failure_notifications || false
   });
 
-  const onSubmit = (data: NotificationSettingsForm) => {
-    updateNotificationSettings(data as NotificationSettingsType);
+  const handleToggle = (setting: keyof NotificationSettingsType) => {
+    setLocalSettings((prev) => ({
+      ...prev,
+      [setting]: !prev[setting],
+    }));
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      await updateSettings(localSettings);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="email_notifications"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>Email Notifications</FormLabel>
-                <FormDescription>
-                  Receive notifications via email
-                </FormDescription>
-              </div>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="new_booking_notifications"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>New Bookings</FormLabel>
-                <FormDescription>
-                  Get notified when new bookings are created
-                </FormDescription>
-              </div>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="modified_booking_notifications"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>Modified Bookings</FormLabel>
-                <FormDescription>
-                  Get notified when existing bookings are modified
-                </FormDescription>
-              </div>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="cancelled_booking_notifications"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>Cancelled Bookings</FormLabel>
-                <FormDescription>
-                  Get notified when bookings are cancelled
-                </FormDescription>
-              </div>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="conflict_notifications"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>Booking Conflicts</FormLabel>
-                <FormDescription>
-                  Get notified when booking conflicts are detected
-                </FormDescription>
-              </div>
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="sync_failure_notifications"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>Sync Failures</FormLabel>
-                <FormDescription>
-                  Get notified when calendar synchronization fails
-                </FormDescription>
-              </div>
-            </FormItem>
-          )}
-        />
-        
-        <div className="flex justify-end">
-          <Button type="submit">Save Changes</Button>
+    <div className="space-y-6 py-4">
+      <div className="space-y-4">
+        {/* Email Notifications Master Toggle */}
+        <div className="flex items-center justify-between">
+          <div>
+            <Label htmlFor="email-notifications" className="font-medium">Email Notifications</Label>
+            <p className="text-sm text-muted-foreground">
+              Receive notifications via email
+            </p>
+          </div>
+          <Switch
+            id="email-notifications"
+            checked={localSettings.email_notifications}
+            onCheckedChange={() => handleToggle("email_notifications")}
+          />
         </div>
-      </form>
-    </Form>
+
+        <div className="border-t pt-4 space-y-4">
+          <p className="text-sm font-medium">Notification Types</p>
+          
+          {/* New Booking Notifications */}
+          <div className="flex items-center justify-between">
+            <Label htmlFor="new-booking" className="text-sm">
+              New Bookings
+            </Label>
+            <Switch 
+              id="new-booking"
+              checked={localSettings.new_booking_notifications}
+              onCheckedChange={() => handleToggle("new_booking_notifications")}
+              disabled={!localSettings.email_notifications}
+            />
+          </div>
+          
+          {/* Modified Booking Notifications */}
+          <div className="flex items-center justify-between">
+            <Label htmlFor="modified-booking" className="text-sm">
+              Modified Bookings
+            </Label>
+            <Switch 
+              id="modified-booking"
+              checked={localSettings.modified_booking_notifications}
+              onCheckedChange={() => handleToggle("modified_booking_notifications")}
+              disabled={!localSettings.email_notifications}
+            />
+          </div>
+          
+          {/* Cancelled Booking Notifications */}
+          <div className="flex items-center justify-between">
+            <Label htmlFor="cancelled-booking" className="text-sm">
+              Cancelled Bookings
+            </Label>
+            <Switch 
+              id="cancelled-booking"
+              checked={localSettings.cancelled_booking_notifications}
+              onCheckedChange={() => handleToggle("cancelled_booking_notifications")}
+              disabled={!localSettings.email_notifications}
+            />
+          </div>
+          
+          {/* Conflict Notifications */}
+          <div className="flex items-center justify-between">
+            <Label htmlFor="conflict" className="text-sm">
+              Booking Conflicts
+            </Label>
+            <Switch 
+              id="conflict"
+              checked={localSettings.conflict_notifications}
+              onCheckedChange={() => handleToggle("conflict_notifications")}
+              disabled={!localSettings.email_notifications}
+            />
+          </div>
+          
+          {/* Sync Failure Notifications */}
+          <div className="flex items-center justify-between">
+            <Label htmlFor="sync-failure" className="text-sm">
+              Sync Failures
+            </Label>
+            <Switch 
+              id="sync-failure"
+              checked={localSettings.sync_failure_notifications}
+              onCheckedChange={() => handleToggle("sync_failure_notifications")}
+              disabled={!localSettings.email_notifications}
+            />
+          </div>
+        </div>
+      </div>
+
+      <Button 
+        onClick={handleSubmit} 
+        className="w-full"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Saving...
+          </>
+        ) : (
+          "Save Settings"
+        )}
+      </Button>
+    </div>
   );
 }

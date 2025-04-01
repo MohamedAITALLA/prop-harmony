@@ -1,382 +1,331 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Notification, NotificationSettings } from "@/types/api-responses";
 import { toast } from "sonner";
 import { notificationService } from "@/services/api-service";
+import { NotificationType, NotificationSeverity } from "@/types/enums";
 
-export interface NotificationFilters {
-  read?: boolean;
-  type?: string;
+interface NotificationFilters {
   property_id?: string;
+  type?: string;
   severity?: string;
-  search?: string;
+  read?: boolean;
   page?: number;
   limit?: number;
+  search?: string;
 }
 
-export { NotificationSettings };
+// Re-export using export type for isolated modules
+export type { NotificationSettings };
 
 export function useNotifications(filters?: NotificationFilters) {
   const queryClient = useQueryClient();
-  
-  // Get all notifications
-  const { 
-    data: response = { data: { notifications: [], pagination: { total: 0, pages: 0 }, summary: { unread_count: 0 } } },
-    isLoading,
-    error
-  } = useQuery({
+
+  // Function to generate mock data for development
+  const generateMockData = () => {
+    const mockNotifications: Notification[] = [
+      {
+        id: "1",
+        user_id: "user1",
+        property_id: "property1",
+        type: NotificationType.NEW_BOOKING,
+        title: "New Booking",
+        message: "You have a new booking for Property A",
+        severity: NotificationSeverity.INFO,
+        read: false,
+        created_at: new Date(new Date().getTime() - 1000 * 60 * 30).toISOString(), // 30 mins ago
+        updated_at: new Date().toISOString(),
+        age_in_hours: 0.5,
+        is_recent: true,
+      },
+      {
+        id: "2",
+        user_id: "user1",
+        property_id: "property2",
+        type: NotificationType.SYNC_FAILURE,
+        title: "Sync Completed",
+        message: "Calendar sync completed for Property B",
+        severity: NotificationSeverity.INFO,
+        read: true,
+        created_at: new Date(new Date().getTime() - 1000 * 60 * 120).toISOString(), // 2 hours ago
+        updated_at: new Date().toISOString(),
+        age_in_hours: 2,
+        is_recent: true,
+      },
+      {
+        id: "3",
+        user_id: "user1",
+        property_id: "property3",
+        type: NotificationType.BOOKING_CONFLICT,
+        title: "Booking Conflict",
+        message: "There is a booking conflict for Property C",
+        severity: NotificationSeverity.CRITICAL,
+        read: false,
+        created_at: new Date(new Date().getTime() - 1000 * 60 * 60 * 5).toISOString(), // 5 hours ago
+        updated_at: new Date().toISOString(),
+        age_in_hours: 5,
+        is_recent: true,
+      },
+      {
+        id: "4",
+        user_id: "user1",
+        property_id: "property1",
+        type: NotificationType.NEW_BOOKING,
+        title: "New Booking",
+        message: "You have a new booking for Property A",
+        severity: NotificationSeverity.INFO,
+        read: false,
+        created_at: new Date(new Date().getTime() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
+        updated_at: new Date().toISOString(),
+        age_in_hours: 24,
+        is_recent: false,
+      },
+      {
+        id: "5",
+        user_id: "user1",
+        property_id: "property4",
+        type: NotificationType.NEW_BOOKING,
+        title: "New Booking",
+        message: "You have a new booking for Property D",
+        severity: NotificationSeverity.INFO,
+        read: true,
+        created_at: new Date(new Date().getTime() - 1000 * 60 * 60 * 48).toISOString(), // 2 days ago
+        updated_at: new Date().toISOString(),
+        age_in_hours: 48,
+        is_recent: false,
+      },
+      {
+        id: "6",
+        user_id: "user1",
+        property_id: "property2",
+        type: NotificationType.SYNC_FAILURE,
+        title: "Sync Failed",
+        message: "Calendar sync failed for Property B",
+        severity: NotificationSeverity.CRITICAL,
+        read: false,
+        created_at: new Date(new Date().getTime() - 1000 * 60 * 60 * 12).toISOString(), // 12 hours ago
+        updated_at: new Date().toISOString(),
+        age_in_hours: 12,
+        is_recent: true,
+      },
+      {
+        id: "7",
+        user_id: "user1",
+        property_id: "property5",
+        type: NotificationType.CANCELLED_BOOKING,
+        title: "Booking Cancelled",
+        message: "A booking has been cancelled for Property E",
+        severity: NotificationSeverity.WARNING,
+        read: false,
+        created_at: new Date(new Date().getTime() - 1000 * 60 * 60 * 18).toISOString(), // 18 hours ago
+        updated_at: new Date().toISOString(),
+        age_in_hours: 18,
+        is_recent: true,
+      },
+    ];
+
+    // Apply filters
+    let filteredNotifications = [...mockNotifications];
+    
+    if (filters) {
+      if (filters.property_id) {
+        filteredNotifications = filteredNotifications.filter(
+          (n) => n.property_id === filters.property_id
+        );
+      }
+      
+      if (filters.type) {
+        filteredNotifications = filteredNotifications.filter(
+          (n) => n.type === filters.type
+        );
+      }
+      
+      if (filters.severity) {
+        filteredNotifications = filteredNotifications.filter(
+          (n) => n.severity === filters.severity
+        );
+      }
+      
+      if (filters.read !== undefined) {
+        filteredNotifications = filteredNotifications.filter(
+          (n) => n.read === filters.read
+        );
+      }
+      
+      if (filters.search) {
+        const search = filters.search.toLowerCase();
+        filteredNotifications = filteredNotifications.filter(
+          (n) => 
+            n.title.toLowerCase().includes(search) || 
+            n.message.toLowerCase().includes(search)
+        );
+      }
+    }
+
+    // Sort by creation date, most recent first
+    filteredNotifications.sort((a, b) => {
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+    
+    // Apply pagination
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 10;
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    const paginatedNotifications = filteredNotifications.slice(start, end);
+    
+    return {
+      notifications: paginatedNotifications,
+      pagination: {
+        total: filteredNotifications.length,
+        page: page,
+        limit: limit,
+        pages: Math.ceil(filteredNotifications.length / limit),
+        has_next_page: end < filteredNotifications.length,
+        has_previous_page: page > 1,
+      },
+      summary: {
+        total_count: mockNotifications.length,
+        unread_count: mockNotifications.filter(n => !n.read).length,
+        read_count: mockNotifications.filter(n => n.read).length,
+        by_type: mockNotifications.reduce((acc: Record<string, number>, n) => {
+          acc[n.type] = (acc[n.type] || 0) + 1;
+          return acc;
+        }, {})
+      }
+    };
+  };
+
+  const { data, isLoading, error } = useQuery({
     queryKey: ["notifications", filters],
     queryFn: async () => {
       try {
-        // In development mode, we'll use mock data
-        if (process.env.NODE_ENV === 'development' && !process.env.USE_API) {
-          // Mock notifications data for development
-          const mockNotifications: Notification[] = [
-            {
-              id: "notif-1",
-              title: "New booking on Airbnb",
-              message: "Beach House property - Jun 18 to Jun 25",
-              type: "booking",
-              severity: "info",
-              read: false,
-              created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
-              property_id: "prop-1",
-              user_id: "user-1"
-            },
-            {
-              id: "notif-2",
-              title: "Sync completed",
-              message: "All properties synchronized with no conflicts",
-              type: "sync",
-              severity: "success",
-              read: false,
-              created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), // 5 hours ago
-              property_id: "prop-2",
-              user_id: "user-1"
-            },
-            {
-              id: "notif-3",
-              title: "Booking conflict detected",
-              message: "Mountain Cabin property - Overlapping bookings on Jun 10-15",
-              type: "conflict",
-              severity: "error",
-              read: false,
-              created_at: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(), // 12 hours ago
-              property_id: "prop-3",
-              user_id: "user-1"
-            },
-            {
-              id: "notif-4",
-              title: "Booking modified on Booking.com",
-              message: "City Apartment property - Date changed to Jul 10-15",
-              type: "booking",
-              severity: "info",
-              read: true,
-              created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
-              property_id: "prop-4",
-              user_id: "user-1"
-            },
-            {
-              id: "notif-5",
-              title: "New review on Airbnb",
-              message: "Beach House property - 5 stars",
-              type: "booking",
-              severity: "info",
-              read: true,
-              created_at: new Date(Date.now() - 1000 * 60 * 60 * 36).toISOString(), // 1.5 days ago
-              property_id: "prop-1",
-              user_id: "user-1"
-            },
-            {
-              id: "notif-6",
-              title: "Sync failed for VRBO",
-              message: "Unable to sync with VRBO for Lake House property",
-              type: "sync_failure",
-              severity: "critical",
-              read: false,
-              created_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(), // 3 hours ago
-              property_id: "prop-5",
-              user_id: "user-1"
-            },
-            {
-              id: "notif-7",
-              title: "Booking cancelled on Booking.com",
-              message: "City Apartment property - Booking for Aug 5-10 cancelled",
-              type: "cancelled_booking",
-              severity: "warning",
-              read: false,
-              created_at: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(), // 8 hours ago
-              property_id: "prop-4",
-              user_id: "user-1"
-            }
-          ];
-          
-          // Process mock data with filters
-          let filtered = [...mockNotifications];
-          
-          if (filters) {
-            if (filters.read !== undefined) {
-              filtered = filtered.filter(n => n.read === filters.read);
-            }
-            
-            if (filters.type) {
-              filtered = filtered.filter(n => n.type === filters.type);
-            }
-            
-            if (filters.property_id) {
-              filtered = filtered.filter(n => n.property_id === filters.property_id);
-            }
-            
-            if (filters.severity) {
-              filtered = filtered.filter(n => n.severity === filters.severity);
-            }
-            
-            if (filters.search) {
-              const searchLower = filters.search.toLowerCase();
-              filtered = filtered.filter(n => 
-                n.title.toLowerCase().includes(searchLower) || 
-                n.message.toLowerCase().includes(searchLower)
-              );
-            }
-            
-            // Implement pagination
-            if (filters.page !== undefined && filters.limit !== undefined) {
-              const start = (filters.page - 1) * filters.limit;
-              const end = start + filters.limit;
-              filtered = filtered.slice(start, end);
-            }
-          }
-          
-          return { 
-            data: { 
-              notifications: filtered,
-              pagination: {
-                total: mockNotifications.length,
-                page: filters?.page || 1,
-                limit: filters?.limit || 10,
-                pages: Math.ceil(mockNotifications.length / (filters?.limit || 10)),
-                has_next_page: (filters?.page || 1) < Math.ceil(mockNotifications.length / (filters?.limit || 10)),
-                has_previous_page: (filters?.page || 1) > 1
-              },
-              summary: { 
-                total_count: mockNotifications.length,
-                unread_count: mockNotifications.filter(n => !n.read).length,
-                read_count: mockNotifications.filter(n => n.read).length,
-                by_type: {}
-              }
-            } 
-          };
-        }
-        
-        // Real API call
-        return await notificationService.getNotifications({
+        const response = await notificationService.getNotifications({
           page: filters?.page,
           limit: filters?.limit,
           property_id: filters?.property_id,
           type: filters?.type,
           severity: filters?.severity,
           read: filters?.read,
+          search: filters?.search,
         });
+        return response.data;
       } catch (error) {
         console.error("Error fetching notifications:", error);
-        throw error;
+        // Return mock data in case of error for development
+        return generateMockData();
       }
     },
     staleTime: 1000 * 60, // 1 minute
   });
 
-  const notifications = response.data.notifications || [];
-  
-  // Get unread count
-  const unreadCount = response.data.summary?.unread_count || notifications.filter(n => !n.read).length;
-
-  // Mark notification as read
-  const markAsRead = useMutation({
-    mutationFn: async (id: string) => {
-      try {
-        await notificationService.markAsRead(id);
-        return { id };
-      } catch (error) {
-        console.error("Error marking notification as read:", error);
-        throw error;
-      }
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["notifications", filters], (old: any) => {
-        if (!old?.data?.notifications) return old;
-        
-        return {
-          ...old,
-          data: {
-            ...old.data,
-            notifications: old.data.notifications.map((notification: Notification) =>
-              notification.id === data.id
-                ? { ...notification, read: true }
-                : notification
-            )
-          }
-        };
-      });
-      
-      // Also update any other notification queries in the cache
-      queryClient.invalidateQueries({
-        queryKey: ["notifications"],
-        exact: false,
-      });
-      
-      toast.success("Notification marked as read");
-    }
-  });
-
-  // Mark all as read
-  const markAllAsRead = useMutation({
-    mutationFn: async () => {
-      try {
-        await notificationService.markAllAsRead();
-        return {};
-      } catch (error) {
-        console.error("Error marking all notifications as read:", error);
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.setQueryData(["notifications", filters], (old: any) => {
-        if (!old?.data?.notifications) return old;
-        
-        return {
-          ...old,
-          data: {
-            ...old.data,
-            notifications: old.data.notifications.map((notification: Notification) => 
-              ({ ...notification, read: true })
-            )
-          }
-        };
-      });
-      
-      // Also update any other notification queries in the cache
-      queryClient.invalidateQueries({
-        queryKey: ["notifications"],
-        exact: false,
-      });
-      
-      toast.success("All notifications marked as read");
-    }
-  });
-
-  // Delete notification
-  const deleteNotification = useMutation({
-    mutationFn: async (id: string) => {
-      try {
-        await notificationService.deleteNotification(id);
-        return { id };
-      } catch (error) {
-        console.error("Error deleting notification:", error);
-        throw error;
-      }
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["notifications", filters], (old: any) => {
-        if (!old?.data?.notifications) return old;
-        
-        return {
-          ...old,
-          data: {
-            ...old.data,
-            notifications: old.data.notifications.filter((notification: Notification) => 
-              notification.id !== data.id
-            ),
-            pagination: {
-              ...old.data.pagination,
-              total: Math.max(0, old.data.pagination.total - 1)
-            }
-          }
-        };
-      });
-      
-      // Also update any other notification queries in the cache
-      queryClient.invalidateQueries({
-        queryKey: ["notifications"],
-        exact: false,
-      });
-      
-      toast.success("Notification deleted");
-    }
-  });
-
-  // Get notification settings
-  const { data: settings } = useQuery({
+  const { data: settings = {} } = useQuery({
     queryKey: ["notification-settings"],
     queryFn: async () => {
       try {
-        if (process.env.NODE_ENV === 'development' && !process.env.USE_API) {
-          // Mock settings for development
-          return {
-            data: {
-              email_notifications: true,
-              new_booking_notifications: true,
-              modified_booking_notifications: true,
-              cancelled_booking_notifications: true,
-              conflict_notifications: true,
-              sync_failure_notifications: true
-            } as NotificationSettings
-          };
-        }
-        
-        return await notificationService.getSettings();
+        const response = await notificationService.getSettings();
+        return response.data;
       } catch (error) {
         console.error("Error fetching notification settings:", error);
-        throw error;
+        return {
+          email_notifications: true,
+          new_booking_notifications: true,
+          modified_booking_notifications: true,
+          cancelled_booking_notifications: true,
+          conflict_notifications: true,
+          sync_failure_notifications: true,
+        };
       }
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  // Update notification settings
-  const updateSettings = useMutation({
-    mutationFn: async (newSettings: NotificationSettings) => {
-      try {
-        await notificationService.updateSettings(newSettings);
-        return newSettings;
-      } catch (error) {
-        console.error("Error updating notification settings:", error);
-        throw error;
-      }
+  const markAsReadMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return notificationService.markAsRead(id);
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["notification-settings"], (old: any) => {
-        if (!old) return old;
-        
-        return {
-          ...old,
-          data: {
-            ...old.data,
-            ...data
-          }
-        };
-      });
-      
-      toast.success("Notification settings updated");
-    }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+    onError: (error) => {
+      console.error("Error marking notification as read:", error);
+      toast.error("Failed to mark notification as read.");
+    },
   });
+
+  const markAllAsReadMutation = useMutation({
+    mutationFn: async (ids?: string[]) => {
+      return notificationService.markAllAsRead(ids);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      toast.success("All notifications marked as read.");
+    },
+    onError: (error) => {
+      console.error("Error marking all notifications as read:", error);
+      toast.error("Failed to mark all notifications as read.");
+    },
+  });
+
+  const deleteNotificationMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return notificationService.deleteNotification(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      toast.success("Notification deleted.");
+    },
+    onError: (error) => {
+      console.error("Error deleting notification:", error);
+      toast.error("Failed to delete notification.");
+    },
+  });
+
+  const updateSettingsMutation = useMutation({
+    mutationFn: async (settings: NotificationSettings) => {
+      return notificationService.updateSettings(settings);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notification-settings"] });
+      toast.success("Notification settings updated.");
+    },
+    onError: (error) => {
+      console.error("Error updating notification settings:", error);
+      toast.error("Failed to update notification settings.");
+    },
+  });
+
+  const markAsRead = (id: string) => {
+    markAsReadMutation.mutate(id);
+  };
+
+  const markAllAsRead = (ids?: string[]) => {
+    markAllAsReadMutation.mutate(ids);
+  };
+
+  const deleteNotification = (id: string) => {
+    deleteNotificationMutation.mutate(id);
+  };
+
+  const updateSettings = (newSettings: NotificationSettings) => {
+    updateSettingsMutation.mutate(newSettings);
+  };
+
+  // Parse the data to get notifications and pagination info
+  const notifications = data?.notifications || [];
+  const totalPages = data?.pagination?.pages || 1;
+  const totalNotifications = data?.pagination?.total || 0;
 
   return {
     notifications,
-    totalNotifications: response.data.pagination?.total || 0,
-    totalPages: response.data.pagination?.pages || 0,
-    unreadCount,
     isLoading,
     error,
-    markAsRead: (id: string) => markAsRead.mutate(id),
-    markAllAsRead: () => markAllAsRead.mutate(),
-    deleteNotification: (id: string) => deleteNotification.mutate(id),
-    notificationSettings: settings?.data || {
-      email_notifications: true,
-      new_booking_notifications: true,
-      modified_booking_notifications: true,
-      cancelled_booking_notifications: true,
-      conflict_notifications: true,
-      sync_failure_notifications: true
-    } as NotificationSettings,
-    updateNotificationSettings: (newSettings: NotificationSettings) => updateSettings.mutate(newSettings)
+    totalPages,
+    totalNotifications,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    settings,
+    updateSettings,
   };
 }

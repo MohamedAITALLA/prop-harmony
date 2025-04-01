@@ -380,41 +380,39 @@ export const notificationService = {
       type?: string; 
       severity?: string;
       read?: boolean;
+      search?: string;
     }
-  ): Promise<any> => {
-    const response = await api.get("/notifications", { params });
+  ): Promise<NotificationsResponse> => {
+    const response = await api.get<NotificationsResponse>("/notifications", { params });
     return response.data;
   },
   
-  markAsRead: async (notificationId: string): Promise<any> => {
-    const response = await api.put(`/notifications/${notificationId}/read`);
+  markAsRead: async (notificationId: string): Promise<ApiResponse<{ success: boolean }>> => {
+    const response = await api.put<ApiResponse<{ success: boolean }>>(`/notifications/${notificationId}/read`);
     return response.data;
   },
   
-  markAllAsRead: async (ids?: string[]): Promise<any> => {
-    const response = await api.put("/notifications/read", ids ? { ids } : undefined);
+  markAllAsRead: async (ids?: string[]): Promise<ApiResponse<{ success: boolean }>> => {
+    const response = await api.put<ApiResponse<{ success: boolean }>>("/notifications/read", ids ? { ids } : undefined);
     return response.data;
   },
   
   deleteNotification: async (
     notificationId: string, 
     preserveHistory?: boolean
-  ): Promise<any> => {
+  ): Promise<ApiResponse<{ success: boolean }>> => {
     const params = preserveHistory !== undefined ? { preserve_history: preserveHistory } : undefined;
-    const response = await api.delete(`/notifications/${notificationId}`, { params });
+    const response = await api.delete<ApiResponse<{ success: boolean }>>(`/notifications/${notificationId}`, { params });
     return response.data;
   },
   
-  getSettings: async (): Promise<{ data: NotificationSettings }> => {
-    const response = await api.get<{ 
-      data: NotificationSettings, 
-      success: boolean 
-    }>("/notifications/settings");
+  getSettings: async (): Promise<ApiResponse<NotificationSettings>> => {
+    const response = await api.get<ApiResponse<NotificationSettings>>("/notifications/settings");
     return response.data;
   },
   
-  updateSettings: async (settings: NotificationSettings): Promise<any> => {
-    const response = await api.put("/notifications/settings", settings);
+  updateSettings: async (settings: NotificationSettings): Promise<ApiResponse<{ success: boolean }>> => {
+    const response = await api.put<ApiResponse<{ success: boolean }>>("/notifications/settings", settings);
     return response.data;
   }
 };

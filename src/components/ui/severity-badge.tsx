@@ -1,61 +1,43 @@
 
-import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { ConflictSeverity } from "@/types/enums";
-import { AlertCircle, AlertTriangle, Info } from "lucide-react";
+import { NotificationSeverity } from "@/types/enums";
 
 interface SeverityBadgeProps {
-  severity: string;
-  className?: string;
+  severity: NotificationSeverity | string;
 }
 
-export function SeverityBadge({ severity, className }: SeverityBadgeProps) {
-  const getVariant = (severity: string) => {
-    switch (severity.toLowerCase()) {
-      case ConflictSeverity.HIGH:
-      case "critical":
+export function SeverityBadge({ severity }: SeverityBadgeProps) {
+  // Map severities to appropriate variants
+  const getVariant = () => {
+    switch (severity) {
+      case NotificationSeverity.CRITICAL:
         return "destructive";
-      case ConflictSeverity.MEDIUM:
-      case "warning":
-        return "warning";
-      case ConflictSeverity.LOW:
-      case "info":
-      case "success":
-        return severity.toLowerCase() === "success" ? "success" : "outline";
+      case NotificationSeverity.WARNING:
+        return "warning" as "default"; // Type assertion to satisfy the Badge component
+      case NotificationSeverity.INFO:
+        return "default";
       default:
         return "secondary";
     }
   };
 
-  const getSeverityIcon = (severity: string) => {
-    switch (severity.toLowerCase()) {
-      case ConflictSeverity.HIGH:
-      case "critical":
-        return <AlertCircle className="h-3 w-3 mr-1" />;
-      case ConflictSeverity.MEDIUM:
-      case "warning":
-        return <AlertTriangle className="h-3 w-3 mr-1" />;
-      case ConflictSeverity.LOW:
-      case "info":
-      case "success":
-        return <Info className="h-3 w-3 mr-1" />;
+  // Get appropriate label
+  const getLabel = () => {
+    switch (severity) {
+      case NotificationSeverity.CRITICAL:
+        return "Critical";
+      case NotificationSeverity.WARNING:
+        return "Warning";
+      case NotificationSeverity.INFO:
+        return "Info";
       default:
-        return null;
+        return severity;
     }
   };
 
-  const variant = getVariant(severity);
-  const icon = getSeverityIcon(severity);
-
   return (
-    <Badge
-      // @ts-ignore - Badge component should support "warning" and "success" variants
-      variant={variant}
-      className={cn("capitalize flex items-center", className)}
-    >
-      {icon}
-      {severity.toLowerCase()}
+    <Badge variant={getVariant()}>
+      {getLabel()}
     </Badge>
   );
 }

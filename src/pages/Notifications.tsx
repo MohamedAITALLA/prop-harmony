@@ -79,7 +79,8 @@ export default function Notifications() {
       if (key !== 'page') {
         return { ...prev, [key]: value, page: 1 };
       }
-      // Ensure page is a number
+      
+      // Ensure page is a number for the page key
       return { 
         ...prev, 
         [key]: key === 'page' ? parseInt(value, 10) : value 
