@@ -89,6 +89,8 @@ export interface Address {
   city: string;
   stateProvince: string;
   country: string;
+  street?: string;
+  postalCode?: string;
 }
 
 export interface Property {
@@ -98,15 +100,16 @@ export interface Property {
   address: Address;
   accommodates: number;
   bedrooms: number;
-  beds: number;
+  beds?: number;
   bathrooms: number;
-  amenities: Record<string, any>;
-  policies: Record<string, any>;
+  amenities?: Record<string, any>;
+  policies?: Record<string, any>;
   images: string[];
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
   location?: string;
   days_since_creation?: number;
+  description?: string; // Add description property
 }
 
 export interface PropertiesResponse {
