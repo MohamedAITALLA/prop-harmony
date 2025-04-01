@@ -86,16 +86,18 @@ const ProfileSettings = () => {
   });
 
   // Preferences form setup with properly typed preferences
-  const preferencesForm = useForm({
+  const preferencesForm = useForm<{
+    preferences: UserPreferences;
+  }>({
     resolver: zodResolver(preferencesSchema),
     defaultValues: {
       preferences: {
-        theme: "system" as const,
-        language: "en" as const,
+        theme: "system",
+        language: "en",
         timezone: "America/New_York",
-        date_format: "MM/DD/YYYY" as const,
-        time_format: "12h" as const,
-        currency: "USD" as const,
+        date_format: "MM/DD/YYYY",
+        time_format: "12h",
+        currency: "USD",
         notifications_enabled: true,
       },
     },
@@ -180,19 +182,20 @@ const ProfileSettings = () => {
         },
       });
       
-      // Make sure we properly type the preferences object
-      const typedPreferences: Partial<UserPreferences> = preferences || {};
+      // Create a properly typed preferences object with defaults for missing values
+      const typedPreferences: UserPreferences = {
+        theme: (preferences.theme as "light" | "dark" | "system") || "system",
+        language: (preferences.language as "en" | "es" | "fr" | "de") || "en",
+        timezone: preferences.timezone || "America/New_York",
+        date_format: (preferences.date_format as "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD") || "MM/DD/YYYY",
+        time_format: (preferences.time_format as "12h" | "24h") || "12h",
+        currency: (preferences.currency as "USD" | "EUR" | "GBP" | "CAD" | "AUD") || "USD",
+        notifications_enabled: preferences.notifications_enabled !== false,
+      };
       
+      // Reset the form with the properly typed preferences
       preferencesForm.reset({
-        preferences: {
-          theme: (typedPreferences.theme as "light" | "dark" | "system") || "system",
-          language: (typedPreferences.language as "en" | "es" | "fr" | "de") || "en",
-          timezone: typedPreferences.timezone || "America/New_York",
-          date_format: (typedPreferences.date_format as "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD") || "MM/DD/YYYY",
-          time_format: (typedPreferences.time_format as "12h" | "24h") || "12h",
-          currency: (typedPreferences.currency as "USD" | "EUR" | "GBP" | "CAD" | "AUD") || "USD",
-          notifications_enabled: typedPreferences.notifications_enabled !== false,
-        },
+        preferences: typedPreferences,
       });
     }
   }, [profileData, contactForm, preferencesForm]);
