@@ -46,7 +46,7 @@ export function PropertyList({ properties, isLoading }: PropertyListProps) {
               <SelectValue placeholder="Property type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All types</SelectItem>
+              <SelectItem value="all">All types</SelectItem>
               <SelectItem value={PropertyType.APARTMENT}>Apartment</SelectItem>
               <SelectItem value={PropertyType.HOUSE}>House</SelectItem>
               <SelectItem value={PropertyType.VILLA}>Villa</SelectItem>

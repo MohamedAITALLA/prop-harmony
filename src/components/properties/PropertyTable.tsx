@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Table, 
@@ -26,7 +25,7 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { Property } from "@/types/api-responses";
-import { PropertyType } from "@/types/enums"; // Fixed import from enums.ts
+import { PropertyType } from "@/types/enums";
 import { 
   Eye, 
   Edit, 
@@ -81,14 +80,12 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
       valueA = a.address.city.toLowerCase();
       valueB = b.address.city.toLowerCase();
     } else if (sortField === "bookings_count") {
-      // Placeholder since we don't have this property in our model yet
       valueA = a.bookings_count || 0;
       valueB = b.bookings_count || 0;
     } else {
       valueA = getNestedPropertyValue(a, sortField);
       valueB = getNestedPropertyValue(b, sortField);
 
-      // Convert to lowercase if string
       if (typeof valueA === "string") valueA = valueA.toLowerCase();
       if (typeof valueB === "string") valueB = valueB.toLowerCase();
     }
@@ -125,13 +122,10 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
         navigate(`/properties/${propertyId}/edit`);
         break;
       case "Sync Now":
-        // Implement sync functionality
         toast.success(`Property ${propertyId} synced successfully`);
         break;
       case "Delete":
-        // Ask for confirmation before deleting
         if (window.confirm("Are you sure you want to delete this property? This action cannot be undone.")) {
-          // In a real app, this would call an API
           toast.success(`Property ${propertyId} deleted successfully`);
         }
         break;
@@ -167,7 +161,7 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
             <SelectValue placeholder="Property Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All types</SelectItem>
+            <SelectItem value="all">All types</SelectItem>
             <SelectItem value={PropertyType.APARTMENT}>Apartment</SelectItem>
             <SelectItem value={PropertyType.HOUSE}>House</SelectItem>
             <SelectItem value={PropertyType.VILLA}>Villa</SelectItem>

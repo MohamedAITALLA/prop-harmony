@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarEvent, Property } from "@/types/api-responses";
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DateRange } from "@/components/ui/date-range";
+import { CalendarRange } from "@/components/ui/calendar-range";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Plus, MoreVertical, Download, Filter, X } from "lucide-react";
 import { propertyService, eventService } from "@/services/api-service";
@@ -173,7 +174,7 @@ export default function EventManagement() {
               
               <div className="space-y-2">
                 <Label>Date Range</Label>
-                <DateRange 
+                <CalendarRange 
                   value={dateRange} 
                   onChange={(value) => setDateRange(value)}
                 />
