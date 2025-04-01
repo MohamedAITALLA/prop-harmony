@@ -23,7 +23,8 @@ export default function Properties() {
       try {
         // In a production app, this would use the real API
         const response = await propertyService.getAllProperties();
-        return response.data.properties;
+        // Ensure we return an array of properties
+        return Array.isArray(response.data.properties) ? response.data.properties : getMockProperties();
       } catch (error) {
         console.error("Error fetching properties:", error);
         toast.error("Failed to load properties");
@@ -33,6 +34,9 @@ export default function Properties() {
       }
     }
   });
+
+  // Ensure we always have an array of properties
+  const properties = Array.isArray(data) ? data : [];
 
   if (error) {
     return (
@@ -71,10 +75,10 @@ export default function Properties() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="grid" className="mt-6">
-          <PropertyList properties={data || []} isLoading={isLoading} />
+          <PropertyList properties={properties} isLoading={isLoading} />
         </TabsContent>
         <TabsContent value="table" className="mt-6">
-          <PropertyTable properties={data || []} isLoading={isLoading} />
+          <PropertyTable properties={properties} isLoading={isLoading} />
         </TabsContent>
       </Tabs>
     </div>

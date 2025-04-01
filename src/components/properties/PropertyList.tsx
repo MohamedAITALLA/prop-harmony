@@ -14,13 +14,16 @@ interface PropertyListProps {
   isLoading: boolean;
 }
 
-export function PropertyList({ properties, isLoading }: PropertyListProps) {
+export function PropertyList({ properties = [], isLoading }: PropertyListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [propertyType, setPropertyType] = useState<string>("");
   const navigate = useNavigate();
 
+  // Ensure properties is an array before filtering
+  const propertiesToFilter = Array.isArray(properties) ? properties : [];
+  
   // Simple filter function
-  const filteredProperties = properties.filter((property) => {
+  const filteredProperties = propertiesToFilter.filter((property) => {
     const matchesSearch = property.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            property.address.city.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = propertyType === "" || property.property_type === propertyType;
