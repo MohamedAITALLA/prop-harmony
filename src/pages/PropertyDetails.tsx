@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService, eventService } from "@/services/api-service";
@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { 
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from "@/components/ui/select";
+// Import FullCalendar and required plugins
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 
@@ -41,6 +42,9 @@ export default function PropertyDetails() {
     status: "confirmed",
     description: ""
   });
+  
+  // Create a ref for the calendar
+  const calendarRef = useRef(null);
 
   // Fetch property data
   const { data, isLoading, error, refetch } = useQuery({
@@ -73,6 +77,24 @@ export default function PropertyDetails() {
       }
     },
   });
+
+  // Format events for FullCalendar
+  const formattedEvents = React.useMemo(() => {
+    if (!eventsData) return [];
+    
+    return eventsData.map(event => ({
+      id: event.id,
+      title: event.summary,
+      start: event.start_date,
+      end: event.end_date,
+      extendedProps: {
+        platform: event.platform,
+        event_type: event.event_type,
+        status: event.status,
+        description: event.description
+      }
+    }));
+  }, [eventsData]);
 
   // Handle sync now
   const handleSync = async () => {
@@ -125,6 +147,16 @@ export default function PropertyDetails() {
   const handleExport = (format: string) => {
     toast(`Exporting calendar as ${format}...`);
     // Implementation would depend on the export format
+  };
+
+  // Navigation methods for the calendar
+  const handleCalendarNavigation = (action: 'prev' | 'next' | 'today') => {
+    const calendarApi = calendarRef.current?.getApi();
+    if (calendarApi) {
+      if (action === 'prev') calendarApi.prev();
+      if (action === 'next') calendarApi.next();
+      if (action === 'today') calendarApi.today();
+    }
   };
 
   if (isLoading) {
@@ -227,23 +259,44 @@ export default function PropertyDetails() {
               </div>
             </div>
             
-            <div className="border rounded-lg p-6 bg-background min-h-[500px]">
+            <div className="border rounded-lg p-6 bg-background">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('prev')}>
+                    Previous
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('today')}>
+                    Today
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('next')}>
+                    Next
+                  </Button>
+                </div>
+              </div>
+              
               {eventsLoading ? (
-                <div className="flex items-center justify-center h-full">
-                  <p>Loading events...</p>
+                <div className="flex items-center justify-center h-80">
+                  <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                  <p className="ml-3">Loading events...</p>
                 </div>
               ) : (
-                <FullCalendar
-                  plugins={[dayGridPlugin]}
-                  initialView="dayGridMonth"
-                  events={eventsData?.map(event => ({
-                    title: event.summary,
-                    start: event.start_date,
-                    end: event.end_date,
-                    allDay: false
-                  }))}
-                  height="100%"
-                />
+                <div className="h-[600px]">
+                  <FullCalendar
+                    ref={calendarRef}
+                    plugins={[dayGridPlugin]}
+                    initialView="dayGridMonth"
+                    headerToolbar={false} // We're using our own header
+                    events={formattedEvents}
+                    height="100%"
+                    eventTimeFormat={{
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      meridiem: 'short'
+                    }}
+                    eventDisplay="block"
+                    dayMaxEvents={true}
+                  />
+                </div>
               )}
             </div>
           </div>
@@ -400,42 +453,6 @@ export default function PropertyDetails() {
     </div>
   );
 }
-
-// Handle form input changes
-const handleInputChange = (field: string, value: string) => {
-  setNewEvent(prev => ({ ...prev, [field]: value }));
-};
-
-// Submit new event
-const handleSubmitEvent = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  try {
-    console.log("Creating event:", newEvent);
-    toast.success("Event created successfully");
-    setIsAddEventOpen(false);
-    
-    setNewEvent({
-      property_id: id || "",
-      platform: Platform.MANUAL,
-      summary: "",
-      start_date: "",
-      end_date: "",
-      event_type: EventType.BOOKING,
-      status: "confirmed",
-      description: ""
-    });
-  } catch (error) {
-    console.error("Error creating event:", error);
-    toast.error("Failed to create event");
-  }
-};
-
-// Export functions
-const handleExport = (format: string) => {
-  toast(`Exporting calendar as ${format}...`);
-  // Implementation would depend on the export format
-};
 
 function getMockPropertyData(id: string) {
   return {
