@@ -1,4 +1,3 @@
-
 import React from "react";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { PlatformIcon } from "@/components/ui/platform-icon";
@@ -10,6 +9,7 @@ import { PropertyCard } from "@/components/properties/PropertyCard";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Property } from "@/types/api-responses";
+import { PropertyType } from "@/types/enums";
 
 export default function ComponentsDemo() {
   const { toast } = useToast();
@@ -18,7 +18,7 @@ export default function ComponentsDemo() {
   const sampleProperty: Property = {
     id: "prop-123",
     name: "Beachfront Villa",
-    property_type: "villa",
+    property_type: PropertyType.VILLA,
     address: {
       city: "Malibu",
       stateProvince: "CA",
@@ -241,7 +241,7 @@ export default function ComponentsDemo() {
               ...sampleProperty,
               id: "prop-456",
               name: "Mountain Cabin",
-              property_type: "cabin",
+              property_type: PropertyType.CABIN,
               bedrooms: 2,
               bathrooms: 1,
               accommodates: 4,
@@ -253,7 +253,7 @@ export default function ComponentsDemo() {
               ...sampleProperty,
               id: "prop-789",
               name: "Downtown Apartment",
-              property_type: "apartment",
+              property_type: PropertyType.APARTMENT,
               address: {
                 city: "New York",
                 stateProvince: "NY",

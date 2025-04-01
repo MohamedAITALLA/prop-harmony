@@ -7,6 +7,7 @@ import { Plus, Search } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Property } from "@/types/api-responses";
+import { PropertyType } from "@/types/enums";
 
 interface PropertyListProps {
   properties: Property[];
@@ -46,12 +47,12 @@ export function PropertyList({ properties, isLoading }: PropertyListProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">All types</SelectItem>
-              <SelectItem value="apartment">Apartment</SelectItem>
-              <SelectItem value="house">House</SelectItem>
-              <SelectItem value="villa">Villa</SelectItem>
-              <SelectItem value="condo">Condo</SelectItem>
-              <SelectItem value="cabin">Cabin</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              <SelectItem value={PropertyType.APARTMENT}>Apartment</SelectItem>
+              <SelectItem value={PropertyType.HOUSE}>House</SelectItem>
+              <SelectItem value={PropertyType.VILLA}>Villa</SelectItem>
+              <SelectItem value={PropertyType.CONDO}>Condo</SelectItem>
+              <SelectItem value={PropertyType.CABIN}>Cabin</SelectItem>
+              <SelectItem value={PropertyType.OTHER}>Other</SelectItem>
             </SelectContent>
           </Select>
         </div>
