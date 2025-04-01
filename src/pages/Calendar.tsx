@@ -1,13 +1,13 @@
+
 import React, { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 
-  Plus, Download, Filter, ChevronDown, Calendar as CalendarIcon, 
+  Plus, Download, Filter, ChevronDown, X,
   ChevronLeft, ChevronRight 
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { 
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter 
 } from "@/components/ui/dialog";
@@ -17,10 +17,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { 
+  Popover, PopoverContent, PopoverTrigger 
+} from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { CalendarRange } from "@/components/ui/calendar-range";
+import { DateRange } from "@/components/ui/date-range";
 import { Property, CalendarEvent } from "@/types/api-responses";
 import { PropertyType, Platform, EventType } from "@/types/enums";
 import { propertyService, eventService } from "@/services/api-service";
@@ -31,13 +33,15 @@ import interactionPlugin from "@fullcalendar/interaction";
 const Calendar = () => {
   const calendarRef = useRef(null);
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<EventType[]>([]);
-  const [dateRange, setDateRange] = useState<{ startDate: Date | null; endDate: Date | null }>({
-    startDate: null,
-    endDate: null,
+  const [dateRange, setDateRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({
+    from: undefined,
+    to: undefined
   });
   
   const [newEvent, setNewEvent] = useState({
@@ -78,20 +82,24 @@ const Calendar = () => {
   const formattedEvents = React.useMemo(() => {
     if (!eventsData) return [];
     
-    return eventsData.map((event: CalendarEvent) => ({
-      id: event.id,
-      title: event.summary,
-      start: event.start_date,
-      end: event.end_date,
-      backgroundColor: getEventColor(event.platform, event.event_type),
-      borderColor: getEventColor(event.platform, event.event_type),
-      extendedProps: {
-        platform: event.platform,
-        event_type: event.event_type,
-        status: event.status,
-        description: event.description
-      }
-    }));
+    return eventsData.map((event: CalendarEvent) => {
+      const color = getEventColor(event.platform, event.event_type);
+      
+      return {
+        id: event.id,
+        title: event.summary,
+        start: event.start_date,
+        end: event.end_date,
+        backgroundColor: color,
+        borderColor: color,
+        extendedProps: {
+          platform: event.platform,
+          event_type: event.event_type,
+          status: event.status,
+          description: event.description
+        }
+      };
+    });
   }, [eventsData]);
 
   // Get color based on platform and event type
@@ -172,6 +180,41 @@ const Calendar = () => {
     setIsAddEventOpen(true);
   };
 
+  const handlePropertySelect = (propertyId: string) => {
+    setSelectedProperties(prev => 
+      prev.includes(propertyId) 
+        ? prev.filter(p => p !== propertyId) 
+        : [...prev, propertyId]
+    );
+  };
+
+  const handlePlatformSelect = (platform: Platform) => {
+    setSelectedPlatforms(prev => 
+      prev.includes(platform) 
+        ? prev.filter(p => p !== platform) 
+        : [...prev, platform]
+    );
+  };
+
+  const handleEventTypeSelect = (eventType: EventType) => {
+    setSelectedEventTypes(prev => 
+      prev.includes(eventType) 
+        ? prev.filter(t => t !== eventType) 
+        : [...prev, eventType]
+    );
+  };
+
+  const clearFilters = () => {
+    setSelectedProperties([]);
+    setSelectedPlatforms([]);
+    setSelectedEventTypes([]);
+    setDateRange({ from: undefined, to: undefined });
+  };
+
+  const handleDateRangeChange = (range: { from: Date | undefined; to: Date | undefined }) => {
+    setDateRange(range);
+  };
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
@@ -203,206 +246,178 @@ const Calendar = () => {
       </div>
       
       {/* Filters section */}
-      <div className="flex justify-between items-center bg-background p-4 rounded-lg border">
-        <div className="flex items-center space-x-2">
-          <Filter className="h-5 w-5 text-muted-foreground" />
-          <span className="font-medium">Filters</span>
+      <div className="flex flex-wrap gap-2 p-4 border rounded-md bg-background mb-4">
+        <div className="flex items-center mr-4">
+          <Filter className="h-5 w-5 text-muted-foreground mr-2" />
+          <span className="font-medium">Filters:</span>
         </div>
         
-        <div className="flex items-center space-x-4">
-          {/* Desktop filters */}
-          <div className="hidden md:flex space-x-4">
-            <Select>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select Properties" />
-              </SelectTrigger>
-              <SelectContent>
-                {properties.map((property) => (
-                  <SelectItem key={property.id} value={property.id}>
-                    {property.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select Platforms" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(Platform).map((platform) => (
-                  <SelectItem key={platform} value={platform}>
-                    {platform}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Event Types" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(EventType).map((eventType) => (
-                  <SelectItem key={eventType} value={eventType}>
-                    {eventType}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Button variant="outline" className="flex items-center space-x-1">
-              <CalendarIcon className="h-4 w-4" />
-              <span>Date Range</span>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8">
+              Properties
+              {selectedProperties.length > 0 && (
+                <Badge className="ml-2" variant="secondary">{selectedProperties.length}</Badge>
+              )}
             </Button>
-          </div>
-          
-          {/* Mobile filters button */}
-          <Sheet open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" className="md:hidden">
-                <Filter className="mr-2 h-4 w-4" />
-                Filters
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right">
-              <SheetHeader>
-                <SheetTitle>Filters</SheetTitle>
-              </SheetHeader>
-              <div className="py-4 space-y-6">
-                <div className="space-y-2">
-                  <Label>Properties</Label>
-                  <div className="space-y-2">
-                    {properties.map((property) => (
-                      <div key={property.id} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`property-${property.id}`}
-                          checked={selectedProperties.includes(property.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedProperties([...selectedProperties, property.id]);
-                            } else {
-                              setSelectedProperties(selectedProperties.filter(id => id !== property.id));
-                            }
-                          }}
-                        />
-                        <label 
-                          htmlFor={`property-${property.id}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {property.name}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
+          </PopoverTrigger>
+          <PopoverContent className="w-[250px] p-0">
+            <div className="p-2 space-y-1 max-h-[250px] overflow-y-auto">
+              {properties.map((property) => (
+                <div key={property.id} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id={`property-${property.id}`}
+                    checked={selectedProperties.includes(property.id)}
+                    onChange={() => handlePropertySelect(property.id)}
+                    className="rounded border-gray-300"
+                  />
+                  <label htmlFor={`property-${property.id}`} className="text-sm">
+                    {property.name}
+                  </label>
                 </div>
-                
-                <Separator />
-                
-                <div className="space-y-2">
-                  <Label>Platforms</Label>
-                  <div className="space-y-2">
-                    {Object.values(Platform).map((platform) => (
-                      <div key={platform} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`platform-${platform}`}
-                          checked={selectedPlatforms.includes(platform)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedPlatforms([...selectedPlatforms, platform]);
-                            } else {
-                              setSelectedPlatforms(selectedPlatforms.filter(p => p !== platform));
-                            }
-                          }}
-                        />
-                        <label 
-                          htmlFor={`platform-${platform}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {platform}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+        
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8">
+              Platforms
+              {selectedPlatforms.length > 0 && (
+                <Badge className="ml-2" variant="secondary">{selectedPlatforms.length}</Badge>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <div className="p-2 space-y-1">
+              {Object.values(Platform).map((platform) => (
+                <div key={platform} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id={`platform-${platform}`}
+                    checked={selectedPlatforms.includes(platform)}
+                    onChange={() => handlePlatformSelect(platform)}
+                    className="rounded border-gray-300"
+                  />
+                  <label htmlFor={`platform-${platform}`} className="text-sm">
+                    {platform}
+                  </label>
                 </div>
-                
-                <Separator />
-                
-                <div className="space-y-2">
-                  <Label>Event Types</Label>
-                  <div className="space-y-2">
-                    {Object.values(EventType).map((eventType) => (
-                      <div key={eventType} className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`event-type-${eventType}`}
-                          checked={selectedEventTypes.includes(eventType)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedEventTypes([...selectedEventTypes, eventType]);
-                            } else {
-                              setSelectedEventTypes(selectedEventTypes.filter(type => type !== eventType));
-                            }
-                          }}
-                        />
-                        <label 
-                          htmlFor={`event-type-${eventType}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {eventType}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+        
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8">
+              Event Types
+              {selectedEventTypes.length > 0 && (
+                <Badge className="ml-2" variant="secondary">{selectedEventTypes.length}</Badge>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <div className="p-2 space-y-1">
+              {Object.values(EventType).map((eventType) => (
+                <div key={eventType} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id={`eventType-${eventType}`}
+                    checked={selectedEventTypes.includes(eventType)}
+                    onChange={() => handleEventTypeSelect(eventType)}
+                    className="rounded border-gray-300"
+                  />
+                  <label htmlFor={`eventType-${eventType}`} className="text-sm">
+                    {eventType}
+                  </label>
                 </div>
-                
-                <Separator />
-                
-                <div className="space-y-2">
-                  <Label>Date Range</Label>
-                  <div className="p-2 border rounded-md">
-                    {/* Simple date range picker placeholder */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <Label className="text-xs">Start</Label>
-                        <Input type="date" />
-                      </div>
-                      <div>
-                        <Label className="text-xs">End</Label>
-                        <Input type="date" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => {
-                    setSelectedProperties([]);
-                    setSelectedPlatforms([]);
-                    setSelectedEventTypes([]);
-                    setDateRange({ startDate: null, endDate: null });
-                  }}>
-                    Reset
-                  </Button>
-                  <Button onClick={() => setIsFiltersOpen(false)}>Apply Filters</Button>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+        
+        <DateRange
+          className="h-8"
+          value={dateRange}
+          onChange={handleDateRangeChange}
+        />
+        
+        {(selectedProperties.length > 0 || selectedPlatforms.length > 0 || selectedEventTypes.length > 0 || dateRange.from) && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8" 
+            onClick={clearFilters}
+          >
+            <X className="mr-1 h-4 w-4" />
+            Clear
+          </Button>
+        )}
       </div>
+      
+      {/* Active Filters */}
+      {(selectedProperties.length > 0 || selectedPlatforms.length > 0 || selectedEventTypes.length > 0 || dateRange.from) && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          {selectedProperties.map(propertyId => {
+            const property = properties.find(p => p.id === propertyId);
+            return (
+              <Badge key={propertyId} variant="secondary" className="flex items-center gap-1">
+                {property?.name || propertyId}
+                <X 
+                  className="h-3 w-3 cursor-pointer" 
+                  onClick={() => setSelectedProperties(prev => prev.filter(p => p !== propertyId))}
+                />
+              </Badge>
+            );
+          })}
+          
+          {selectedPlatforms.map(platform => (
+            <Badge key={platform} variant="secondary" className="flex items-center gap-1">
+              {platform}
+              <X 
+                className="h-3 w-3 cursor-pointer" 
+                onClick={() => setSelectedPlatforms(prev => prev.filter(p => p !== platform))}
+              />
+            </Badge>
+          ))}
+          
+          {selectedEventTypes.map(eventType => (
+            <Badge key={eventType} variant="secondary" className="flex items-center gap-1">
+              {eventType}
+              <X 
+                className="h-3 w-3 cursor-pointer" 
+                onClick={() => setSelectedEventTypes(prev => prev.filter(t => t !== eventType))}
+              />
+            </Badge>
+          ))}
+          
+          {dateRange.from && dateRange.to && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              {dateRange.from.toLocaleDateString()} - {dateRange.to.toLocaleDateString()}
+              <X 
+                className="h-3 w-3 cursor-pointer" 
+                onClick={() => setDateRange({ from: undefined, to: undefined })}
+              />
+            </Badge>
+          )}
+        </div>
+      )}
       
       {/* Calendar view */}
       <Card className="p-4">
         <div className="flex justify-between items-center mb-4">
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('prev')}>
-              <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+              <ChevronLeft className="h-4 w-4 mr-1" /> Previous
             </Button>
             <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('today')}>
               Today
             </Button>
             <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('next')}>
-              Next <ChevronRight className="h-4 w-4 ml-2" />
+              Next <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
           
@@ -429,6 +444,20 @@ const Calendar = () => {
                 hour: '2-digit',
                 minute: '2-digit',
                 meridiem: 'short'
+              }}
+              eventContent={(info) => {
+                return (
+                  <div className="fc-event-main-frame p-1">
+                    <div className="fc-event-title-container">
+                      <div className="fc-event-title font-medium text-xs">
+                        {info.event.title}
+                      </div>
+                      <div className="text-[10px] opacity-70">
+                        {info.event.extendedProps.platform}
+                      </div>
+                    </div>
+                  </div>
+                );
               }}
               eventDisplay="block"
               dayMaxEvents={true}
