@@ -42,8 +42,8 @@ import UserForm from '@/components/admin/UserForm';
 const UserManagement = () => {
   // State for filters and pagination
   const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");  // Changed from empty string to "all"
+  const [statusFilter, setStatusFilter] = useState("all");  // Changed from empty string to "all"
   const [sortField, setSortField] = useState("created_at");
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -61,8 +61,8 @@ const UserManagement = () => {
       page: currentPage,
       limit,
       search: searchTerm || undefined,
-      role: roleFilter || undefined,
-      status: statusFilter || undefined,
+      role: roleFilter !== "all" ? roleFilter : undefined,  // Modified to check for "all" instead of empty string
+      status: statusFilter !== "all" ? statusFilter : undefined,  // Modified to check for "all" instead of empty string
       sort: sortField,
       order: sortOrder,
     }),
@@ -130,7 +130,7 @@ const UserManagement = () => {
                 <SelectValue placeholder="All Roles" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Roles</SelectItem>
+                <SelectItem value="all">All Roles</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="user">User</SelectItem>
               </SelectContent>
@@ -144,7 +144,7 @@ const UserManagement = () => {
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
