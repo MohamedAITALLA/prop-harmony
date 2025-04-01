@@ -5,6 +5,9 @@ import { toast } from "sonner";
 import { User } from "@/types/api-responses";
 import { authService, profileService } from "@/services/api-service";
 
+// Enable development mode to bypass authentication
+const DEV_MODE = true; // Set to true to bypass authentication
+
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
@@ -29,6 +32,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const checkAuth = async () => {
+      // In development mode, create a mock user
+      if (DEV_MODE) {
+        setUser({
+          id: "dev-user-id",
+          email: "dev@example.com",
+          first_name: "Developer",
+          last_name: "User",
+          role: "admin",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+        setIsLoading(false);
+        return;
+      }
+      
       const token = localStorage.getItem("token");
       
       if (token) {
@@ -55,6 +73,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
+      // In development mode, create a mock user and bypass authentication
+      if (DEV_MODE) {
+        setUser({
+          id: "dev-user-id",
+          email: email || "dev@example.com",
+          first_name: "Developer",
+          last_name: "User",
+          role: "admin",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+        navigate("/dashboard");
+        toast.success("Development mode: Authentication bypassed");
+        setIsLoading(false);
+        return;
+      }
+
       const response = await authService.login(email, password);
       localStorage.setItem("token", response.data.access_token);
       localStorage.setItem("email", email); // Store email for session recovery
@@ -72,6 +107,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (userData: RegisterData) => {
     setIsLoading(true);
     try {
+      // In development mode, create a mock user and bypass registration
+      if (DEV_MODE) {
+        setUser({
+          id: "dev-user-id",
+          email: userData.email,
+          first_name: userData.firstName,
+          last_name: userData.lastName,
+          role: "admin",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+        navigate("/dashboard");
+        toast.success("Development mode: Registration bypassed");
+        setIsLoading(false);
+        return;
+      }
+
       const response = await authService.register(userData);
       localStorage.setItem("token", response.data.access_token);
       localStorage.setItem("email", userData.email); // Store email for session recovery

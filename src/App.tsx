@@ -19,9 +19,17 @@ import ComponentsDemo from "./pages/ComponentsDemo";
 
 const queryClient = new QueryClient();
 
+// Set DEV_MODE to true to bypass authentication checks
+const DEV_MODE = true;
+
 // Protected route wrapper
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
+  
+  // In development mode, always render the protected content
+  if (DEV_MODE) {
+    return <MainLayout>{children}</MainLayout>;
+  }
   
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
