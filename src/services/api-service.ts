@@ -13,7 +13,8 @@ import {
   UsersResponse,
   UserProfilesResponse,
   SyncLogsResponse,
-  User
+  User,
+  ICalConnection
 } from "@/types/api-responses";
 
 // Authentication Services
@@ -199,11 +200,63 @@ export const icalConnectionService = {
   
   createConnection: async (
     propertyId: string, 
-    connectionData: { platform: string; ical_url: string; sync_frequency?: number }
-  ): Promise<ApiResponse<Record<string, any>>> => {
-    const response = await api.post<ApiResponse<Record<string, any>>>(
+    connectionData: { 
+      platform: string; 
+      ical_url: string; 
+      sync_frequency?: number 
+    }
+  ): Promise<ApiResponse<ICalConnection>> => {
+    const response = await api.post<ApiResponse<ICalConnection>>(
       `/properties/${propertyId}/ical-connections`, 
       connectionData
+    );
+    return response.data;
+  },
+
+  getConnection: async (propertyId: string, connectionId: string): Promise<ApiResponse<ICalConnection>> => {
+    const response = await api.get<ApiResponse<ICalConnection>>(
+      `/properties/${propertyId}/ical-connections/${connectionId}`
+    );
+    return response.data;
+  },
+
+  updateConnection: async (
+    propertyId: string,
+    connectionId: string,
+    connectionData: Partial<{
+      platform: string;
+      ical_url: string;
+      sync_frequency: number;
+      status: string;
+      error_message: Record<string, any>;
+    }>
+  ): Promise<ApiResponse<ICalConnection>> => {
+    const response = await api.put<ApiResponse<ICalConnection>>(
+      `/properties/${propertyId}/ical-connections/${connectionId}`,
+      connectionData
+    );
+    return response.data;
+  },
+
+  deleteConnection: async (
+    propertyId: string, 
+    connectionId: string,
+    preserveHistory?: boolean
+  ): Promise<ApiResponse<{ success: boolean }>> => {
+    const params = preserveHistory !== undefined ? { preserve_history: preserveHistory } : undefined;
+    const response = await api.delete<ApiResponse<{ success: boolean }>>(
+      `/properties/${propertyId}/ical-connections/${connectionId}`, 
+      { params }
+    );
+    return response.data;
+  },
+
+  testConnection: async (
+    propertyId: string,
+    connectionId: string
+  ): Promise<ApiResponse<{ success: boolean; results: Record<string, any> }>> => {
+    const response = await api.post<ApiResponse<{ success: boolean; results: Record<string, any> }>>(
+      `/properties/${propertyId}/ical-connections/${connectionId}/test`
     );
     return response.data;
   }
