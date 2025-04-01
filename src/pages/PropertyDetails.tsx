@@ -10,6 +10,7 @@ import { PropertyOverview } from "@/components/properties/PropertyOverview";
 import { PropertyICalFeed } from "@/components/properties/PropertyICalFeed";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PropertyType } from "@/types/enums"; // Fixed import for PropertyType enum
 
 export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>();
@@ -170,12 +171,12 @@ function getMockPropertyData(id: string) {
   return {
     id,
     name: "Oceanfront Villa",
-    property_type: "villa",
+    property_type: PropertyType.VILLA, // Using the enum value instead of string
     address: {
       street: "123 Ocean Drive",
       city: "Malibu",
-      state_province: "California",
-      postal_code: "90265",
+      stateProvince: "California",
+      postalCode: "90265",
       country: "USA",
       coordinates: {
         latitude: 34.0259,

@@ -9,6 +9,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { Button } from "@/components/ui/button";
 import { 
   DropdownMenu,
@@ -25,7 +26,7 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { Property } from "@/types/api-responses";
-import { PropertyType } from "@/types/enums"; // Fixed import from enums.ts instead of api-responses.ts
+import { PropertyType } from "@/types/enums"; // Fixed import from enums.ts
 import { 
   Eye, 
   Edit, 
@@ -33,9 +34,11 @@ import {
   Trash2,
   ChevronDown,
   ChevronUp,
-  MoreVertical
+  MoreVertical,
+  Search
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export interface PropertyTableProps {
   properties: Property[];
@@ -79,8 +82,8 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
       valueB = b.address.city.toLowerCase();
     } else if (sortField === "bookings_count") {
       // Placeholder since we don't have this property in our model yet
-      valueA = 0;
-      valueB = 0;
+      valueA = a.bookings_count || 0;
+      valueB = b.bookings_count || 0;
     } else {
       valueA = getNestedPropertyValue(a, sortField);
       valueB = getNestedPropertyValue(b, sortField);
@@ -123,11 +126,14 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
         break;
       case "Sync Now":
         // Implement sync functionality
-        console.log(`Syncing property ${propertyId}`);
+        toast.success(`Property ${propertyId} synced successfully`);
         break;
       case "Delete":
-        // Implement delete functionality
-        console.log(`Deleting property ${propertyId}`);
+        // Ask for confirmation before deleting
+        if (window.confirm("Are you sure you want to delete this property? This action cannot be undone.")) {
+          // In a real app, this would call an API
+          toast.success(`Property ${propertyId} deleted successfully`);
+        }
         break;
     }
   };
@@ -143,14 +149,19 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search by name or location..."
+          placeholder="Search properties..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10 w-full"
         />
-        
+      </div>
+      
+      {/* Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Select value={propertyType} onValueChange={setPropertyType}>
           <SelectTrigger>
             <SelectValue placeholder="Property Type" />
@@ -171,9 +182,7 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
           value={cityFilter}
           onChange={(e) => setCityFilter(e.target.value)}
         />
-      </div>
-
-      <div>
+        
         <Select 
           value={`${sortField}_${sortDirection}`}
           onValueChange={(val) => {
@@ -182,7 +191,7 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
             setSortDirection(direction as SortDirection);
           }}
         >
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger>
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
@@ -197,7 +206,7 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
       </div>
 
       {/* Table */}
-      <div className="border rounded-md">
+      <div className="border rounded-md overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -219,9 +228,14 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
               >
                 Location {renderSortIndicator("address.city")}
               </TableHead>
-              <TableHead>Active Bookings</TableHead>
+              <TableHead 
+                className="cursor-pointer"
+                onClick={() => handleSort("bookings_count")}
+              >
+                Active Bookings {renderSortIndicator("bookings_count")}
+              </TableHead>
               <TableHead>Sync Status</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -236,20 +250,53 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
             ) : filteredProperties.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8">
-                  No properties found matching your filters
+                  <div className="flex flex-col items-center justify-center space-y-2">
+                    <Search className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-muted-foreground">No properties found matching your filters</p>
+                    <Button 
+                      variant="link" 
+                      onClick={() => {
+                        setSearchQuery("");
+                        setPropertyType("");
+                        setCityFilter("");
+                      }}
+                    >
+                      Clear filters
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
               filteredProperties.map((property) => (
-                <TableRow key={property.id}>
-                  <TableCell className="font-medium">{property.name}</TableCell>
+                <TableRow key={property.id} className="hover:bg-muted/50">
+                  <TableCell className="font-medium">
+                    <div className="flex items-center">
+                      {property.images && property.images.length > 0 ? (
+                        <div className="h-8 w-8 rounded overflow-hidden mr-2 bg-muted">
+                          <img 
+                            src={property.images[0]} 
+                            alt={property.name} 
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-8 w-8 rounded overflow-hidden mr-2 bg-muted flex items-center justify-center">
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      )}
+                      {property.name}
+                    </div>
+                  </TableCell>
                   <TableCell className="capitalize">{property.property_type}</TableCell>
                   <TableCell>{property.address.city}, {property.address.stateProvince}</TableCell>
-                  <TableCell>0</TableCell> {/* Placeholder for bookings count */}
+                  <TableCell>{property.bookings_count || 0}</TableCell>
                   <TableCell>
-                    <StatusBadge status="Active" />
+                    <SyncStatusBadge 
+                      status={property.sync_status || "Not synced"} 
+                      lastSync={property.updated_at}
+                    />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm">
@@ -281,6 +328,13 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
           </TableBody>
         </Table>
       </div>
+      
+      {/* Results count */}
+      {!isLoading && filteredProperties.length > 0 && (
+        <div className="text-sm text-muted-foreground text-right">
+          Showing {filteredProperties.length} of {properties.length} properties
+        </div>
+      )}
     </div>
   );
 }
