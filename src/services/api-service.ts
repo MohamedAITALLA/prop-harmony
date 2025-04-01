@@ -1,4 +1,3 @@
-
 import api from "@/lib/api";
 import { 
   AuthResponse, 
@@ -50,6 +49,8 @@ export const profileService = {
     preferences: Record<string, any>;
     contact_info: Record<string, any>;
     onboarding_completed: boolean;
+    password_update: { current: string; new: string };
+    preferences_reset: boolean;
   }>): Promise<ProfileResponse> => {
     const response = await api.put<ProfileResponse>("/user-profile", profileData);
     return response.data;

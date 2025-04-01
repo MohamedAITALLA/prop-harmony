@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -52,6 +52,12 @@ const securitySchema = z.object({
   message: "Passwords do not match",
   path: ["confirm_password"],
 });
+
+// Type for password update
+interface PasswordUpdate {
+  current_password: string;
+  new_password: string;
+}
 
 const ProfileSettings = () => {
   const { user } = useAuth();
@@ -126,12 +132,16 @@ const ProfileSettings = () => {
   });
 
   const securityMutation = useMutation({
-    mutationFn: (data: any) => profileService.updateProfile({
-      password: {
-        current: data.current_password,
-        new: data.new_password,
-      },
-    }),
+    mutationFn: (data: { current_password: string, new_password: string }) => {
+      // Send password update with a properly shaped object
+      return profileService.updateProfile({
+        // Pass this as a custom field that the API will handle
+        password_update: {
+          current: data.current_password,
+          new: data.new_password,
+        }
+      });
+    },
     onSuccess: () => {
       toast.success("Password updated successfully");
       securityForm.reset();
@@ -142,7 +152,7 @@ const ProfileSettings = () => {
   });
 
   const resetProfileMutation = useMutation({
-    mutationFn: () => profileService.updateProfile({ reset_preferences: true }),
+    mutationFn: () => profileService.updateProfile({ preferences_reset: true }),
     onSuccess: () => {
       toast.success("Profile reset to default settings");
       // Refetch profile data
@@ -154,7 +164,7 @@ const ProfileSettings = () => {
   });
 
   // Update form values when profile data loads
-  React.useEffect(() => {
+  useEffect(() => {
     if (profileData?.data) {
       const { contact_info = {}, preferences = {} } = profileData.data;
       
@@ -618,3 +628,4 @@ const Label = ({ children }: { children: React.ReactNode }) => (
 );
 
 export default ProfileSettings;
+
