@@ -92,6 +92,11 @@ export default function Notifications() {
     setFilters(prev => ({ ...prev, search: searchQuery, page: 1 }));
   };
 
+  // Handler for the "Mark All as Read" button to prevent TS error
+  const handleMarkAllAsRead = () => {
+    markAllAsRead();
+  };
+
   return (
     <div className="container py-6 space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -99,7 +104,7 @@ export default function Notifications() {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            onClick={markAllAsRead}
+            onClick={handleMarkAllAsRead}
             disabled={!notifications?.some(n => !n.read)}
             className="gap-2"
           >

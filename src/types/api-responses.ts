@@ -15,7 +15,7 @@ import {
 
 // Authentication Responses
 export interface User {
-  id: string;
+  _id: string;
   email: string;
   first_name: string;
   last_name: string;
@@ -63,7 +63,7 @@ export interface UserPreferences {
 }
 
 export interface UserProfile {
-  id: string;
+  _id: string;
   user_id: string;
   preferences: UserPreferences;
   contact_info: Record<string, any>;
@@ -100,7 +100,7 @@ export interface Address {
 }
 
 export interface Property {
-  id: string;
+  _id: string;
   name: string;
   property_type: PropertyType;
   address: Address;
@@ -164,7 +164,7 @@ export interface PropertyResponse {
 
 // iCal Connection Responses
 export interface ICalConnection {
-  id: string;
+  _id: string;
   property_id: string;
   platform: Platform;
   ical_url: string;
@@ -192,7 +192,7 @@ export interface ICalConnectionsResponse {
 
 // Events Responses
 export interface CalendarEvent {
-  id: string;
+  _id: string;
   property_id: string;
   ical_uid: string;
   platform: Platform;
@@ -224,10 +224,10 @@ export interface EventsResponse {
 
 // Conflicts Responses
 export interface Conflict {
-  id: string;
+  _id: string;
   property_id: string;
   property?: {
-    id: string;
+    _id: string;
     name: string;
   };
   event_ids: string[];
@@ -257,7 +257,7 @@ export interface ConflictsResponse {
 
 // Notification Responses
 export interface Notification {
-  id: string;
+  _id: string;
   user_id: string;
   property_id: string;
   type: NotificationType;
@@ -305,10 +305,10 @@ export interface NotificationsResponse {
 
 // Sync Log Responses
 export interface SyncLog {
-  id: string;
+  _id: string;
   property_id: string;
   property?: {
-    id: string;
+    _id: string;
     name: string;
   };
   platform: Platform;

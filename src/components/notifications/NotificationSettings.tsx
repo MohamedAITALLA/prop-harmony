@@ -11,12 +11,12 @@ export function NotificationSettings() {
   const { settings, updateSettings } = useNotifications();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localSettings, setLocalSettings] = useState<NotificationSettingsType>({
-    email_notifications: settings.email_notifications || false,
-    new_booking_notifications: settings.new_booking_notifications || false,
-    modified_booking_notifications: settings.modified_booking_notifications || false,
-    cancelled_booking_notifications: settings.cancelled_booking_notifications || false,
-    conflict_notifications: settings.conflict_notifications || false,
-    sync_failure_notifications: settings.sync_failure_notifications || false
+    email_notifications: settings?.email_notifications || false,
+    new_booking_notifications: settings?.new_booking_notifications || false,
+    modified_booking_notifications: settings?.modified_booking_notifications || false,
+    cancelled_booking_notifications: settings?.cancelled_booking_notifications || false,
+    conflict_notifications: settings?.conflict_notifications || false,
+    sync_failure_notifications: settings?.sync_failure_notifications || false
   });
 
   const handleToggle = (setting: keyof NotificationSettingsType) => {

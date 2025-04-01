@@ -13,7 +13,7 @@ export function SeverityBadge({ severity }: SeverityBadgeProps) {
       case NotificationSeverity.CRITICAL:
         return "destructive";
       case NotificationSeverity.WARNING:
-        return "warning" as "default"; // Type assertion to satisfy the Badge component
+        return "secondary"; // Using a compatible variant
       case NotificationSeverity.INFO:
         return "default";
       default:

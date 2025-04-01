@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Notification, NotificationSettings } from "@/types/api-responses";
 import { toast } from "sonner";
@@ -15,9 +14,6 @@ interface NotificationFilters {
   search?: string;
 }
 
-// Re-export using export type for isolated modules
-export type { NotificationSettings };
-
 export function useNotifications(filters?: NotificationFilters) {
   const queryClient = useQueryClient();
 
@@ -25,7 +21,7 @@ export function useNotifications(filters?: NotificationFilters) {
   const generateMockData = () => {
     const mockNotifications: Notification[] = [
       {
-        id: "1",
+        _id: "1",
         user_id: "user1",
         property_id: "property1",
         type: NotificationType.NEW_BOOKING,
@@ -39,7 +35,7 @@ export function useNotifications(filters?: NotificationFilters) {
         is_recent: true,
       },
       {
-        id: "2",
+        _id: "2",
         user_id: "user1",
         property_id: "property2",
         type: NotificationType.SYNC_FAILURE,
@@ -53,7 +49,7 @@ export function useNotifications(filters?: NotificationFilters) {
         is_recent: true,
       },
       {
-        id: "3",
+        _id: "3",
         user_id: "user1",
         property_id: "property3",
         type: NotificationType.BOOKING_CONFLICT,
@@ -67,7 +63,7 @@ export function useNotifications(filters?: NotificationFilters) {
         is_recent: true,
       },
       {
-        id: "4",
+        _id: "4",
         user_id: "user1",
         property_id: "property1",
         type: NotificationType.NEW_BOOKING,
@@ -81,7 +77,7 @@ export function useNotifications(filters?: NotificationFilters) {
         is_recent: false,
       },
       {
-        id: "5",
+        _id: "5",
         user_id: "user1",
         property_id: "property4",
         type: NotificationType.NEW_BOOKING,
@@ -95,7 +91,7 @@ export function useNotifications(filters?: NotificationFilters) {
         is_recent: false,
       },
       {
-        id: "6",
+        _id: "6",
         user_id: "user1",
         property_id: "property2",
         type: NotificationType.SYNC_FAILURE,
@@ -109,7 +105,7 @@ export function useNotifications(filters?: NotificationFilters) {
         is_recent: true,
       },
       {
-        id: "7",
+        _id: "7",
         user_id: "user1",
         property_id: "property5",
         type: NotificationType.CANCELLED_BOOKING,
@@ -219,7 +215,7 @@ export function useNotifications(filters?: NotificationFilters) {
     staleTime: 1000 * 60, // 1 minute
   });
 
-  const { data: settings = {} } = useQuery({
+  const { data: settings = defaultSettings() } = useQuery({
     queryKey: ["notification-settings"],
     queryFn: async () => {
       try {
@@ -227,18 +223,22 @@ export function useNotifications(filters?: NotificationFilters) {
         return response.data;
       } catch (error) {
         console.error("Error fetching notification settings:", error);
-        return {
-          email_notifications: true,
-          new_booking_notifications: true,
-          modified_booking_notifications: true,
-          cancelled_booking_notifications: true,
-          conflict_notifications: true,
-          sync_failure_notifications: true,
-        };
+        return defaultSettings();
       }
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  function defaultSettings(): NotificationSettings {
+    return {
+      email_notifications: true,
+      new_booking_notifications: true,
+      modified_booking_notifications: true,
+      cancelled_booking_notifications: true,
+      conflict_notifications: true,
+      sync_failure_notifications: true,
+    };
+  }
 
   const markAsReadMutation = useMutation({
     mutationFn: async (id: string) => {
