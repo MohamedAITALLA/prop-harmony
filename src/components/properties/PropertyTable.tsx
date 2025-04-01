@@ -161,7 +161,7 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
             <SelectValue placeholder="Property Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All types</SelectItem>
+            <SelectItem value="all_types">All types</SelectItem>
             <SelectItem value={PropertyType.APARTMENT}>Apartment</SelectItem>
             <SelectItem value={PropertyType.HOUSE}>House</SelectItem>
             <SelectItem value={PropertyType.VILLA}>Villa</SelectItem>

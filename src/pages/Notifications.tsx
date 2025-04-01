@@ -343,7 +343,7 @@ export default function Notifications() {
                 <SelectValue placeholder="Property" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Properties</SelectItem>
+                <SelectItem value="all_properties">All Properties</SelectItem>
                 {properties.map((property) => (
                   <SelectItem key={property.id} value={property.id}>
                     {property.name}
@@ -360,7 +360,7 @@ export default function Notifications() {
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all_types">All Types</SelectItem>
                 <SelectItem value="new_booking">New Booking</SelectItem>
                 <SelectItem value="modified_booking">Modified Booking</SelectItem>
                 <SelectItem value="cancelled_booking">Cancelled Booking</SelectItem>
@@ -377,7 +377,7 @@ export default function Notifications() {
                 <SelectValue placeholder="Severity" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Severities</SelectItem>
+                <SelectItem value="all_severities">All Severities</SelectItem>
                 <SelectItem value="critical">Critical</SelectItem>
                 <SelectItem value="warning">Warning</SelectItem>
                 <SelectItem value="info">Info</SelectItem>
@@ -392,7 +392,7 @@ export default function Notifications() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All</SelectItem>
+                <SelectItem value="all_statuses">All</SelectItem>
                 <SelectItem value="false">Unread</SelectItem>
                 <SelectItem value="true">Read</SelectItem>
               </SelectContent>
