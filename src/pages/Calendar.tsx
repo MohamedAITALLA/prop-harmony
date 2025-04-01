@@ -1,8 +1,9 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 
-  Plus, Download, Filter, ChevronDown, Calendar as CalendarIcon 
+  Plus, Download, Filter, ChevronDown, Calendar as CalendarIcon, 
+  ChevronLeft, ChevronRight 
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,8 +25,12 @@ import { CalendarRange } from "@/components/ui/calendar-range";
 import { Property, CalendarEvent } from "@/types/api-responses";
 import { PropertyType, Platform, EventType } from "@/types/enums";
 import { propertyService, eventService } from "@/services/api-service";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import interactionPlugin from "@fullcalendar/interaction";
 
 const Calendar = () => {
+  const calendarRef = useRef(null);
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
@@ -53,7 +58,62 @@ const Calendar = () => {
     queryFn: () => propertyService.getAllProperties(),
   });
 
+  // Fetch all events across properties
+  const { data: eventsData, isLoading: eventsLoading } = useQuery({
+    queryKey: ["all-events", selectedProperties, selectedPlatforms, selectedEventTypes, dateRange],
+    queryFn: async () => {
+      try {
+        // In a real implementation, we would call an API that fetches events
+        // with filters applied. For demonstration purposes, we'll return mock data
+        return [];
+      } catch (error) {
+        console.error("Error fetching events:", error);
+        return [];
+      }
+    },
+  });
+
   const properties = propertiesData?.data?.properties || [];
+
+  // Format events for FullCalendar
+  const formattedEvents = React.useMemo(() => {
+    if (!eventsData) return [];
+    
+    return eventsData.map((event: CalendarEvent) => ({
+      id: event.id,
+      title: event.summary,
+      start: event.start_date,
+      end: event.end_date,
+      backgroundColor: getEventColor(event.platform, event.event_type),
+      borderColor: getEventColor(event.platform, event.event_type),
+      extendedProps: {
+        platform: event.platform,
+        event_type: event.event_type,
+        status: event.status,
+        description: event.description
+      }
+    }));
+  }, [eventsData]);
+
+  // Get color based on platform and event type
+  function getEventColor(platform: Platform, eventType: EventType): string {
+    if (eventType === EventType.BLOCK) return "#ef4444"; // Red for blocks
+    if (eventType === EventType.MAINTENANCE) return "#f97316"; // Orange for maintenance
+    
+    // Different colors based on platform
+    switch (platform) {
+      case Platform.AIRBNB:
+        return "#ff5a5f";
+      case Platform.VRBO:
+        return "#3b5998";
+      case Platform.BOOKING:
+        return "#003580";
+      case Platform.MANUAL:
+        return "#10b981";
+      default:
+        return "#6366f1";
+    }
+  }
 
   // Handle form input changes
   const handleInputChange = (field: string, value: string) => {
@@ -65,8 +125,6 @@ const Calendar = () => {
     e.preventDefault();
     
     try {
-      // In a real implementation, we would call the API here
-      // For now, we'll just simulate success
       console.log("Creating event:", newEvent);
       toast.success("Event created successfully");
       setIsAddEventOpen(false);
@@ -93,9 +151,28 @@ const Calendar = () => {
     toast(`Exporting calendar as ${format}...`);
     // Implementation would depend on the export format
   };
+  
+  // Calendar navigation methods
+  const handleCalendarNavigation = (action: 'prev' | 'next' | 'today') => {
+    const calendarApi = calendarRef.current?.getApi();
+    if (calendarApi) {
+      if (action === 'prev') calendarApi.prev();
+      if (action === 'next') calendarApi.next();
+      if (action === 'today') calendarApi.today();
+    }
+  };
+  
+  // Handle date click
+  const handleDateClick = (info: any) => {
+    // Pre-fill the new event with the clicked date
+    setNewEvent(prev => ({
+      ...prev,
+      start_date: info.dateStr,
+      end_date: info.dateStr
+    }));
+    setIsAddEventOpen(true);
+  };
 
-  // For now, we'll just render a placeholder for the calendar
-  // In a real implementation, you would integrate a full-featured calendar library
   return (
     <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
@@ -316,15 +393,61 @@ const Calendar = () => {
       </div>
       
       {/* Calendar view */}
-      <Card className="min-h-[500px] flex items-center justify-center">
-        <div className="text-center p-12">
-          <CalendarIcon className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 text-lg font-medium">Calendar View</h3>
-          <p className="text-sm text-muted-foreground mt-2">
-            This is a placeholder for the full calendar integration.<br />
-            In a real application, you would integrate with a library like FullCalendar.
-          </p>
+      <Card className="p-4">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('prev')}>
+              <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('today')}>
+              Today
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('next')}>
+              Next <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+          
+          <div id="calendar-title" className="text-lg font-medium">
+            {/* FullCalendar will update this with current month/year */}
+          </div>
         </div>
+        
+        {eventsLoading ? (
+          <div className="flex items-center justify-center h-80">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+            <p className="ml-3">Loading events...</p>
+          </div>
+        ) : (
+          <div className="h-[600px]">
+            <FullCalendar
+              ref={calendarRef}
+              plugins={[dayGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              headerToolbar={false}
+              events={formattedEvents}
+              height="100%"
+              eventTimeFormat={{
+                hour: '2-digit',
+                minute: '2-digit',
+                meridiem: 'short'
+              }}
+              eventDisplay="block"
+              dayMaxEvents={true}
+              dateClick={handleDateClick}
+              eventClick={(info) => {
+                console.log("Event clicked:", info.event);
+                // Could open an event details modal here
+              }}
+              datesSet={(dateInfo) => {
+                // Update the calendar title
+                const titleEl = document.getElementById('calendar-title');
+                if (titleEl) {
+                  titleEl.textContent = dateInfo.view.title;
+                }
+              }}
+            />
+          </div>
+        )}
       </Card>
       
       {/* Add Event Dialog */}

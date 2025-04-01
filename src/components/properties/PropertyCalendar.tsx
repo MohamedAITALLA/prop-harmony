@@ -3,10 +3,12 @@ import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
-import { Download, ChevronDown, Plus } from "lucide-react";
+import interactionPlugin from "@fullcalendar/interaction";
+import { Download, ChevronDown, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { 
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { Platform, EventType } from "@/types/enums";
 
 interface PropertyCalendarProps {
   events: any[];
@@ -30,6 +32,29 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
       if (action === 'prev') calendarApi.prev();
       if (action === 'next') calendarApi.next();
       if (action === 'today') calendarApi.today();
+    }
+  };
+  
+  // Get color based on platform and event type
+  const getEventColor = (info: any) => {
+    const platform = info.event.extendedProps.platform;
+    const eventType = info.event.extendedProps.event_type;
+    
+    if (eventType === EventType.BLOCK) return "#ef4444"; // Red for blocks
+    if (eventType === EventType.MAINTENANCE) return "#f97316"; // Orange for maintenance
+    
+    // Different colors based on platform
+    switch (platform) {
+      case Platform.AIRBNB:
+        return "#ff5a5f";
+      case Platform.VRBO:
+        return "#3b5998";
+      case Platform.BOOKING:
+        return "#003580";
+      case Platform.MANUAL:
+        return "#10b981";
+      default:
+        return "#6366f1";
     }
   };
 
@@ -66,14 +91,17 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
         <div className="flex justify-between items-center mb-4">
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('prev')}>
-              Previous
+              <ChevronLeft className="h-4 w-4 mr-1" /> Previous
             </Button>
             <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('today')}>
               Today
             </Button>
             <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('next')}>
-              Next
+              Next <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
+          </div>
+          <div id="calendar-title" className="text-lg font-medium">
+            {/* FullCalendar will update this with current month/year */}
           </div>
         </div>
         
@@ -86,9 +114,9 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
           <div className="h-[600px]">
             <FullCalendar
               ref={calendarRef}
-              plugins={[dayGridPlugin]}
+              plugins={[dayGridPlugin, interactionPlugin]}
               initialView="dayGridMonth"
-              headerToolbar={false} // We're using our own header
+              headerToolbar={false}
               events={events}
               height="100%"
               eventTimeFormat={{
@@ -96,8 +124,34 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
                 minute: '2-digit',
                 meridiem: 'short'
               }}
-              eventDisplay="block"
+              eventContent={(info) => {
+                return (
+                  <div className="fc-event-main-frame p-1">
+                    <div className="fc-event-title-container">
+                      <div className="fc-event-title font-medium text-xs">
+                        {info.event.title}
+                      </div>
+                      <div className="text-[10px] opacity-70">
+                        {info.event.extendedProps.platform}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }}
+              eventBackgroundColor={getEventColor}
+              eventBorderColor={getEventColor}
               dayMaxEvents={true}
+              dateClick={(info) => {
+                onAddEvent();
+                // Here you could also pass the clicked date to pre-fill the form
+              }}
+              datesSet={(dateInfo) => {
+                // Update the calendar title
+                const titleEl = document.getElementById('calendar-title');
+                if (titleEl) {
+                  titleEl.textContent = dateInfo.view.title;
+                }
+              }}
             />
           </div>
         )}

@@ -1,11 +1,11 @@
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService, eventService } from "@/services/api-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Edit, RefreshCw, Trash, Info, Calendar, Link, AlertTriangle, Settings } from "lucide-react";
+import { Edit, RefreshCw, Trash, Info, Calendar, Link, AlertTriangle, Settings, Filter } from "lucide-react";
 import { PropertyOverview } from "@/components/properties/PropertyOverview";
 import { PropertyICalFeed } from "@/components/properties/PropertyICalFeed";
 import { toast } from "sonner";
@@ -15,11 +15,31 @@ import { PropertyConflictsView } from "@/components/conflicts/PropertyConflictsV
 import { PropertyCalendar } from "@/components/properties/PropertyCalendar";
 import { PropertyEventDialog } from "@/components/properties/PropertyEventDialog";
 import { CalendarEvent } from "@/types/api-responses";
+import { 
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { DateRange } from "@/components/ui/date-range";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 
 export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([]);
+  const [selectedEventTypes, setSelectedEventTypes] = useState<EventType[]>([]);
+  const [dateRange, setDateRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({
+    from: undefined,
+    to: undefined
+  });
   const [newEvent, setNewEvent] = useState({
     property_id: id || "",
     platform: Platform.MANUAL,
@@ -50,12 +70,11 @@ export default function PropertyDetails() {
 
   // Fetch events for the specific property
   const { data: eventsData, isLoading: eventsLoading } = useQuery({
-    queryKey: ["property-events", id],
+    queryKey: ["property-events", id, selectedPlatforms, selectedEventTypes, dateRange],
     queryFn: async () => {
       if (!id) return [];
       try {
         const response = await eventService.getEvents(id);
-        // Fix: Access the events property of the response data
         return response.data || [];
       } catch (error) {
         console.error("Error fetching property events:", error);
@@ -64,23 +83,51 @@ export default function PropertyDetails() {
     },
   });
 
-  // Format events for FullCalendar
-  const formattedEvents = React.useMemo(() => {
+  // Format events for FullCalendar with applied filters
+  const formattedEvents = useMemo(() => {
     if (!eventsData) return [];
     
-    return eventsData.map((event: CalendarEvent) => ({
-      id: event.id,
-      title: event.summary,
-      start: event.start_date,
-      end: event.end_date,
-      extendedProps: {
-        platform: event.platform,
-        event_type: event.event_type,
-        status: event.status,
-        description: event.description
-      }
-    }));
-  }, [eventsData]);
+    return eventsData
+      .filter((event: CalendarEvent) => {
+        // Apply platform filter if any selected
+        if (selectedPlatforms.length > 0 && !selectedPlatforms.includes(event.platform)) {
+          return false;
+        }
+        
+        // Apply event type filter if any selected
+        if (selectedEventTypes.length > 0 && !selectedEventTypes.includes(event.event_type)) {
+          return false;
+        }
+        
+        // Apply date range filter if set
+        if (dateRange.from && dateRange.to) {
+          const eventStart = new Date(event.start_date);
+          const eventEnd = new Date(event.end_date);
+          const filterStart = new Date(dateRange.from);
+          const filterEnd = new Date(dateRange.to);
+          
+          // Check if the event overlaps with the selected date range
+          // An event overlaps if it starts before the filter end AND ends after the filter start
+          if (!(eventStart <= filterEnd && eventEnd >= filterStart)) {
+            return false;
+          }
+        }
+        
+        return true;
+      })
+      .map((event: CalendarEvent) => ({
+        id: event.id,
+        title: event.summary,
+        start: event.start_date,
+        end: event.end_date,
+        extendedProps: {
+          platform: event.platform,
+          event_type: event.event_type,
+          status: event.status,
+          description: event.description
+        }
+      }));
+  }, [eventsData, selectedPlatforms, selectedEventTypes, dateRange]);
 
   // Handle sync now
   const handleSync = async () => {
@@ -133,6 +180,31 @@ export default function PropertyDetails() {
   const handleExport = (format: string) => {
     toast(`Exporting calendar as ${format}...`);
     // Implementation would depend on the export format
+  };
+  
+  // Handle platform selection
+  const handlePlatformSelect = (platform: Platform) => {
+    setSelectedPlatforms(prev => 
+      prev.includes(platform) 
+        ? prev.filter(p => p !== platform) 
+        : [...prev, platform]
+    );
+  };
+  
+  // Handle event type selection
+  const handleEventTypeSelect = (eventType: EventType) => {
+    setSelectedEventTypes(prev => 
+      prev.includes(eventType) 
+        ? prev.filter(t => t !== eventType) 
+        : [...prev, eventType]
+    );
+  };
+
+  // Clear filters
+  const clearFilters = () => {
+    setSelectedPlatforms([]);
+    setSelectedEventTypes([]);
+    setDateRange({ from: undefined, to: undefined });
   };
 
   if (isLoading) {
@@ -207,6 +279,129 @@ export default function PropertyDetails() {
         </TabsContent>
         
         <TabsContent value="calendar" className="space-y-4">
+          {/* Calendar Filters */}
+          <div className="flex flex-wrap gap-2 p-4 border rounded-md bg-background mb-4">
+            <div className="flex items-center mr-4">
+              <Filter className="h-5 w-5 text-muted-foreground mr-2" />
+              <span className="font-medium">Filters:</span>
+            </div>
+            
+            {/* Platform Filter */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8">
+                  Platforms
+                  {selectedPlatforms.length > 0 && (
+                    <Badge className="ml-2" variant="secondary">{selectedPlatforms.length}</Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0">
+                <div className="p-2 space-y-1">
+                  {Object.values(Platform).map((platform) => (
+                    <div key={platform} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`platform-${platform}`}
+                        checked={selectedPlatforms.includes(platform)}
+                        onChange={() => handlePlatformSelect(platform)}
+                        className="rounded border-gray-300"
+                      />
+                      <label htmlFor={`platform-${platform}`} className="text-sm">
+                        {platform}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+            
+            {/* Event Type Filter */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8">
+                  Event Types
+                  {selectedEventTypes.length > 0 && (
+                    <Badge className="ml-2" variant="secondary">{selectedEventTypes.length}</Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0">
+                <div className="p-2 space-y-1">
+                  {Object.values(EventType).map((eventType) => (
+                    <div key={eventType} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`eventType-${eventType}`}
+                        checked={selectedEventTypes.includes(eventType)}
+                        onChange={() => handleEventTypeSelect(eventType)}
+                        className="rounded border-gray-300"
+                      />
+                      <label htmlFor={`eventType-${eventType}`} className="text-sm">
+                        {eventType}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+            
+            {/* Date Range Filter */}
+            <DateRange
+              className="h-8"
+              value={dateRange}
+              onChange={setDateRange}
+            />
+            
+            {/* Clear Filters */}
+            {(selectedPlatforms.length > 0 || selectedEventTypes.length > 0 || dateRange.from) && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8" 
+                onClick={clearFilters}
+              >
+                <X className="mr-1 h-4 w-4" />
+                Clear
+              </Button>
+            )}
+          </div>
+          
+          {/* Active Filters Display */}
+          {(selectedPlatforms.length > 0 || selectedEventTypes.length > 0 || dateRange.from) && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {selectedPlatforms.map(platform => (
+                <Badge key={platform} variant="secondary" className="flex items-center gap-1">
+                  {platform}
+                  <X 
+                    className="h-3 w-3 cursor-pointer" 
+                    onClick={() => setSelectedPlatforms(prev => prev.filter(p => p !== platform))}
+                  />
+                </Badge>
+              ))}
+              
+              {selectedEventTypes.map(eventType => (
+                <Badge key={eventType} variant="secondary" className="flex items-center gap-1">
+                  {eventType}
+                  <X 
+                    className="h-3 w-3 cursor-pointer" 
+                    onClick={() => setSelectedEventTypes(prev => prev.filter(t => t !== eventType))}
+                  />
+                </Badge>
+              ))}
+              
+              {dateRange.from && dateRange.to && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  {dateRange.from.toLocaleDateString()} - {dateRange.to.toLocaleDateString()}
+                  <X 
+                    className="h-3 w-3 cursor-pointer" 
+                    onClick={() => setDateRange({ from: undefined, to: undefined })}
+                  />
+                </Badge>
+              )}
+            </div>
+          )}
+          
           <PropertyCalendar
             events={formattedEvents}
             eventsLoading={eventsLoading}
