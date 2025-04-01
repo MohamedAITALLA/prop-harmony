@@ -15,12 +15,12 @@ export function PropertySelect({ value, onValueChange }: PropertySelectProps) {
   ];
   
   return (
-    <Select value={value || ""} onValueChange={onValueChange}>
+    <Select value={value || "all_properties"} onValueChange={onValueChange}>
       <SelectTrigger className="w-full">
         <SelectValue placeholder="Select a property" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="">All Properties</SelectItem>
+        <SelectItem value="all_properties">All Properties</SelectItem>
         {properties.map((property) => (
           <SelectItem key={property._id} value={property._id}>
             {property.name}

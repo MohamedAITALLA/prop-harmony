@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, X } from "lucide-react";
+import { DateRange } from "react-day-picker";
 
 interface DateRangeSelectProps {
   dateRange: {
@@ -56,7 +57,9 @@ export function DateRangeSelect({ dateRange, onDateRangeChange }: DateRangeSelec
               from: dateRange.from,
               to: dateRange.to,
             }}
-            onSelect={(range) => onDateRangeChange(range || { from: undefined, to: undefined })}
+            onSelect={(range: DateRange | undefined) => 
+              onDateRangeChange(range || { from: undefined, to: undefined })
+            }
             initialFocus
             className="pointer-events-auto"
           />
