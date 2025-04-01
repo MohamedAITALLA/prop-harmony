@@ -6,7 +6,7 @@ import { User } from "@/types/api-responses";
 import { authService, profileService } from "@/services/api-service";
 
 // Enable development mode to bypass authentication
-const DEV_MODE = true; // Set to true to bypass authentication
+const DEV_MODE = false; // Set to false to use the actual API
 
 interface AuthContextType {
   user: User | null;
@@ -56,14 +56,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (token) {
         try {
           const response = await profileService.getProfile();
-          // Extract user data from the profile response or fetch user separately
-          // In a real app, you might have a separate endpoint to get just the user data
-          // For now, we'll use whatever user data we can get from the profile
-          const userData = await authService.login(localStorage.getItem("email") || "", "").catch(() => null);
-          if (userData) {
-            setUser(userData.data.user);
+          if (response && response.data) {
+            setUser({
+              ...response.data,
+              full_name: `${response.data.first_name} ${response.data.last_name}`,
+              is_admin: response.data.role === "admin"
+            } as User);
           }
         } catch (error) {
+          console.error("Error fetching user profile:", error);
           localStorage.removeItem("token");
         }
       }
@@ -99,9 +100,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const response = await authService.login(email, password);
+      
+      // Store the JWT token from the response
       localStorage.setItem("token", response.data.access_token);
-      localStorage.setItem("email", email); // Store email for session recovery
-      setUser(response.data.user);
+      
+      // Get user data from the response or fetch profile
+      if (response.data.user) {
+        setUser(response.data.user);
+      } else {
+        const profileResponse = await profileService.getProfile();
+        if (profileResponse && profileResponse.data) {
+          setUser({
+            ...profileResponse.data,
+            full_name: `${profileResponse.data.first_name} ${profileResponse.data.last_name}`,
+            is_admin: profileResponse.data.role === "admin"
+          } as User);
+        }
+      }
+      
       navigate("/dashboard");
       toast.success(response.message || "Login successful!");
     } catch (error) {
@@ -123,8 +139,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           first_name: userData.firstName,
           last_name: userData.lastName,
           full_name: `${userData.firstName} ${userData.lastName}`, // Add missing property
-          is_admin: true, // Add missing property
-          role: "admin",
+          is_admin: false, // Add missing property
+          role: "user",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
@@ -137,9 +153,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const response = await authService.register(userData);
+      
+      // Store the JWT token
       localStorage.setItem("token", response.data.access_token);
-      localStorage.setItem("email", userData.email); // Store email for session recovery
-      setUser(response.data.user);
+      
+      // Set user from the response
+      if (response.data.user) {
+        setUser(response.data.user);
+      }
+      
       navigate("/dashboard");
       toast.success(response.message || "Registration successful!");
     } catch (error) {
@@ -152,7 +174,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("email");
     setUser(null);
     navigate("/login");
     toast.success("You have been logged out.");
