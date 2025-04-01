@@ -17,6 +17,7 @@ import Notifications from "./pages/Notifications";
 import ProfileSettings from "./pages/ProfileSettings";
 import UserManagement from "./pages/UserManagement";
 import UserProfiles from "./pages/UserProfiles";
+import SyncDashboard from "./pages/SyncDashboard";
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/layout/MainLayout";
 import ComponentsDemo from "./pages/ComponentsDemo";
@@ -97,7 +98,7 @@ const App = () => (
             <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
             <Route path="/conflicts" element={<ProtectedRoute><PlaceholderPage title="Conflicts" /></ProtectedRoute>} />
-            <Route path="/sync" element={<ProtectedRoute><PlaceholderPage title="Synchronization" /></ProtectedRoute>} />
+            <Route path="/sync" element={<ProtectedRoute><SyncDashboard /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute><PlaceholderPage title="Analytics" /></ProtectedRoute>} />
             <Route path="/preferences" element={<ProtectedRoute><PlaceholderPage title="Preferences" /></ProtectedRoute>} />
             

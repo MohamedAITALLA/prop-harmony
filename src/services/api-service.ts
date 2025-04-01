@@ -247,3 +247,31 @@ export const adminProfileService = {
     return response.data;
   }
 };
+
+// Sync Services
+export const syncService = {
+  getSyncStatus: async (): Promise<ApiResponse<{ syncStatus: Record<string, any> }>> => {
+    const response = await api.get<ApiResponse<{ syncStatus: Record<string, any> }>>("/sync/status");
+    return response.data;
+  },
+  
+  syncAll: async (): Promise<ApiResponse<{ success: boolean }>> => {
+    const response = await api.post<ApiResponse<{ success: boolean }>>("/sync");
+    return response.data;
+  },
+  
+  getPropertySyncStatus: async (propertyId: string): Promise<ApiResponse<{ syncStatus: Record<string, any> }>> => {
+    const response = await api.get<ApiResponse<{ syncStatus: Record<string, any> }>>(`/properties/${propertyId}/sync`);
+    return response.data;
+  },
+  
+  syncProperty: async (propertyId: string): Promise<ApiResponse<{ success: boolean }>> => {
+    const response = await api.post<ApiResponse<{ success: boolean }>>(`/properties/${propertyId}/sync`);
+    return response.data;
+  },
+  
+  getSyncSchedule: async (): Promise<ApiResponse<{ schedule: Array<Record<string, any>> }>> => {
+    const response = await api.get<ApiResponse<{ schedule: Array<Record<string, any>> }>>("/sync/schedule");
+    return response.data;
+  }
+};
