@@ -98,14 +98,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
                     <SidebarMenuItem key={route.path}>
                       <SidebarMenuButton
                         asChild
-                        active={location.pathname === route.path}
-                        onClick={() => navigate(route.path)}
                         className={cn(
                           "flex items-center gap-3 px-4 py-2 rounded-md transition-colors",
                           location.pathname === route.path && "bg-accent text-accent-foreground"
                         )}
                       >
-                        <button>
+                        <button onClick={() => navigate(route.path)}>
                           <route.icon className="h-5 w-5" />
                           <span>{route.name}</span>
                         </button>
