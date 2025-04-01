@@ -76,6 +76,11 @@ export default function MainLayout({ children }: MainLayoutProps) {
     return 0;
   };
 
+  // Handler function for sidebar navigation
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+
   return (
     <SidebarProvider>
       <div className="h-screen flex w-full">
@@ -112,11 +117,12 @@ export default function MainLayout({ children }: MainLayoutProps) {
                               "flex items-center gap-3 px-4 py-2 rounded-md transition-colors",
                               location.pathname === item.path && "bg-accent text-accent-foreground"
                             )}
+                            onClick={() => handleNavigation(item.path)}
                           >
-                            <button onClick={() => navigate(item.path)}>
+                            <div>
                               <item.icon className="h-5 w-5" />
                               <span>{item.name}</span>
-                            </button>
+                            </div>
                           </SidebarMenuButton>
                           {item.badge === "count" && badgeCount > 0 && (
                             <SidebarMenuBadge className="bg-primary text-primary-foreground">
