@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useQuery } from "@tanstack/react-query";
@@ -34,11 +33,11 @@ import { NotificationType, NotificationSeverity } from "@/types/enums";
 import { NotificationSettings } from "@/components/notifications/NotificationSettings";
 
 interface NotificationFilters {
+  page: number;
   property_id?: string;
   type?: string;
   severity?: string;
   read?: string;
-  page: number;
   limit?: number;
   search?: string;
 }
@@ -63,7 +62,6 @@ export default function Notifications() {
     read: filters.read === "true" ? true : filters.read === "false" ? false : undefined,
   });
 
-  // Get properties for the filter dropdown
   const { data: properties = [] } = useQuery<Property[]>({
     queryKey: ["properties", "list"],
     queryFn: async () => {
@@ -73,18 +71,12 @@ export default function Notifications() {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const handleFilterChange = (key: keyof NotificationFilters, value: string) => {
+  const handleFilterChange = (filterKey: keyof NotificationFilters, value: string | number) => {
     setFilters((prev) => {
-      // Reset page to 1 when changing filters other than page
-      if (key !== 'page') {
-        return { ...prev, [key]: value, page: 1 };
+      if (filterKey === 'page' && typeof value === 'string') {
+        return { ...prev, [filterKey]: parseInt(value, 10) || 1 };
       }
-      
-      // Ensure page is a number for the page key
-      return { 
-        ...prev, 
-        [key]: key === 'page' ? parseInt(value, 10) : value 
-      };
+      return { ...prev, [filterKey]: value };
     });
   };
 
@@ -92,7 +84,6 @@ export default function Notifications() {
     setFilters(prev => ({ ...prev, search: searchQuery, page: 1 }));
   };
 
-  // Handler for the "Mark All as Read" button to prevent TS error
   const handleMarkAllAsRead = () => {
     markAllAsRead();
   };
@@ -151,22 +142,24 @@ export default function Notifications() {
               />
             </div>
             
-            <Select
-              value={filters.property_id || ""}
-              onValueChange={(value) => handleFilterChange("property_id", value === "all_properties" ? "" : value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Property" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all_properties">All Properties</SelectItem>
-                {properties.map((property) => (
-                  <SelectItem key={property.id} value={property.id}>
-                    {property.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {properties.length > 0 && (
+              <Select
+                value={filters.property_id || ""}
+                onValueChange={(value) => handleFilterChange('property_id', value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="All Properties" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Properties</SelectItem>
+                  {properties.map((property) => (
+                    <SelectItem key={property._id} value={property._id}>
+                      {property.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             
             <Select
               value={filters.type || ""}
@@ -226,16 +219,27 @@ export default function Notifications() {
         </CardHeader>
         <CardContent>
           <NotificationsList
-            notifications={notifications}
+            notifications={notifications.map(notification => ({
+              _id: notification._id,
+              id: notification._id, // For backwards compatibility with components expecting id
+              type: notification.type,
+              title: notification.title,
+              message: notification.message,
+              severity: notification.severity,
+              read: notification.read,
+              created_at: notification.created_at,
+              updated_at: notification.updated_at,
+              age_in_hours: notification.age_in_hours,
+              is_recent: notification.is_recent,
+              user_id: notification.user_id,
+              property_id: notification.property_id
+            }))}
             isLoading={isLoading}
             onMarkRead={markAsRead}
             onMarkAllRead={markAllAsRead}
             onDelete={deleteNotification}
-            maxHeight="600px"
-            emptyMessage={isLoading ? "Loading notifications..." : "No notifications match your filters."}
           />
           
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-center mt-6">
               <nav className="flex items-center space-x-2">

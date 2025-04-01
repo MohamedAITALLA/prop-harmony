@@ -26,7 +26,21 @@ export function RecentNotifications({ limit = 5, action = "View all notification
   return (
     <div>
       <NotificationsList 
-        notifications={notifications.slice(0, limit)} 
+        notifications={notifications.slice(0, limit).map(notification => ({
+          _id: notification._id,
+          id: notification._id, // For backwards compatibility with components expecting id
+          type: notification.type,
+          title: notification.title,
+          message: notification.message,
+          severity: notification.severity,
+          read: notification.read,
+          created_at: notification.created_at,
+          updated_at: notification.updated_at,
+          age_in_hours: notification.age_in_hours,
+          is_recent: notification.is_recent,
+          user_id: notification.user_id,
+          property_id: notification.property_id
+        }))} 
         isLoading={isLoading}
         onMarkRead={markAsRead}
         onMarkAllRead={markAllAsRead}

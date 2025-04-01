@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // In development mode, create a mock user
       if (DEV_MODE) {
         const mockUser: User = {
-          id: "dev-user-id",
+          _id: "dev-user-id",
           email: "dev@example.com",
           first_name: "Developer",
           last_name: "User",
@@ -59,12 +59,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (response && response.data) {
             // Check if the response.data has a user property that contains the actual User data
             if (response.data.user) {
-              setUser(response.data.user);
+              const userData = response.data.user;
+              // Ensure the user object has _id (might come as id from API)
+              if (!userData._id && userData.id) {
+                userData._id = userData.id;
+              }
+              setUser(userData);
             } else {
               // If we don't have user data directly, we need to make another API call
               const userResponse = await authService.getCurrentUser();
               if (userResponse && userResponse.data) {
-                setUser(userResponse.data);
+                const userData = userResponse.data;
+                // Ensure the user object has _id (might come as id from API)
+                if (!userData._id && userData.id) {
+                  userData._id = userData.id;
+                }
+                setUser(userData);
               }
             }
           }
@@ -86,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // In development mode, create a mock user and bypass authentication
       if (DEV_MODE) {
         const mockUser: User = {
-          id: "dev-user-id",
+          _id: "dev-user-id",
           email: email || "dev@example.com",
           first_name: "Developer",
           last_name: "User",
@@ -111,12 +121,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Get user data from the response or fetch profile
       if (response.data.user) {
-        setUser(response.data.user);
+        const userData = response.data.user;
+        // Ensure the user object has _id (might come as id from API)
+        if (!userData._id && userData.id) {
+          userData._id = userData.id;
+        }
+        setUser(userData);
       } else {
         // If login doesn't return user data, fetch it separately
         const userResponse = await authService.getCurrentUser();
         if (userResponse && userResponse.data) {
-          setUser(userResponse.data);
+          const userData = userResponse.data;
+          // Ensure the user object has _id (might come as id from API)
+          if (!userData._id && userData.id) {
+            userData._id = userData.id;
+          }
+          setUser(userData);
         }
       }
       
@@ -136,7 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // In development mode, create a mock user and bypass registration
       if (DEV_MODE) {
         const mockUser: User = {
-          id: "dev-user-id",
+          _id: "dev-user-id",
           email: userData.email,
           first_name: userData.firstName,
           last_name: userData.lastName,
@@ -161,12 +181,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Set user from the response
       if (response.data.user) {
-        setUser(response.data.user);
+        const userData = response.data.user;
+        // Ensure the user object has _id (might come as id from API)
+        if (!userData._id && userData.id) {
+          userData._id = userData.id;
+        }
+        setUser(userData);
       } else {
         // If registration doesn't return user data, fetch it separately
         const userResponse = await authService.getCurrentUser();
         if (userResponse && userResponse.data) {
-          setUser(userResponse.data);
+          const userData = userResponse.data;
+          // Ensure the user object has _id (might come as id from API)
+          if (!userData._id && userData.id) {
+            userData._id = userData.id;
+          }
+          setUser(userData);
         }
       }
       

@@ -1,3 +1,4 @@
+
 import { 
   PropertyType, 
   EventType, 
@@ -16,6 +17,7 @@ import {
 // Authentication Responses
 export interface User {
   _id: string;
+  id?: string; // Keep id as optional for backward compatibility with API responses
   email: string;
   first_name: string;
   last_name: string;
