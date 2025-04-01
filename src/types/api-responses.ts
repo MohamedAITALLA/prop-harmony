@@ -66,6 +66,7 @@ export interface UserPreferences {
 
 export interface UserProfile {
   _id: string;
+  id?: string; // Optional for compatibility
   user_id: string;
   preferences: UserPreferences;
   contact_info: Record<string, any>;
@@ -103,6 +104,7 @@ export interface Address {
 
 export interface Property {
   _id: string;
+  id?: string; // Optional for compatibility
   name: string;
   property_type: PropertyType;
   address: Address;
@@ -167,6 +169,7 @@ export interface PropertyResponse {
 // iCal Connection Responses
 export interface ICalConnection {
   _id: string;
+  id?: string; // Optional for compatibility
   property_id: string;
   platform: Platform;
   ical_url: string;
@@ -195,6 +198,7 @@ export interface ICalConnectionsResponse {
 // Events Responses
 export interface CalendarEvent {
   _id: string;
+  id?: string; // Optional for compatibility
   property_id: string;
   ical_uid: string;
   platform: Platform;
@@ -227,9 +231,11 @@ export interface EventsResponse {
 // Conflicts Responses
 export interface Conflict {
   _id: string;
+  id?: string; // Optional for compatibility
   property_id: string;
   property?: {
     _id: string;
+    id?: string; // Optional for compatibility
     name: string;
   };
   event_ids: string[];
@@ -260,6 +266,7 @@ export interface ConflictsResponse {
 // Notification Responses
 export interface Notification {
   _id: string;
+  id?: string; // Optional for compatibility
   user_id: string;
   property_id: string;
   type: NotificationType;
@@ -308,9 +315,11 @@ export interface NotificationsResponse {
 // Sync Log Responses
 export interface SyncLog {
   _id: string;
+  id?: string; // Optional for compatibility
   property_id: string;
   property?: {
     _id: string;
+    id?: string; // Optional for compatibility
     name: string;
   };
   platform: Platform;

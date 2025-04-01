@@ -25,6 +25,32 @@ interface RegisterData {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper function to ensure MongoDB _id is present
+const ensureMongoId = (userData: any): User => {
+  if (userData) {
+    // If _id is missing but id exists, use id as _id
+    if (!userData._id && userData.id) {
+      userData._id = userData.id;
+    }
+    
+    // Ensure other required properties match the User interface
+    return {
+      _id: userData._id,
+      id: userData._id, // For backwards compatibility
+      email: userData.email,
+      first_name: userData.first_name,
+      last_name: userData.last_name,
+      full_name: userData.full_name || `${userData.first_name} ${userData.last_name}`,
+      role: userData.role || 'user',
+      is_admin: userData.is_admin || false,
+      is_active: userData.is_active,
+      created_at: userData.created_at || new Date().toISOString(),
+      updated_at: userData.updated_at || new Date().toISOString()
+    };
+  }
+  return userData;
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -59,22 +85,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (response && response.data) {
             // Check if the response.data has a user property that contains the actual User data
             if (response.data.user) {
-              const userData = response.data.user;
-              // Ensure the user object has _id (might come as id from API)
-              if (!userData._id && userData.id) {
-                userData._id = userData.id;
-              }
-              setUser(userData);
+              setUser(ensureMongoId(response.data.user));
             } else {
               // If we don't have user data directly, we need to make another API call
               const userResponse = await authService.getCurrentUser();
               if (userResponse && userResponse.data) {
-                const userData = userResponse.data;
-                // Ensure the user object has _id (might come as id from API)
-                if (!userData._id && userData.id) {
-                  userData._id = userData.id;
-                }
-                setUser(userData);
+                setUser(ensureMongoId(userResponse.data));
               }
             }
           }
@@ -121,22 +137,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Get user data from the response or fetch profile
       if (response.data.user) {
-        const userData = response.data.user;
-        // Ensure the user object has _id (might come as id from API)
-        if (!userData._id && userData.id) {
-          userData._id = userData.id;
-        }
-        setUser(userData);
+        setUser(ensureMongoId(response.data.user));
       } else {
         // If login doesn't return user data, fetch it separately
         const userResponse = await authService.getCurrentUser();
         if (userResponse && userResponse.data) {
-          const userData = userResponse.data;
-          // Ensure the user object has _id (might come as id from API)
-          if (!userData._id && userData.id) {
-            userData._id = userData.id;
-          }
-          setUser(userData);
+          setUser(ensureMongoId(userResponse.data));
         }
       }
       
@@ -181,22 +187,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Set user from the response
       if (response.data.user) {
-        const userData = response.data.user;
-        // Ensure the user object has _id (might come as id from API)
-        if (!userData._id && userData.id) {
-          userData._id = userData.id;
-        }
-        setUser(userData);
+        setUser(ensureMongoId(response.data.user));
       } else {
         // If registration doesn't return user data, fetch it separately
         const userResponse = await authService.getCurrentUser();
         if (userResponse && userResponse.data) {
-          const userData = userResponse.data;
-          // Ensure the user object has _id (might come as id from API)
-          if (!userData._id && userData.id) {
-            userData._id = userData.id;
-          }
-          setUser(userData);
+          setUser(ensureMongoId(userResponse.data));
         }
       }
       
