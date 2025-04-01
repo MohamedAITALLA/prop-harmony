@@ -8,8 +8,13 @@ import {
   Settings,
   Building,
   Link,
-  AlertCircle,
-  Bell
+  AlertTriangle,
+  Bell,
+  RefreshCw,
+  BarChart3,
+  User,
+  Shield,
+  Search
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -25,11 +30,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  SidebarTrigger 
+  SidebarTrigger,
+  SidebarMenuBadge
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
+import { dashboardConfig, SidebarItemType } from "@/config/dashboard.config";
+import { useQuery } from "@tanstack/react-query";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -40,38 +49,32 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const routes = [
-    {
-      name: "Dashboard",
-      path: "/dashboard",
-      icon: LayoutDashboard
+  // Mock query for notification count
+  const { data: notificationCount = 0 } = useQuery({
+    queryKey: ["notificationCount"],
+    queryFn: async () => {
+      // This would be an API call in a real app
+      return 3;
     },
-    {
-      name: "Properties",
-      path: "/properties",
-      icon: Building
+  });
+
+  // Mock query for conflict count
+  const { data: conflictCount = 0 } = useQuery({
+    queryKey: ["conflictCount"],
+    queryFn: async () => {
+      // This would be an API call in a real app
+      return 2;
     },
-    {
-      name: "Calendar",
-      path: "/calendar",
-      icon: Calendar
-    },
-    {
-      name: "iCal Connections",
-      path: "/ical-connections",
-      icon: Link
-    },
-    {
-      name: "Conflicts",
-      path: "/conflicts",
-      icon: AlertCircle
-    },
-    {
-      name: "Settings",
-      path: "/settings",
-      icon: Settings
+  });
+
+  // Function to get the badge count for an item
+  const getBadgeCount = (item: SidebarItemType) => {
+    if (item.badge === "count") {
+      if (item.path === "/notifications") return notificationCount;
+      if (item.path === "/conflicts") return conflictCount;
     }
-  ];
+    return 0;
+  };
 
   return (
     <SidebarProvider>
@@ -90,29 +93,43 @@ export default function MainLayout({ children }: MainLayoutProps) {
           </SidebarHeader>
           
           <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel className="px-4 py-2">Navigation</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {routes.map((route) => (
-                    <SidebarMenuItem key={route.path}>
-                      <SidebarMenuButton
-                        asChild
-                        className={cn(
-                          "flex items-center gap-3 px-4 py-2 rounded-md transition-colors",
-                          location.pathname === route.path && "bg-accent text-accent-foreground"
-                        )}
-                      >
-                        <button onClick={() => navigate(route.path)}>
-                          <route.icon className="h-5 w-5" />
-                          <span>{route.name}</span>
-                        </button>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+            {dashboardConfig.sidebar.sections.map((section) => (
+              <SidebarGroup key={section.title}>
+                <SidebarGroupLabel className="px-4 py-2">{section.title}</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {section.items.map((item) => {
+                      // Skip admin-only items if user is not admin
+                      if (item.role === "admin" && user?.role !== "admin") return null;
+                      
+                      const badgeCount = getBadgeCount(item);
+                      
+                      return (
+                        <SidebarMenuItem key={item.path}>
+                          <SidebarMenuButton
+                            asChild
+                            className={cn(
+                              "flex items-center gap-3 px-4 py-2 rounded-md transition-colors",
+                              location.pathname === item.path && "bg-accent text-accent-foreground"
+                            )}
+                          >
+                            <button onClick={() => navigate(item.path)}>
+                              <item.icon className="h-5 w-5" />
+                              <span>{item.name}</span>
+                            </button>
+                          </SidebarMenuButton>
+                          {item.badge === "count" && badgeCount > 0 && (
+                            <SidebarMenuBadge className="bg-primary text-primary-foreground">
+                              {badgeCount}
+                            </SidebarMenuBadge>
+                          )}
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            ))}
             
             <div className="mt-auto p-4 border-t">
               <div className="flex items-center justify-between mb-4">
@@ -128,6 +145,11 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => navigate("/notifications")}>
                   <Bell className="h-5 w-5" />
+                  {notificationCount > 0 && (
+                    <span className="absolute top-0 right-0 h-4 w-4 text-xs flex items-center justify-center rounded-full bg-primary text-primary-foreground">
+                      {notificationCount}
+                    </span>
+                  )}
                 </Button>
               </div>
               <Button 

@@ -1,16 +1,21 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Building, Calendar, Link as LinkIcon, AlertCircle, BarChart3, ArrowRight } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
+import { dashboardConfig } from "@/config/dashboard.config";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { PropertyCards } from "@/components/dashboard/PropertyCards";
+import { MiniCalendar } from "@/components/dashboard/MiniCalendar";
+import { RecentNotifications } from "@/components/dashboard/RecentNotifications";
+import { SyncStatusTable } from "@/components/dashboard/SyncStatusTable";
 
 interface DashboardStats {
   totalProperties: number;
-  totalConnections: number;
-  activeConflicts: number;
-  upcomingEvents: number;
+  activeBookings: number;
+  occupancyRate: number;
+  pendingConflicts: number;
 }
 
 export default function Dashboard() {
@@ -22,53 +27,23 @@ export default function Dashboard() {
     queryKey: ["dashboardStats"],
     queryFn: async () => {
       // In a real app, you would fetch this data from your API
-      // const response = await api.get("/dashboard/stats");
-      // return response.data;
-      
       // Mock data for now
       return {
         totalProperties: 5,
-        totalConnections: 12,
-        activeConflicts: 2,
-        upcomingEvents: 8
+        activeBookings: 8,
+        occupancyRate: 72,
+        pendingConflicts: 2
       } as DashboardStats;
     },
   });
 
-  const statCards = [
-    {
-      title: "Total Properties",
-      value: stats?.totalProperties || 0,
-      description: "Properties in your portfolio",
-      icon: Building,
-      color: "text-blue-500",
-      link: "/properties",
-    },
-    {
-      title: "iCal Connections",
-      value: stats?.totalConnections || 0,
-      description: "Active platform connections",
-      icon: LinkIcon,
-      color: "text-green-500",
-      link: "/ical-connections",
-    },
-    {
-      title: "Active Conflicts",
-      value: stats?.activeConflicts || 0,
-      description: "Conflicts requiring attention",
-      icon: AlertCircle,
-      color: "text-amber-500",
-      link: "/conflicts",
-    },
-    {
-      title: "Upcoming Events",
-      value: stats?.upcomingEvents || 0,
-      description: "Events in the next 30 days",
-      icon: Calendar,
-      color: "text-purple-500",
-      link: "/calendar",
-    },
-  ];
+  // Helper function to replace placeholders in strings
+  const replacePlaceholders = (text: string, data: any) => {
+    return text
+      .replace("{count}", data?.toString() || "0")
+      .replace("{percentage}", data?.toString() || "0")
+      .replace("{number}", "5"); // Mock change percentage
+  };
 
   return (
     <div className="space-y-8">
@@ -79,95 +54,84 @@ export default function Dashboard() {
         </p>
       </div>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {statCards.map((stat) => (
-          <Card key={stat.title} className="overflow-hidden transition-all hover:shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <stat.icon className={`h-5 w-5 ${stat.color}`} />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {isLoading ? (
-                  <div className="h-8 w-16 bg-muted rounded animate-pulse" />
-                ) : (
-                  stat.value
-                )}
-              </div>
-              <CardDescription>{stat.description}</CardDescription>
-              <Button
-                variant="link"
-                className="p-0 h-auto mt-2"
-                onClick={() => navigate(stat.link)}
-              >
-                View details
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>
-              Your latest property updates and events
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="border rounded-md p-4">
-                <div className="flex items-center justify-between">
-                  <p className="font-medium">New booking on Airbnb</p>
-                  <span className="text-xs text-muted-foreground">2 hours ago</span>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Beach House property - Jun 18 to Jun 25
-                </p>
-              </div>
-              
-              <div className="border rounded-md p-4">
-                <div className="flex items-center justify-between">
-                  <p className="font-medium">Sync completed</p>
-                  <span className="text-xs text-muted-foreground">5 hours ago</span>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  All properties synchronized with no conflicts
-                </p>
-              </div>
-              
-              <div className="border rounded-md p-4">
-                <div className="flex items-center justify-between">
-                  <p className="font-medium">Booking modified on Booking.com</p>
-                  <span className="text-xs text-muted-foreground">1 day ago</span>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  City Apartment property - Date changed to Jul 10-15
-                </p>
-              </div>
+      {/* Dynamically render sections based on the configuration */}
+      {dashboardConfig.overview_page.sections.map((section, index) => (
+        <div key={index} className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">{section.name}</h2>
+          </div>
+          
+          {section.layout === "grid" && section.cards && (
+            <div className={`grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-${section.columns || 4}`}>
+              {section.cards.map((card, cardIndex) => {
+                let value = "";
+                
+                // Map card values to actual data
+                switch (card.title) {
+                  case "Total Properties":
+                    value = replacePlaceholders(card.value, stats?.totalProperties);
+                    break;
+                  case "Active Bookings":
+                    value = replacePlaceholders(card.value, stats?.activeBookings);
+                    break;
+                  case "Occupancy Rate":
+                    value = replacePlaceholders(card.value, stats?.occupancyRate);
+                    break;
+                  case "Pending Conflicts":
+                    value = replacePlaceholders(card.value, stats?.pendingConflicts);
+                    break;
+                  default:
+                    value = card.value;
+                }
+                
+                return (
+                  <StatsCard
+                    key={cardIndex}
+                    title={card.title}
+                    value={value}
+                    icon={card.icon}
+                    change={card.change ? replacePlaceholders(card.change, "5") : undefined}
+                    variant={card.variant}
+                    action={card.action}
+                    onClick={() => card.action && navigate(
+                      card.title === "Pending Conflicts" ? "/conflicts" :
+                      card.title === "Total Properties" ? "/properties" :
+                      card.title === "Active Bookings" ? "/calendar" :
+                      "/"
+                    )}
+                    isLoading={isLoading}
+                  />
+                );
+              })}
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Occupancy Rate</CardTitle>
-              <CardDescription>Last 30 days overview</CardDescription>
-            </div>
-            <BarChart3 className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="flex items-center justify-center h-[250px]">
-            {/* In a real app, this would be a chart component */}
-            <div className="text-muted-foreground text-center">
-              <p>Chart Component Placeholder</p>
-              <p className="text-sm mt-2">Occupancy data will be displayed here</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+          
+          {section.component === "PropertyCards" && (
+            <PropertyCards 
+              limit={section.columns || 3} 
+              action={section.action}
+            />
+          )}
+          
+          {section.component === "MiniCalendar" && (
+            <MiniCalendar 
+              height={section.height || "300px"}
+              action={section.action}
+            />
+          )}
+          
+          {section.component === "NotificationsList" && (
+            <RecentNotifications 
+              limit={section.limit || 5}
+              action={section.action}
+            />
+          )}
+          
+          {section.component === "SyncStatusTable" && (
+            <SyncStatusTable action={section.action} />
+          )}
+        </div>
+      ))}
     </div>
   );
 }
