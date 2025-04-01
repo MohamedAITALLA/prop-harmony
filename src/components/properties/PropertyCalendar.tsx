@@ -40,7 +40,7 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
     const platform = info.event.extendedProps.platform;
     const eventType = info.event.extendedProps.event_type;
     
-    if (eventType === EventType.BLOCK) return "#ef4444"; // Red for blocks
+    if (eventType === EventType.BLOCKED) return "#ef4444"; // Red for blocks
     if (eventType === EventType.MAINTENANCE) return "#f97316"; // Orange for maintenance
     
     // Different colors based on platform
@@ -138,8 +138,8 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
                   </div>
                 );
               }}
-              eventBackgroundColor={getEventColor}
-              eventBorderColor={getEventColor}
+              eventBackgroundColor={(info) => getEventColor(info)}
+              eventBorderColor={(info) => getEventColor(info)}
               dayMaxEvents={true}
               dateClick={(info) => {
                 onAddEvent();

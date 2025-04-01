@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -51,7 +50,6 @@ export default function PropertyDetails() {
     description: ""
   });
 
-  // Fetch property data
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["property", id],
     queryFn: async () => {
@@ -68,7 +66,6 @@ export default function PropertyDetails() {
     },
   });
 
-  // Fetch events for the specific property
   const { data: eventsData, isLoading: eventsLoading } = useQuery({
     queryKey: ["property-events", id, selectedPlatforms, selectedEventTypes, dateRange],
     queryFn: async () => {
@@ -83,31 +80,25 @@ export default function PropertyDetails() {
     },
   });
 
-  // Format events for FullCalendar with applied filters
   const formattedEvents = useMemo(() => {
     if (!eventsData) return [];
     
     return eventsData
       .filter((event: CalendarEvent) => {
-        // Apply platform filter if any selected
         if (selectedPlatforms.length > 0 && !selectedPlatforms.includes(event.platform)) {
           return false;
         }
         
-        // Apply event type filter if any selected
         if (selectedEventTypes.length > 0 && !selectedEventTypes.includes(event.event_type)) {
           return false;
         }
         
-        // Apply date range filter if set
         if (dateRange.from && dateRange.to) {
           const eventStart = new Date(event.start_date);
           const eventEnd = new Date(event.end_date);
           const filterStart = new Date(dateRange.from);
           const filterEnd = new Date(dateRange.to);
           
-          // Check if the event overlaps with the selected date range
-          // An event overlaps if it starts before the filter end AND ends after the filter start
           if (!(eventStart <= filterEnd && eventEnd >= filterStart)) {
             return false;
           }
@@ -129,13 +120,11 @@ export default function PropertyDetails() {
       }));
   }, [eventsData, selectedPlatforms, selectedEventTypes, dateRange]);
 
-  // Handle sync now
-  const handleSync = async () => {
+  const handleSync = () => {
     toast.success("Property calendar synced successfully");
   };
 
-  // Handle delete property
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (window.confirm("Are you sure you want to delete this property? This action cannot be undone.")) {
       try {
         toast.success("Property deleted successfully");
@@ -146,12 +135,10 @@ export default function PropertyDetails() {
     }
   };
 
-  // Handle form input changes
   const handleInputChange = (field: string, value: string) => {
     setNewEvent(prev => ({ ...prev, [field]: value }));
   };
 
-  // Submit new event
   const handleSubmitEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -176,13 +163,11 @@ export default function PropertyDetails() {
     }
   };
 
-  // Export functions
   const handleExport = (format: string) => {
     toast(`Exporting calendar as ${format}...`);
     // Implementation would depend on the export format
   };
-  
-  // Handle platform selection
+
   const handlePlatformSelect = (platform: Platform) => {
     setSelectedPlatforms(prev => 
       prev.includes(platform) 
@@ -190,8 +175,7 @@ export default function PropertyDetails() {
         : [...prev, platform]
     );
   };
-  
-  // Handle event type selection
+
   const handleEventTypeSelect = (eventType: EventType) => {
     setSelectedEventTypes(prev => 
       prev.includes(eventType) 
@@ -200,11 +184,14 @@ export default function PropertyDetails() {
     );
   };
 
-  // Clear filters
   const clearFilters = () => {
     setSelectedPlatforms([]);
     setSelectedEventTypes([]);
     setDateRange({ from: undefined, to: undefined });
+  };
+
+  const handleDateRangeChange = (range: { from: Date | undefined; to: Date | undefined }) => {
+    setDateRange(range);
   };
 
   if (isLoading) {
@@ -279,14 +266,12 @@ export default function PropertyDetails() {
         </TabsContent>
         
         <TabsContent value="calendar" className="space-y-4">
-          {/* Calendar Filters */}
           <div className="flex flex-wrap gap-2 p-4 border rounded-md bg-background mb-4">
             <div className="flex items-center mr-4">
               <Filter className="h-5 w-5 text-muted-foreground mr-2" />
               <span className="font-medium">Filters:</span>
             </div>
             
-            {/* Platform Filter */}
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8">
@@ -316,7 +301,6 @@ export default function PropertyDetails() {
               </PopoverContent>
             </Popover>
             
-            {/* Event Type Filter */}
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8">
@@ -346,14 +330,12 @@ export default function PropertyDetails() {
               </PopoverContent>
             </Popover>
             
-            {/* Date Range Filter */}
             <DateRange
               className="h-8"
               value={dateRange}
-              onChange={setDateRange}
+              onChange={handleDateRangeChange}
             />
             
-            {/* Clear Filters */}
             {(selectedPlatforms.length > 0 || selectedEventTypes.length > 0 || dateRange.from) && (
               <Button 
                 variant="ghost" 
@@ -367,7 +349,6 @@ export default function PropertyDetails() {
             )}
           </div>
           
-          {/* Active Filters Display */}
           {(selectedPlatforms.length > 0 || selectedEventTypes.length > 0 || dateRange.from) && (
             <div className="flex flex-wrap gap-2 mb-4">
               {selectedPlatforms.map(platform => (
@@ -439,7 +420,6 @@ export default function PropertyDetails() {
         </TabsContent>
       </Tabs>
 
-      {/* Event Dialog Component */}
       <PropertyEventDialog
         isOpen={isAddEventOpen}
         onOpenChange={setIsAddEventOpen}
@@ -455,7 +435,7 @@ function getMockPropertyData(id: string) {
   return {
     id,
     name: "Oceanfront Villa",
-    property_type: PropertyType.VILLA, // Fix: Use PropertyType enum instead of string
+    property_type: PropertyType.VILLA,
     address: {
       street: "123 Ocean Drive",
       city: "Malibu",

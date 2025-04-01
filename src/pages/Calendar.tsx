@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -97,7 +96,7 @@ const Calendar = () => {
 
   // Get color based on platform and event type
   function getEventColor(platform: Platform, eventType: EventType): string {
-    if (eventType === EventType.BLOCK) return "#ef4444"; // Red for blocks
+    if (eventType === EventType.BLOCKED) return "#ef4444"; // Red for blocks
     if (eventType === EventType.MAINTENANCE) return "#f97316"; // Orange for maintenance
     
     // Different colors based on platform
