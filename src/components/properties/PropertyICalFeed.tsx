@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { AlertCircle, Copy, Plus, Trash, Check, Loader2, RefreshCw } from "lucide-react";
 import { icalConnectionService, propertyService } from "@/services/api-service";
-import { ICalConnection, Platform } from "@/types/api-responses"; // Make sure the type import is correct
+import { ICalConnection } from "@/types/api-responses";
+import { Platform } from "@/types/enums";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +33,7 @@ export function PropertyICalFeed({ propertyId }: PropertyICalFeedProps) {
   const [isAddConnectionOpen, setIsAddConnectionOpen] = useState(false);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [newConnection, setNewConnection] = useState({
-    platform: "Airbnb",
+    platform: "Airbnb" as Platform,
     ical_url: ""
   });
   const [feedUrl, setFeedUrl] = useState('');
@@ -87,7 +88,11 @@ export function PropertyICalFeed({ propertyId }: PropertyICalFeedProps) {
   };
   
   const handleInputChange = (field: string, value: string) => {
-    setNewConnection(prev => ({ ...prev, [field]: value }));
+    if (field === "platform") {
+      setNewConnection(prev => ({ ...prev, [field]: value as Platform }));
+    } else {
+      setNewConnection(prev => ({ ...prev, [field]: value }));
+    }
   };
   
   const handleAddConnection = async () => {
@@ -108,7 +113,7 @@ export function PropertyICalFeed({ propertyId }: PropertyICalFeedProps) {
       
       // Reset form
       setNewConnection({
-        platform: "Airbnb",
+        platform: "Airbnb" as Platform,
         ical_url: ""
       });
     } catch (error) {
@@ -286,11 +291,11 @@ export function PropertyICalFeed({ propertyId }: PropertyICalFeedProps) {
                   <SelectValue placeholder="Select a platform" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Airbnb">Airbnb</SelectItem>
-                  <SelectItem value="Booking">Booking.com</SelectItem>
-                  <SelectItem value="Expedia">Expedia</SelectItem>
-                  <SelectItem value="TripAdvisor">TripAdvisor</SelectItem>
-                  <SelectItem value="Vrbo">Vrbo</SelectItem>
+                  <SelectItem value={Platform.AIRBNB}>Airbnb</SelectItem>
+                  <SelectItem value={Platform.BOOKING}>Booking.com</SelectItem>
+                  <SelectItem value={Platform.EXPEDIA}>Expedia</SelectItem>
+                  <SelectItem value={Platform.TRIPADVISOR}>TripAdvisor</SelectItem>
+                  <SelectItem value={Platform.VRBO}>Vrbo</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -334,7 +339,7 @@ function getMockConnections() {
     {
       _id: "conn-1",
       property_id: "prop-123",
-      platform: "Airbnb",
+      platform: Platform.AIRBNB,
       ical_url: "https://www.airbnb.com/calendar/ical/12345.ics",
       sync_frequency: 60,
       status: "active",
@@ -346,7 +351,7 @@ function getMockConnections() {
     {
       _id: "conn-2",
       property_id: "prop-123",
-      platform: "Booking",
+      platform: Platform.BOOKING,
       ical_url: "https://admin.booking.com/hotel/ical/12345.ics",
       sync_frequency: 60,
       status: "error",

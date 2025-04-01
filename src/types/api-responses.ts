@@ -23,7 +23,7 @@ export interface User {
   full_name: string;
   role: string;
   is_admin: boolean;
-  is_active?: boolean;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -72,6 +72,12 @@ export interface UserProfile {
   created_at: string;
   updated_at: string;
   user?: User;
+  user_details?: {
+    email: string;
+    first_name: string;
+    last_name: string;
+    full_name: string;
+  };
 }
 
 export interface ProfileResponse {
