@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Properties from "./pages/Properties";
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/layout/MainLayout";
+import ComponentsDemo from "./pages/ComponentsDemo";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/components" element={<ComponentsDemo />} />
             
             {/* Protected routes */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
