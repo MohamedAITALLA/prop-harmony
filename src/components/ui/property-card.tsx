@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
-export interface PropertyCardProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface PropertyCardProps {
   property: {
     id: string;
     name: string;
@@ -22,9 +22,10 @@ export interface PropertyCardProps extends React.HTMLAttributes<HTMLDivElement> 
     accommodates: number;
     images?: string[];
   };
+  className?: string;
 }
 
-export function PropertyCard({ property, className, ...props }: PropertyCardProps) {
+export function PropertyCard({ property, className, ...props }: PropertyCardProps & React.HTMLAttributes<HTMLDivElement>) {
   const navigate = useNavigate();
   
   const defaultImage = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
