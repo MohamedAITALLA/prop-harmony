@@ -137,6 +137,11 @@ export const conflictService = {
   ): Promise<ConflictsResponse> => {
     const response = await api.get<ConflictsResponse>(`/properties/${propertyId}/conflicts`, { params });
     return response.data;
+  },
+  
+  deleteConflict: async (propertyId: string, conflictId: string): Promise<ApiResponse<{}>> => {
+    const response = await api.delete<ApiResponse<{}>>(`/properties/${propertyId}/conflicts/${conflictId}`);
+    return response.data;
   }
 };
 

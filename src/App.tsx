@@ -19,6 +19,7 @@ import UserManagement from "./pages/UserManagement";
 import UserProfiles from "./pages/UserProfiles";
 import SyncDashboard from "./pages/SyncDashboard";
 import SyncLogs from "./pages/SyncLogs";
+import Conflicts from "./pages/Conflicts";
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/layout/MainLayout";
 import ComponentsDemo from "./pages/ComponentsDemo";
