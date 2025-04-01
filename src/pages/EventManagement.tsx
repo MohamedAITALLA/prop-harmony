@@ -15,13 +15,14 @@ import { Search, Plus, MoreVertical, Download, Filter, X } from "lucide-react";
 import { propertyService, eventService } from "@/services/api-service";
 import { EventTypeBadge } from "@/components/ui/event-type-badge";
 import { format, parseISO } from "date-fns";
+import { DateRange as DateRangeType } from "react-day-picker";
 
 export default function EventManagement() {
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
-  const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<DateRangeType | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   
