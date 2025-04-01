@@ -1,3 +1,15 @@
+import { 
+  PropertyType, 
+  EventType, 
+  EventStatus, 
+  Platform, 
+  ConnectionStatus, 
+  NotificationType, 
+  NotificationSeverity,
+  ConflictType,
+  ConflictSeverity,
+  ConflictStatus
+} from './enums';
 
 // Authentication Responses
 export interface User {
@@ -81,7 +93,7 @@ export interface Address {
 export interface Property {
   id: string;
   name: string;
-  property_type: string;
+  property_type: PropertyType;
   address: Address;
   accommodates: number;
   bedrooms: number;
@@ -142,10 +154,10 @@ export interface PropertyResponse {
 export interface ICalConnection {
   id: string;
   property_id: string;
-  platform: string;
+  platform: Platform;
   ical_url: string;
   sync_frequency: number;
-  status: string;
+  status: ConnectionStatus;
   last_synced: string;
   error_message: string | null;
   created_at: string;
@@ -171,13 +183,13 @@ export interface CalendarEvent {
   id: string;
   property_id: string;
   ical_uid: string;
-  platform: string;
+  platform: Platform;
   summary: string;
   description: string;
   start_date: string;
   end_date: string;
-  event_type: string;
-  status: string;
+  event_type: EventType;
+  status: EventStatus;
   created_at: string;
   updated_at: string;
 }
@@ -203,11 +215,11 @@ export interface Conflict {
   id: string;
   property_id: string;
   event_ids: string[];
-  conflict_type: string;
+  conflict_type: ConflictType;
   start_date: string;
   end_date: string;
-  severity: string;
-  status: string;
+  severity: ConflictSeverity;
+  status: ConflictStatus;
   description: string;
   created_at: string;
   updated_at: string;
@@ -231,10 +243,10 @@ export interface Notification {
   id: string;
   user_id: string;
   property_id: string;
-  type: string;
+  type: NotificationType;
   title: string;
   message: string;
-  severity: string;
+  severity: NotificationSeverity;
   read: boolean;
   created_at: string;
   updated_at: string;
