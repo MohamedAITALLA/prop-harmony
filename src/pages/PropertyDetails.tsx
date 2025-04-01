@@ -10,7 +10,7 @@ import { PropertyOverview } from "@/components/properties/PropertyOverview";
 import { PropertyICalFeed } from "@/components/properties/PropertyICalFeed";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Platform, EventType } from "@/types/enums";
+import { Platform, EventType, PropertyType } from "@/types/enums";
 import { PropertyConflictsView } from "@/components/conflicts/PropertyConflictsView";
 import { PropertyCalendar } from "@/components/properties/PropertyCalendar";
 import { PropertyEventDialog } from "@/components/properties/PropertyEventDialog";
@@ -55,7 +55,8 @@ export default function PropertyDetails() {
       if (!id) return [];
       try {
         const response = await eventService.getEvents(id);
-        return response.data.events || [];
+        // Fix: Access the events property of the response data
+        return response.data || [];
       } catch (error) {
         console.error("Error fetching property events:", error);
         return [];
@@ -259,7 +260,7 @@ function getMockPropertyData(id: string) {
   return {
     id,
     name: "Oceanfront Villa",
-    property_type: "villa",
+    property_type: PropertyType.VILLA, // Fix: Use PropertyType enum instead of string
     address: {
       street: "123 Ocean Drive",
       city: "Malibu",
