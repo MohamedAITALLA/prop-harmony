@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { profileService } from "@/services/api-service";
@@ -52,11 +53,11 @@ export default function ProfileSettings() {
   
   // Populate state when profile data is available
   React.useEffect(() => {
-    if (profileData) {
+    if (profileData?.data) {
       // Normalize the data to ensure consistent ID fields
       const normalizedData = normalizeMongoObject(profileData.data);
-      setPreferences(normalizedData.preferences);
-      setContactInfo(normalizedData.contact_info);
+      setPreferences(normalizedData.preferences || preferences);
+      setContactInfo(normalizedData.contact_info || contactInfo);
     }
   }, [profileData]);
   
@@ -89,8 +90,8 @@ export default function ProfileSettings() {
       
       // Update local state with the reset values
       if (data.data) {
-        setPreferences(data.data.preferences);
-        setContactInfo(data.data.contact_info);
+        setPreferences(data.data.preferences || preferences);
+        setContactInfo(data.data.contact_info || contactInfo);
       }
     },
     onError: (error) => {
@@ -160,11 +161,15 @@ export default function ProfileSettings() {
     );
   }
   
-  const profileStatus = profileData.profile_status || {
-    is_new: false,
-    onboarding_completed: profileData.data.onboarding_completed,
-    preferences_set: Boolean(Object.keys(profileData.data.preferences || {}).length),
-    contact_info_set: Boolean(Object.keys(profileData.data.contact_info || {}).length)
+  // Safely determine profile status
+  const profileStatus = {
+    is_new: profileData.profile_status?.is_new || false,
+    onboarding_completed: profileData.profile_status?.onboarding_completed || 
+                        (profileData.data?.onboarding_completed || false),
+    preferences_set: profileData.profile_status?.preferences_set || 
+                   (Object.keys(profileData.data?.preferences || {}).length > 0),
+    contact_info_set: profileData.profile_status?.contact_info_set ||
+                    (Object.keys(profileData.data?.contact_info || {}).length > 0)
   };
   
   return (

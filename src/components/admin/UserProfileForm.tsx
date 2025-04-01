@@ -72,9 +72,9 @@ const UserProfileForm = ({ profile, onSuccess }: UserProfileFormProps) => {
       const successMessage = data.message || 'User profile updated successfully';
       toast.success(successMessage);
       
-      const updatedFields = data.updated_fields || [];
-      if (updatedFields.length > 0) {
-        console.log('Updated profile fields:', updatedFields.join(', '));
+      // Updated fields will be available in response data if supported by the API
+      if (data.updated_fields && data.updated_fields.length > 0) {
+        console.log('Updated profile fields:', data.updated_fields.join(', '));
       }
       
       queryClient.invalidateQueries({ queryKey: ['userProfiles'] });
