@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Properties from "./pages/Properties";
+import PropertyDetails from "./pages/PropertyDetails";
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/layout/MainLayout";
 import ComponentsDemo from "./pages/ComponentsDemo";
@@ -56,6 +57,7 @@ const App = () => (
             {/* Protected routes */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
+            <Route path="/properties/:id" element={<ProtectedRoute><PropertyDetails /></ProtectedRoute>} />
             <Route path="/calendar" element={<ProtectedRoute><PlaceholderPage title="Calendar" /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><PlaceholderPage title="Notifications" /></ProtectedRoute>} />
             <Route path="/conflicts" element={<ProtectedRoute><PlaceholderPage title="Conflicts" /></ProtectedRoute>} />
