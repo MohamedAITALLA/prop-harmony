@@ -24,7 +24,8 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { Property, PropertyType } from "@/types/api-responses";
+import { Property } from "@/types/api-responses";
+import { PropertyType } from "@/types/enums"; // Fixed import from enums.ts instead of api-responses.ts
 import { 
   Eye, 
   Edit, 
