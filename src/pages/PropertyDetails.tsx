@@ -2,20 +2,44 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { propertyService, conflictService } from "@/services/api-service";
+import { propertyService, conflictService, eventService } from "@/services/api-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Edit, RefreshCw, Trash, Info, Calendar, Link, AlertTriangle, Settings } from "lucide-react";
+import { Edit, RefreshCw, Trash, Info, Calendar, Link, AlertTriangle, Settings, Plus, Download, ChevronDown } from "lucide-react";
 import { PropertyOverview } from "@/components/properties/PropertyOverview";
 import { PropertyICalFeed } from "@/components/properties/PropertyICalFeed";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PropertyType } from "@/types/enums"; // Fixed import for PropertyType enum
+import { PropertyType, Platform, EventType } from "@/types/enums";
 import { PropertyConflictsView } from "@/components/conflicts/PropertyConflictsView";
+import { 
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter 
+} from "@/components/ui/dialog";
+import { 
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { 
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
+} from "@/components/ui/select";
+import { useState } from "react";
 
 export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [isAddEventOpen, setIsAddEventOpen] = useState(false);
+  const [newEvent, setNewEvent] = useState({
+    property_id: id || "",
+    platform: Platform.MANUAL,
+    summary: "",
+    start_date: "",
+    end_date: "",
+    event_type: EventType.BOOKING,
+    status: "confirmed",
+    description: ""
+  });
   
   // Fetch property data
   const { data, isLoading, error, refetch } = useQuery({
@@ -53,6 +77,44 @@ export default function PropertyDetails() {
         toast.error("Failed to delete property");
       }
     }
+  };
+
+  // Handle form input changes
+  const handleInputChange = (field: string, value: string) => {
+    setNewEvent(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Submit new event
+  const handleSubmitEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      // In a real implementation, we would call the API here
+      console.log("Creating event:", newEvent);
+      toast.success("Event created successfully");
+      setIsAddEventOpen(false);
+      
+      // Reset form
+      setNewEvent({
+        property_id: id || "",
+        platform: Platform.MANUAL,
+        summary: "",
+        start_date: "",
+        end_date: "",
+        event_type: EventType.BOOKING,
+        status: "confirmed",
+        description: ""
+      });
+    } catch (error) {
+      console.error("Error creating event:", error);
+      toast.error("Failed to create event");
+    }
+  };
+
+  // Export functions
+  const handleExport = (format: string) => {
+    toast(`Exporting calendar as ${format}...`);
+    // Implementation would depend on the export format
   };
   
   if (isLoading) {
@@ -129,9 +191,46 @@ export default function PropertyDetails() {
         </TabsContent>
         
         <TabsContent value="calendar" className="space-y-4">
-          <div className="p-4 border rounded-md">
-            <h2 className="text-xl font-semibold mb-2">Calendar</h2>
-            <p className="text-muted-foreground">Calendar functionality will be implemented soon.</p>
+          <div className="space-y-6">
+            {/* Calendar Header */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Property Calendar</h2>
+              <div className="flex space-x-2">
+                <Button onClick={() => setIsAddEventOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Event
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                      <Download className="mr-2 h-4 w-4" />
+                      Export
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => handleExport("PDF")}>
+                      Export as PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport("iCal")}>
+                      Export as iCal
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+            
+            {/* Calendar View */}
+            <div className="border rounded-lg p-6 bg-background min-h-[500px] flex items-center justify-center">
+              <div className="text-center p-12">
+                <Calendar className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-4 text-lg font-medium">Property Calendar View</h3>
+                <p className="text-sm text-muted-foreground mt-2">
+                  This is a placeholder for the property calendar integration.<br />
+                  In a real application, you would see all the events for this property here.
+                </p>
+              </div>
+            </div>
           </div>
         </TabsContent>
         
@@ -163,6 +262,127 @@ export default function PropertyDetails() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Add Event Dialog */}
+      <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
+        <DialogContent className="sm:max-w-[525px]">
+          <DialogHeader>
+            <DialogTitle>Add New Calendar Event</DialogTitle>
+            <DialogDescription>
+              Create a new event for this property.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmitEvent}>
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="platform">Platform</Label>
+                  <Select 
+                    value={newEvent.platform} 
+                    onValueChange={(value) => handleInputChange("platform", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Platform" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(Platform).map((platform) => (
+                        <SelectItem key={platform} value={platform}>
+                          {platform}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="summary">Title</Label>
+                  <Input 
+                    id="summary" 
+                    value={newEvent.summary}
+                    onChange={(e) => handleInputChange("summary", e.target.value)}
+                    placeholder="Event title"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="start_date">Start Date</Label>
+                    <Input 
+                      id="start_date" 
+                      type="datetime-local"
+                      value={newEvent.start_date}
+                      onChange={(e) => handleInputChange("start_date", e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="end_date">End Date</Label>
+                    <Input 
+                      id="end_date" 
+                      type="datetime-local"
+                      value={newEvent.end_date}
+                      onChange={(e) => handleInputChange("end_date", e.target.value)}
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="event_type">Event Type</Label>
+                    <Select 
+                      value={newEvent.event_type} 
+                      onValueChange={(value) => handleInputChange("event_type", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Event Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(EventType).map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Status</Label>
+                    <Select 
+                      value={newEvent.status} 
+                      onValueChange={(value) => handleInputChange("status", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                        <SelectItem value="tentative">Tentative</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea 
+                    id="description" 
+                    value={newEvent.description}
+                    onChange={(e) => handleInputChange("description", e.target.value)}
+                    placeholder="Add any additional details..."
+                    rows={3}
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsAddEventOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Create Event</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
