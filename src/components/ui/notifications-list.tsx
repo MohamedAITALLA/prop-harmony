@@ -24,6 +24,7 @@ export interface NotificationsListProps extends React.HTMLAttributes<HTMLDivElem
   onMarkAllRead?: () => void;
   onDelete?: (id: string) => void;
   maxHeight?: string | number;
+  isLoading?: boolean; // Add the isLoading prop
 }
 
 export function NotificationsList({
@@ -32,6 +33,7 @@ export function NotificationsList({
   onMarkAllRead,
   onDelete,
   maxHeight = "300px",
+  isLoading = false,
   className,
   ...props
 }: NotificationsListProps) {
@@ -95,7 +97,11 @@ export function NotificationsList({
       </div>
       
       <ScrollArea className={cn("rounded-md border", `max-h-[${maxHeight}]`)}>
-        {notifications.length > 0 ? (
+        {isLoading ? (
+          <div className="p-6 flex justify-center items-center">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          </div>
+        ) : notifications.length > 0 ? (
           <div className="divide-y">
             {notifications.map((notification) => (
               <div

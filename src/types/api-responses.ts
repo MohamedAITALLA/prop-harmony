@@ -23,6 +23,7 @@ export interface User {
   created_at: string;
   updated_at: string;
   created_by?: string | null;
+  role?: string; // Add the role property as optional
 }
 
 export interface AuthResponse {
