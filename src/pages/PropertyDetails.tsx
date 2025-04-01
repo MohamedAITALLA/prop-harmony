@@ -1,32 +1,20 @@
 
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService, eventService } from "@/services/api-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Edit, RefreshCw, Trash, Info, Calendar, Link, AlertTriangle, Settings, Plus, Download, ChevronDown } from "lucide-react";
+import { Edit, RefreshCw, Trash, Info, Calendar, Link, AlertTriangle, Settings } from "lucide-react";
 import { PropertyOverview } from "@/components/properties/PropertyOverview";
 import { PropertyICalFeed } from "@/components/properties/PropertyICalFeed";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PropertyType, Platform, EventType } from "@/types/enums";
+import { Platform, EventType } from "@/types/enums";
 import { PropertyConflictsView } from "@/components/conflicts/PropertyConflictsView";
-import { 
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter 
-} from "@/components/ui/dialog";
-import { 
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { 
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
-} from "@/components/ui/select";
-// Import FullCalendar and required plugins
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
+import { PropertyCalendar } from "@/components/properties/PropertyCalendar";
+import { PropertyEventDialog } from "@/components/properties/PropertyEventDialog";
+import { CalendarEvent } from "@/types/api-responses";
 
 export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>();
@@ -42,9 +30,6 @@ export default function PropertyDetails() {
     status: "confirmed",
     description: ""
   });
-  
-  // Create a ref for the calendar
-  const calendarRef = useRef(null);
 
   // Fetch property data
   const { data, isLoading, error, refetch } = useQuery({
@@ -82,7 +67,7 @@ export default function PropertyDetails() {
   const formattedEvents = React.useMemo(() => {
     if (!eventsData) return [];
     
-    return eventsData.map(event => ({
+    return eventsData.map((event: CalendarEvent) => ({
       id: event.id,
       title: event.summary,
       start: event.start_date,
@@ -147,16 +132,6 @@ export default function PropertyDetails() {
   const handleExport = (format: string) => {
     toast(`Exporting calendar as ${format}...`);
     // Implementation would depend on the export format
-  };
-
-  // Navigation methods for the calendar
-  const handleCalendarNavigation = (action: 'prev' | 'next' | 'today') => {
-    const calendarApi = calendarRef.current?.getApi();
-    if (calendarApi) {
-      if (action === 'prev') calendarApi.prev();
-      if (action === 'next') calendarApi.next();
-      if (action === 'today') calendarApi.today();
-    }
   };
 
   if (isLoading) {
@@ -231,75 +206,12 @@ export default function PropertyDetails() {
         </TabsContent>
         
         <TabsContent value="calendar" className="space-y-4">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Property Calendar</h2>
-              <div className="flex space-x-2">
-                <Button onClick={() => setIsAddEventOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Event
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline">
-                      <Download className="mr-2 h-4 w-4" />
-                      Export
-                      <ChevronDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onClick={() => handleExport("PDF")}>
-                      Export as PDF
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleExport("iCal")}>
-                      Export as iCal
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-            
-            <div className="border rounded-lg p-6 bg-background">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('prev')}>
-                    Previous
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('today')}>
-                    Today
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('next')}>
-                    Next
-                  </Button>
-                </div>
-              </div>
-              
-              {eventsLoading ? (
-                <div className="flex items-center justify-center h-80">
-                  <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-                  <p className="ml-3">Loading events...</p>
-                </div>
-              ) : (
-                <div className="h-[600px]">
-                  <FullCalendar
-                    ref={calendarRef}
-                    plugins={[dayGridPlugin]}
-                    initialView="dayGridMonth"
-                    headerToolbar={false} // We're using our own header
-                    events={formattedEvents}
-                    height="100%"
-                    eventTimeFormat={{
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      meridiem: 'short'
-                    }}
-                    eventDisplay="block"
-                    dayMaxEvents={true}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
+          <PropertyCalendar
+            events={formattedEvents}
+            eventsLoading={eventsLoading}
+            onAddEvent={() => setIsAddEventOpen(true)}
+            onExport={handleExport}
+          />
         </TabsContent>
         
         <TabsContent value="ical" className="space-y-4">
@@ -331,125 +243,14 @@ export default function PropertyDetails() {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
-        <DialogContent className="sm:max-w-[525px]">
-          <DialogHeader>
-            <DialogTitle>Add New Calendar Event</DialogTitle>
-            <DialogDescription>
-              Create a new event for this property.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmitEvent}>
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="platform">Platform</Label>
-                  <Select 
-                    value={newEvent.platform} 
-                    onValueChange={(value) => handleInputChange("platform", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Platform" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.values(Platform).map((platform) => (
-                        <SelectItem key={platform} value={platform}>
-                          {platform}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="summary">Title</Label>
-                  <Input 
-                    id="summary" 
-                    value={newEvent.summary}
-                    onChange={(e) => handleInputChange("summary", e.target.value)}
-                    placeholder="Event title"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="start_date">Start Date</Label>
-                    <Input 
-                      id="start_date" 
-                      type="datetime-local"
-                      value={newEvent.start_date}
-                      onChange={(e) => handleInputChange("start_date", e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="end_date">End Date</Label>
-                    <Input 
-                      id="end_date" 
-                      type="datetime-local"
-                      value={newEvent.end_date}
-                      onChange={(e) => handleInputChange("end_date", e.target.value)}
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="event_type">Event Type</Label>
-                    <Select 
-                      value={newEvent.event_type} 
-                      onValueChange={(value) => handleInputChange("event_type", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Event Type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.values(EventType).map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
-                    <Select 
-                      value={newEvent.status} 
-                      onValueChange={(value) => handleInputChange("status", value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="confirmed">Confirmed</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                        <SelectItem value="tentative">Tentative</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea 
-                    id="description" 
-                    value={newEvent.description}
-                    onChange={(e) => handleInputChange("description", e.target.value)}
-                    placeholder="Add any additional details..."
-                    rows={3}
-                  />
-                </div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsAddEventOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">Create Event</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Event Dialog Component */}
+      <PropertyEventDialog
+        isOpen={isAddEventOpen}
+        onOpenChange={setIsAddEventOpen}
+        formData={newEvent}
+        onInputChange={handleInputChange}
+        onSubmit={handleSubmitEvent}
+      />
     </div>
   );
 }
@@ -458,7 +259,7 @@ function getMockPropertyData(id: string) {
   return {
     id,
     name: "Oceanfront Villa",
-    property_type: PropertyType.VILLA,
+    property_type: "villa",
     address: {
       street: "123 Ocean Drive",
       city: "Malibu",
