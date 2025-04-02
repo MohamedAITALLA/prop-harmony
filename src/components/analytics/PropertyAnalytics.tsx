@@ -156,21 +156,21 @@ export function PropertyAnalytics() {
   const eventStatusCounts = React.useMemo(() => {
     if (!eventsData?.data?.length) return {} as Record<string, number>;
     
-    return eventsData.data.reduce<Record<string, number>>((acc, event) => {
+    return eventsData.data.reduce((acc, event) => {
       const status = event.status || "unknown";
       acc[status] = (acc[status] || 0) + 1;
       return acc;
-    }, {});
+    }, {} as Record<string, number>);
   }, [eventsData]);
 
   const eventTypeCounts = React.useMemo(() => {
     if (!eventsData?.data?.length) return {} as Record<string, number>;
     
-    return eventsData.data.reduce<Record<string, number>>((acc, event) => {
+    return eventsData.data.reduce((acc, event) => {
       const eventType = event.event_type || "unknown";
       acc[eventType] = (acc[eventType] || 0) + 1;
       return acc;
-    }, {});
+    }, {} as Record<string, number>);
   }, [eventsData]);
 
   return (
