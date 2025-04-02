@@ -13,8 +13,23 @@ import { syncService } from "@/services/api-service";
 export default function SyncDashboard() {
   const queryClient = useQueryClient();
   const [syncProgress, setSyncProgress] = useState(0);
+  
+  // First, define the mutation
+  const syncAllMutation = useMutation({
+    mutationFn: async () => {
+      return await syncService.syncAll();
+    },
+    onSuccess: () => {
+      setSyncProgress(100);
+      toast.success("Synchronization of all properties completed");
+      queryClient.invalidateQueries({ queryKey: ["sync", "status"] });
+    },
+    onError: () => {
+      toast.error("Failed to complete synchronization");
+    }
+  });
 
-  // Sync progress simulation
+  // Now use it in useEffect after it's been defined
   React.useEffect(() => {
     if (!syncAllMutation.isPending) {
       setSyncProgress(0);
@@ -50,21 +65,6 @@ export default function SyncDashboard() {
         // Return mock data for development
         return getMockSyncStatus();
       }
-    }
-  });
-
-  // Handle sync all properties
-  const syncAllMutation = useMutation({
-    mutationFn: async () => {
-      return await syncService.syncAll();
-    },
-    onSuccess: () => {
-      setSyncProgress(100);
-      toast.success("Synchronization of all properties completed");
-      queryClient.invalidateQueries({ queryKey: ["sync", "status"] });
-    },
-    onError: () => {
-      toast.error("Failed to complete synchronization");
     }
   });
 
