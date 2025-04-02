@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { NotificationsList } from '@/components/ui/notifications-list';
@@ -12,13 +13,13 @@ import { NotificationSeverity, NotificationType } from '@/types/enums';
 export default function Notifications() {
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
-  const [severityFilter, setSeverityFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [severityFilter, setSeverityFilter] = useState('all');
   
   const filters = {
     read: activeTab === 'read' ? true : activeTab === 'unread' ? false : undefined,
-    type: typeFilter || undefined,
-    severity: severityFilter || undefined,
+    type: typeFilter !== 'all' ? typeFilter : undefined,
+    severity: severityFilter !== 'all' ? severityFilter : undefined,
     search: searchQuery || undefined,
   };
   
@@ -91,7 +92,7 @@ export default function Notifications() {
               <SelectValue placeholder="All types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All types</SelectItem>
+              <SelectItem value="all">All types</SelectItem>
               <SelectItem value={NotificationType.NEW_BOOKING}>New Booking</SelectItem>
               <SelectItem value={NotificationType.MODIFIED_BOOKING}>Modified Booking</SelectItem>
               <SelectItem value={NotificationType.CANCELLED_BOOKING}>Cancelled Booking</SelectItem>
@@ -105,7 +106,7 @@ export default function Notifications() {
               <SelectValue placeholder="All severities" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All severities</SelectItem>
+              <SelectItem value="all">All severities</SelectItem>
               <SelectItem value={NotificationSeverity.CRITICAL}>Critical</SelectItem>
               <SelectItem value={NotificationSeverity.WARNING}>Warning</SelectItem>
               <SelectItem value={NotificationSeverity.INFO}>Info</SelectItem>
