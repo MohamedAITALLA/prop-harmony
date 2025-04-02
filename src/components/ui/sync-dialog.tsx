@@ -177,7 +177,7 @@ export function SyncDialog({
           </div>
         </div>
         
-        {syncResult.sync_results.length > 0 && (
+        {syncResult.sync_results && syncResult.sync_results.length > 0 && (
           <div className="space-y-2">
             <h4 className="font-medium text-sm">Platform Results</h4>
             {syncResult.sync_results.map((result, index) => (
@@ -203,7 +203,7 @@ export function SyncDialog({
                     <div>Created: {result.events_created}</div>
                     <div>Updated: {result.events_updated}</div>
                     <div>Cancelled: {result.events_cancelled}</div>
-                    {result.conflicts.length > 0 && (
+                    {result.conflicts && result.conflicts.length > 0 && (
                       <div className="col-span-2 text-amber-700">
                         {result.conflicts.length} conflicts detected
                       </div>
