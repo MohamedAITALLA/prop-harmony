@@ -50,7 +50,7 @@ export function PropertyICalFeed({ propertyId, platform = Platform.MANUAL }: Pro
     
     try {
       setDownloading(true);
-      const url = `/${propertyId}/ical-feed`;
+      const url = `/properties/${propertyId}/ical-feed`;
       const blob = await api.getICalFile(url);
       
       // Create a URL for the blob
