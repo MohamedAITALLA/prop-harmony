@@ -84,52 +84,58 @@ export const PropertyValidityCheck: React.FC<PropertyValidityCheckProps> = ({ pr
   };
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
-      <Card className="md:col-span-1 h-fit">
+    <div className="space-y-8">
+      <Card className="w-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5" /> Check Date Availability
+            <CheckCircle2 className="h-5 w-5 text-primary" /> Check Date Availability
           </CardTitle>
           <CardDescription>
-            Select a date range to check if the property is available
+            Select a date range to check if the property is available for booking
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="start-date">Start Date</Label>
+              <Label htmlFor="start-date" className="font-medium">Start Date</Label>
               <DatePicker
                 id="start-date"
                 date={startDate}
                 onSelect={setStartDate}
                 placeholder="Select start date"
+                className="w-full"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="end-date">End Date</Label>
+              <Label htmlFor="end-date" className="font-medium">End Date</Label>
               <DatePicker
                 id="end-date"
                 date={endDate}
                 onSelect={setEndDate}
                 placeholder="Select end date"
+                className="w-full"
                 disabled={!startDate}
                 fromDate={startDate}
               />
             </div>
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <Button
               onClick={handleCheckAvailability}
               disabled={!startDate || !endDate || isChecking}
               className="flex-1"
+              size="lg"
             >
               {isChecking ? (
                 <>
                   <span className="animate-spin mr-2">●</span> Checking...
                 </>
               ) : (
-                <>Check Availability</>
+                <>
+                  <CheckCircle2 className="mr-2 h-4 w-4" /> 
+                  Check Availability
+                </>
               )}
             </Button>
             <Button 
@@ -137,20 +143,22 @@ export const PropertyValidityCheck: React.FC<PropertyValidityCheckProps> = ({ pr
               onClick={clearDates} 
               disabled={isChecking}
               className="flex-1"
+              size="lg"
             >
               Clear
             </Button>
           </div>
           
-          <div className="text-sm text-muted-foreground">
-            <p>
+          <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-md border border-muted">
+            <p className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
               This will check if the selected dates are available for booking based on existing events.
             </p>
           </div>
         </CardContent>
       </Card>
       
-      <Card className="md:col-span-1">
+      <Card className="w-full">
         <CardHeader>
           <CardTitle>Availability Result</CardTitle>
           <CardDescription>
@@ -166,32 +174,32 @@ export const PropertyValidityCheck: React.FC<PropertyValidityCheckProps> = ({ pr
             </div>
           ) : !checkPerformed ? (
             <div className="flex flex-col items-center justify-center text-center py-10 text-muted-foreground">
-              <CalendarRange className="h-12 w-12 mb-3 opacity-20" />
-              <h3 className="text-lg font-medium">No Check Performed Yet</h3>
-              <p className="text-sm max-w-md mt-1">
+              <CalendarRange className="h-16 w-16 mb-4 opacity-20" />
+              <h3 className="text-lg font-medium mb-2">No Check Performed Yet</h3>
+              <p className="text-sm max-w-md">
                 Select a date range and click "Check Availability" to see if the property is available
               </p>
             </div>
           ) : availabilityResult ? (
             <div className="space-y-6">
-              <div className="flex items-center justify-center gap-4 sm:gap-6 p-4">
+              <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 p-4 bg-muted/20 rounded-lg">
                 <div className="text-center">
                   <p className="text-xs text-muted-foreground mb-1">From</p>
-                  <div className="text-sm font-medium border rounded-md py-2 px-3 bg-background">
+                  <div className="text-sm font-medium border rounded-md py-2 px-4 bg-background">
                     {format(startDate as Date, 'MMM dd, yyyy')}
                   </div>
                 </div>
                 
-                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                <ArrowRight className="h-4 w-4 text-muted-foreground hidden sm:block" />
                 
                 <div className="text-center">
                   <p className="text-xs text-muted-foreground mb-1">To</p>
-                  <div className="text-sm font-medium border rounded-md py-2 px-3 bg-background">
+                  <div className="text-sm font-medium border rounded-md py-2 px-4 bg-background">
                     {format(endDate as Date, 'MMM dd, yyyy')}
                   </div>
                 </div>
                 
-                <div className="hidden sm:block border-l pl-6 text-center">
+                <div className="border-l pl-6 text-center hidden md:block">
                   <p className="text-xs text-muted-foreground mb-1">Duration</p>
                   <div className="text-sm font-medium py-2">
                     {availabilityResult.duration_days || 
@@ -204,26 +212,26 @@ export const PropertyValidityCheck: React.FC<PropertyValidityCheckProps> = ({ pr
               
               <Separator />
               
-              <div className="flex flex-col items-center justify-center text-center py-4">
+              <div className="flex flex-col items-center justify-center text-center py-6">
                 {availabilityResult.is_available ? (
                   <>
-                    <div className="bg-green-100 dark:bg-green-900/20 h-16 w-16 rounded-full flex items-center justify-center mb-3">
-                      <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-500" />
+                    <div className="bg-green-100 dark:bg-green-900/20 h-20 w-20 rounded-full flex items-center justify-center mb-4">
+                      <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-500" />
                     </div>
-                    <h3 className="text-lg font-semibold text-green-600 dark:text-green-500">Available!</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      This property is available for the selected dates
+                    <h3 className="text-xl font-semibold text-green-600 dark:text-green-500 mb-2">Available!</h3>
+                    <p className="text-sm text-muted-foreground max-w-md">
+                      This property is available for booking during the selected dates
                     </p>
-                    <Button className="mt-4" variant="outline">
+                    <Button className="mt-5" size="lg">
                       <Calendar className="mr-2 h-4 w-4" /> Create Booking
                     </Button>
                   </>
                 ) : (
                   <>
-                    <div className="bg-red-100 dark:bg-red-900/20 h-16 w-16 rounded-full flex items-center justify-center mb-3">
-                      <XCircle className="h-8 w-8 text-red-600 dark:text-red-500" />
+                    <div className="bg-red-100 dark:bg-red-900/20 h-20 w-20 rounded-full flex items-center justify-center mb-4">
+                      <XCircle className="h-10 w-10 text-red-600 dark:text-red-500" />
                     </div>
-                    <h3 className="text-lg font-semibold text-red-600 dark:text-red-500">Not Available</h3>
+                    <h3 className="text-xl font-semibold text-red-600 dark:text-red-500 mb-2">Not Available</h3>
                     <p className="text-sm text-muted-foreground mt-1 max-w-md">
                       This property has conflicts with existing events during the selected dates
                     </p>
@@ -246,9 +254,9 @@ export const PropertyValidityCheck: React.FC<PropertyValidityCheckProps> = ({ pr
                       {availabilityResult.conflicting_events.map((event) => (
                         <div 
                           key={event._id} 
-                          className="border rounded-md p-3 bg-red-50 dark:bg-red-900/10"
+                          className="border rounded-md p-3 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
                         >
-                          <div className="flex justify-between items-start">
+                          <div className="flex justify-between items-start gap-2">
                             <span className="font-medium">{event.summary}</span>
                             <EventTypeBadge eventType={event.event_type} />
                           </div>
