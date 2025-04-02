@@ -461,7 +461,7 @@ export function PropertyAnalytics() {
                       <h3 className="text-lg font-medium">Event Status</h3>
                       <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
                         {Object.entries(
-                          eventsData.data.reduce((acc: Record<string, number>, event) => {
+                          eventsData.data.reduce<Record<string, number>>((acc, event) => {
                             const status = event.status || "unknown";
                             acc[status] = (acc[status] || 0) + 1;
                             return acc;
@@ -483,7 +483,7 @@ export function PropertyAnalytics() {
                       <h3 className="text-lg font-medium">Event Types</h3>
                       <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
                         {Object.entries(
-                          eventsData.data.reduce((acc: Record<string, number>, event) => {
+                          eventsData.data.reduce<Record<string, number>>((acc, event) => {
                             const eventType = event.event_type || "unknown";
                             acc[eventType] = (acc[eventType] || 0) + 1;
                             return acc;
