@@ -9,17 +9,50 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
-import { RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
+import { RefreshCw, CheckCircle, AlertCircle, Info } from "lucide-react";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { syncService } from "@/services/api-service";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
+import { PlatformIcon } from "@/components/ui/platform-icon";
+import { format } from "date-fns";
 
 interface SyncDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   propertyId?: string;
   onSyncComplete?: () => void;
+}
+
+interface SyncPlatformResult {
+  platform: string;
+  success: boolean;
+  events_synced: number;
+  events_created: number;
+  events_updated: number;
+  events_cancelled: number;
+  sync_duration_ms: number;
+  conflicts: any[];
+  last_synced: string;
+  error?: string;
+}
+
+interface SyncResult {
+  property_id: string;
+  sync_results: SyncPlatformResult[];
+  summary: {
+    total_connections: number;
+    successful_syncs: number;
+    failed_syncs: number;
+    total_events_synced: number;
+    events_created: number;
+    events_updated: number;
+    events_cancelled: number;
+    conflicts_detected: number;
+    sync_completion_time: string;
+  };
+  next_sync: string;
 }
 
 export function SyncDialog({ 
@@ -32,6 +65,7 @@ export function SyncDialog({
   const [syncComplete, setSyncComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
+  const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
   
   // Add QueryClient to invalidate notifications query after sync
   const queryClient = useQueryClient();
@@ -40,6 +74,7 @@ export function SyncDialog({
     setSyncing(true);
     setError(null);
     setStatus("syncing");
+    setSyncResult(null);
     
     try {
       let response;
@@ -56,10 +91,26 @@ export function SyncDialog({
       setSyncComplete(true);
       setStatus("success");
       
+      // Store detailed sync results if available
+      if (response.data && response.data.sync_results) {
+        setSyncResult(response.data);
+      }
+      
       // Invalidate notifications query to fetch any new notifications from the sync
       queryClient.invalidateQueries({
         queryKey: ["notifications"],
       });
+      
+      // Also invalidate property sync status
+      if (propertyId) {
+        queryClient.invalidateQueries({
+          queryKey: ["property-sync-status", propertyId],
+        });
+        
+        queryClient.invalidateQueries({
+          queryKey: ["property-sync-logs", propertyId],
+        });
+      }
       
       // Notify parent component that sync is complete
       if (onSyncComplete) {
@@ -79,6 +130,7 @@ export function SyncDialog({
     setSyncComplete(false);
     setError(null);
     setStatus("idle");
+    setSyncResult(null);
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -88,9 +140,100 @@ export function SyncDialog({
     onOpenChange(open);
   };
 
+  const formatTime = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "PPp");
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  const renderSyncResults = () => {
+    if (!syncResult) return null;
+    
+    return (
+      <div className="mt-2 space-y-4">
+        <div className="bg-muted/30 p-3 rounded-md">
+          <h4 className="font-medium text-sm mb-1">Summary</h4>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div>
+              <span className="text-muted-foreground">Total connections:</span>{" "}
+              <span className="font-medium">{syncResult.summary.total_connections}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Successful syncs:</span>{" "}
+              <span className="font-medium">{syncResult.summary.successful_syncs}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Failed syncs:</span>{" "}
+              <span className="font-medium">{syncResult.summary.failed_syncs}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Total events synced:</span>{" "}
+              <span className="font-medium">{syncResult.summary.total_events_synced}</span>
+            </div>
+            {syncResult.summary.conflicts_detected > 0 && (
+              <div className="col-span-2">
+                <span className="text-muted-foreground">Conflicts detected:</span>{" "}
+                <Badge variant="destructive" className="ml-1">
+                  {syncResult.summary.conflicts_detected}
+                </Badge>
+              </div>
+            )}
+            {syncResult.next_sync && (
+              <div className="col-span-2 mt-1 text-xs text-muted-foreground">
+                Next sync scheduled: {formatTime(syncResult.next_sync)}
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {syncResult.sync_results.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="font-medium text-sm">Platform Results</h4>
+            {syncResult.sync_results.map((result, index) => (
+              <div 
+                key={index} 
+                className={`p-3 rounded-md border ${
+                  result.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"
+                }`}
+              >
+                <div className="flex justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <PlatformIcon platform={result.platform} size={16} />
+                    <span className="font-medium">{result.platform}</span>
+                  </div>
+                  <Badge variant={result.success ? "outline" : "destructive"}>
+                    {result.success ? "Success" : "Failed"}
+                  </Badge>
+                </div>
+                
+                {result.success ? (
+                  <div className="grid grid-cols-2 gap-1 text-xs">
+                    <div>Events synced: {result.events_synced}</div>
+                    <div>Created: {result.events_created}</div>
+                    <div>Updated: {result.events_updated}</div>
+                    <div>Cancelled: {result.events_cancelled}</div>
+                    {result.conflicts.length > 0 && (
+                      <div className="col-span-2 text-amber-700">
+                        {result.conflicts.length} conflicts detected
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-xs text-red-600">{result.error}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
             {propertyId ? "Sync Property Calendar" : "Sync All Properties"}
@@ -121,14 +264,19 @@ export function SyncDialog({
           )}
           
           {status === "success" && (
-            <div className="flex flex-col items-center justify-center gap-3">
-              <CheckCircle className="h-8 w-8 text-green-500" />
-              <div className="text-center">
-                <p className="font-medium text-green-500">Sync completed successfully!</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  All calendars have been synchronized.
-                </p>
+            <div className="space-y-3">
+              <div className="flex flex-col items-center justify-center gap-3">
+                <CheckCircle className="h-8 w-8 text-green-500" />
+                <div className="text-center">
+                  <p className="font-medium text-green-500">Sync completed successfully!</p>
+                  {!syncResult && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      All calendars have been synchronized.
+                    </p>
+                  )}
+                </div>
               </div>
+              {renderSyncResults()}
             </div>
           )}
           
