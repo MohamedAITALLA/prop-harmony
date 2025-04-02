@@ -13,6 +13,11 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 60000, // 60 second default timeout
+  // Add retry mechanism
+  validateStatus: function (status) {
+    return status >= 200 && status < 300; // default
+  },
 }) as ExtendedAxiosInstance;
 
 // Request interceptor to add authorization token
@@ -37,6 +42,13 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Check for network errors and provide better user feedback
+    if (error.code === "ERR_NETWORK" || !error.response || error.message.includes("Network Error")) {
+      console.error("Network error:", error);
+      toast.error("Network connection issue. Please check your internet connection and try again.");
+      return Promise.reject(new Error("Network connection issue. Please check your internet connection and try again."));
+    }
+    
     const { response } = error;
     const isLoginPage = window.location.pathname.includes('/login');
     const isRegisterPage = window.location.pathname.includes('/register');
@@ -56,6 +68,8 @@ api.interceptors.response.use(
       toast.error("Login failed. Please check your credentials.");
     } else if (response?.data?.message) {
       toast.error(response.data.message);
+    } else if (error.code === "ECONNABORTED") {
+      toast.error("The request timed out. Please try again.");
     } else {
       toast.error("Something went wrong. Please try again later.");
     }

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { syncService } from "@/services/api-service";
 import { format, parseISO } from "date-fns";
@@ -6,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Calendar, Check, Clock, RefreshCw, Timer } from "lucide-react";
+import { AlertCircle, Calendar, Check, Clock, RefreshCw, Timer, Wifi, WifiOff } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Platform } from "@/types/enums";
@@ -18,6 +19,30 @@ interface PropertySyncProps {
 export function PropertySync({ propertyId }: PropertySyncProps) {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+  const [retryCount, setRetryCount] = useState(0);
+
+  // Monitor online status
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      if (syncError?.includes("Network") || syncError?.includes("internet")) {
+        setSyncError(null);
+      }
+    };
+    
+    const handleOffline = () => {
+      setIsOnline(false);
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [syncError]);
 
   const { 
     data: syncData, 
@@ -37,7 +62,7 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
       throw new Error("Invalid sync status data format");
     },
     refetchInterval: 60000, // Refetch every minute
-    retry: 2,
+    retry: 3,
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
   });
 
@@ -46,9 +71,16 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
 
   const handleSync = async () => {
     if (isSyncing) return;
+    
+    if (!isOnline) {
+      toast.error("You appear to be offline. Please check your internet connection and try again.");
+      setSyncError("Network connection issue. Please check your internet connection and try again.");
+      return;
+    }
 
     setIsSyncing(true);
     setSyncError(null);
+    setRetryCount(prev => prev + 1);
     
     try {
       await syncService.syncProperty(propertyId);
@@ -64,13 +96,6 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
       let errorMessage = "Failed to synchronize property";
       if (error instanceof Error) {
         errorMessage = error.message || errorMessage;
-        
-        // Handle network errors specially
-        if (errorMessage.includes("Network Error") || 
-            errorMessage.includes("timeout") ||
-            errorMessage.includes("ERR_CONNECTION")) {
-          errorMessage = "Network connection issue. Please check your internet connection and try again.";
-        }
       }
       
       setSyncError(errorMessage);
@@ -112,15 +137,27 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-3 text-red-500">
-            <AlertCircle className="h-5 w-5" />
+            {syncStatusError.message && (syncStatusError.message.includes("Network") || 
+               syncStatusError.message.includes("internet")) ? (
+              <WifiOff className="h-5 w-5" />
+            ) : (
+              <AlertCircle className="h-5 w-5" />
+            )}
             <p>Failed to load synchronization status</p>
           </div>
           <p className="text-sm text-muted-foreground mt-2">
             {syncStatusError instanceof Error ? syncStatusError.message : "Unknown error occurred"}
           </p>
-          <Button onClick={() => refetchSyncStatus()} variant="outline" className="mt-4">
-            <RefreshCw className="mr-2 h-4 w-4" /> Retry
-          </Button>
+          <div className="flex gap-2 mt-4">
+            <Button onClick={() => refetchSyncStatus()} variant="outline" className="mt-4">
+              <RefreshCw className="mr-2 h-4 w-4" /> Retry
+            </Button>
+            {!isOnline && (
+              <div className="flex items-center text-amber-600 text-sm mt-4">
+                <WifiOff className="h-4 w-4 mr-1" /> You appear to be offline
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     );
@@ -133,20 +170,44 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
         <CardHeader className="pb-3">
           <div className="flex justify-between items-center">
             <CardTitle className="text-xl">Synchronization Status</CardTitle>
-            <Button onClick={handleSync} disabled={isSyncing}>
-              <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-              {isSyncing ? "Syncing..." : "Sync Now"}
-            </Button>
+            <div className="flex items-center gap-2">
+              {!isOnline && (
+                <div className="flex items-center text-amber-600 text-sm">
+                  <WifiOff className="h-4 w-4 mr-1" /> Offline
+                </div>
+              )}
+              <Button onClick={handleSync} disabled={isSyncing || !isOnline}>
+                <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                {isSyncing ? "Syncing..." : "Sync Now"}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
           {syncError && (
             <div className="mb-4 p-3 border border-red-200 bg-red-50 rounded-md">
               <div className="flex items-center gap-2 text-red-700">
-                <AlertCircle className="h-4 w-4" />
+                {syncError.includes("Network") || syncError.includes("internet") ? (
+                  <WifiOff className="h-4 w-4" />
+                ) : (
+                  <AlertCircle className="h-4 w-4" />
+                )}
                 <p className="font-medium">Sync Error</p>
               </div>
               <p className="text-sm text-red-600 mt-1">{syncError}</p>
+              {(syncError.includes("Network") || syncError.includes("internet")) && (
+                <div className="mt-2 text-xs text-red-600">
+                  <p>Troubleshooting steps:</p>
+                  <ul className="list-disc pl-5 mt-1">
+                    <li>Check your internet connection</li>
+                    <li>Try refreshing the page</li>
+                    <li>Check if the API server is reachable</li>
+                  </ul>
+                </div>
+              )}
+              {retryCount > 0 && (
+                <p className="text-xs text-muted-foreground mt-2">Retry attempt: {retryCount}</p>
+              )}
             </div>
           )}
           

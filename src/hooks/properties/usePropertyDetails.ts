@@ -19,6 +19,16 @@ export function usePropertyDetails(id: string | undefined) {
         return await propertyService.getProperty(id);
       } catch (error) {
         console.error("Error fetching property:", error);
+        
+        // Enhanced error handling for network errors
+        if (error.message && (
+          error.message.includes("Network Error") || 
+          error.message.includes("ERR_NETWORK") ||
+          error.message.includes("timeout")
+        )) {
+          throw new Error("Network connection issue. Please check your internet connection and try again.");
+        }
+        
         throw error;
       }
     },

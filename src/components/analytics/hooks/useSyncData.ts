@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { syncService } from "@/services/api-service";
@@ -55,12 +56,23 @@ export function useSyncData(propertyId?: string) {
         return null;
       } catch (error) {
         console.error("Error fetching sync status:", error);
+        
+        // Enhanced error handling for network errors
+        if (error.message && (
+          error.message.includes("Network Error") || 
+          error.message.includes("ERR_NETWORK") ||
+          error.message.includes("timeout") ||
+          error.message.includes("internet connection")
+        )) {
+          throw new Error("Network connection issue. Please check your internet connection and try again.");
+        }
+        
         throw error;
       }
     },
     enabled: !!propertyId,
     staleTime: 1000 * 60 * 5, // 5 minutes
-    retry: 2,
+    retry: 3,
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000), // Exponential backoff
   });
 
@@ -111,7 +123,7 @@ export function useSyncData(propertyId?: string) {
 
   return {
     syncStatus,
-    syncLogs: syncLogs?.data,
+    syncLogs,
     isLoadingSyncStatus,
     isLoadingSyncLogs,
     syncPerformanceData,
