@@ -13,8 +13,13 @@ export function useSyncData(propertyId?: string) {
     queryKey: ["property-sync-status", propertyId],
     queryFn: async () => {
       if (!propertyId) return null;
-      const response = await syncService.getPropertySyncStatus(propertyId);
-      return response.data;
+      try {
+        const response = await syncService.getPropertySyncStatus(propertyId);
+        return response.data?.syncStatus || null;
+      } catch (error) {
+        console.error("Error fetching sync status:", error);
+        return null; // Return null instead of undefined on error
+      }
     },
     enabled: !!propertyId,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -27,8 +32,13 @@ export function useSyncData(propertyId?: string) {
     queryKey: ["property-sync-logs", propertyId],
     queryFn: async () => {
       if (!propertyId) return null;
-      const response = await syncService.getPropertySyncLogs(propertyId);
-      return response.data;
+      try {
+        const response = await syncService.getPropertySyncLogs(propertyId);
+        return response.data || null;
+      } catch (error) {
+        console.error("Error fetching sync logs:", error);
+        return null; // Return null instead of undefined on error
+      }
     },
     enabled: !!propertyId,
     staleTime: 1000 * 60 * 5, // 5 minutes

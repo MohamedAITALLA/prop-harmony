@@ -5,8 +5,10 @@ import { useParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { syncService } from "@/services/api-service";
 import { SyncDialog } from "@/components/ui/sync-dialog";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "sonner";
 
 import { OverviewTab } from "./tabs/OverviewTab";
 import { SyncTab } from "./tabs/SyncTab";
@@ -51,7 +53,48 @@ export function PropertyAnalytics() {
 
   const handleSyncComplete = () => {
     refetchSyncStatus();
+    toast.success("Synchronization completed successfully!");
   };
+
+  // Check if there was an error loading sync data
+  const hasLoadError = !isLoadingSyncStatus && !syncStatus;
+
+  // If there's a loading error, show an error message
+  if (hasLoadError && propertyId) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-3xl font-bold tracking-tight">Property Analytics</h2>
+        </div>
+        
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
+              <AlertCircle className="h-12 w-12 text-red-500" />
+              <h3 className="text-lg font-semibold">Failed to load synchronization status</h3>
+              <p className="text-muted-foreground max-w-md">
+                There was an issue retrieving the synchronization data for this property. 
+                This could be due to a temporary service disruption.
+              </p>
+              <div className="flex gap-3 mt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => refetchSyncStatus()}
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Retry
+                </Button>
+                <Button onClick={handleSyncClick}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Sync Now
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
