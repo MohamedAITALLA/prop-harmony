@@ -34,7 +34,7 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
   });
 
   const { 
-    data: syncLogs, 
+    data: syncLogsResponse, 
     isLoading: isLoadingSyncLogs,
     refetch: refetchSyncLogs
   } = useQuery({
@@ -46,6 +46,9 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
       return response.data;
     },
   });
+
+  // Access the logs array from the response
+  const syncLogs = syncLogsResponse?.logs || [];
 
   const handleSync = async () => {
     if (isSyncing) return;
@@ -208,7 +211,7 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
                 <Skeleton key={i} className="h-16 w-full rounded-md" />
               ))}
             </div>
-          ) : syncLogs && syncLogs.length > 0 ? (
+          ) : syncLogs.length > 0 ? (
             <div className="space-y-2">
               {syncLogs.map((log, index) => (
                 <div 

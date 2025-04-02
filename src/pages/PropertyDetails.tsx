@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -6,7 +5,7 @@ import { propertyService } from "@/services/api-service";
 import { eventService } from "@/services/api-event-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Edit, RefreshCw, Trash, Info, Calendar, Link, AlertTriangle, Settings, CloudSync } from "lucide-react";
+import { Edit, RefreshCw, Trash, Info, Calendar, Link, AlertTriangle, Settings, Cloud } from "lucide-react";
 import { PropertyOverview } from "@/components/properties/PropertyOverview";
 import { PropertyICalFeed } from "@/components/properties/PropertyICalFeed";
 import { ICalConnectionsManager } from "@/components/properties/ICalConnectionsManager";
@@ -66,7 +65,6 @@ export default function PropertyDetails() {
     queryFn: async () => {
       if (!id) return { conflicts: [] };
       try {
-        // This endpoint would need to be implemented on your backend
         const response = await api.get(`/properties/${id}/conflicts`);
         return response.data;
       } catch (error) {
@@ -199,7 +197,7 @@ export default function PropertyDetails() {
             <Link className="mr-2 h-4 w-4" /> iCal Connections
           </TabsTrigger>
           <TabsTrigger value="sync">
-            <CloudSync className="mr-2 h-4 w-4" /> Sync
+            <Cloud className="mr-2 h-4 w-4" /> Sync
           </TabsTrigger>
           <TabsTrigger value="conflicts">
             <AlertTriangle className="mr-2 h-4 w-4" /> Conflicts {hasConflicts && (
