@@ -12,7 +12,7 @@ interface AddEventDialogProps {
     summary: string;
     start_date: string;
     end_date: string;
-    event_type: string;
+    event_type: EventType;  // Changed from string to EventType enum
     status: string;
     description: string;
   };
