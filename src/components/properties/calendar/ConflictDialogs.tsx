@@ -21,7 +21,7 @@ interface ConflictDialogsProps {
   conflictDetails: any;
   conflictingEvents: any[];
   propertyId: string;
-  onResolveConflicts: () => void;
+  onResolveConflicts: () => void; // Changed from Promise<void> to void
   onConflictResolution: () => void;
   refetchEvents: () => void;
   resetEventForm: () => void;
