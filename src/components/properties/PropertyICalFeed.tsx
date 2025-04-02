@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Check, Copy, RefreshCw } from "lucide-react";
 import { Platform } from "@/types/enums";
+import { calendarService } from "@/services/api-service";
 
 interface PropertyICalFeedProps {
   propertyId: string;
@@ -17,14 +18,14 @@ export function PropertyICalFeed({ propertyId, platform = Platform.MANUAL }: Pro
   const [copied, setCopied] = useState(false);
   
   // Fetch iCal feed URL from API
-  const { data: icalUrl, isLoading, refetch } = useQuery({
-    queryKey: [`property-ical-${propertyId}-${platform}`],
+  const { data: response, isLoading, refetch } = useQuery({
+    queryKey: [`property-ical-feed-${propertyId}`],
     queryFn: async () => {
-      // Simulate API call - in a real app, this would fetch from backend
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return `https://example.com/ical/${propertyId}/${platform.toLowerCase()}.ics`;
+      return await calendarService.getICalFeed(propertyId);
     },
   });
+  
+  const icalUrl = response?.data || '';
   
   const handleCopyToClipboard = async () => {
     if (!icalUrl) return;
@@ -61,7 +62,7 @@ export function PropertyICalFeed({ propertyId, platform = Platform.MANUAL }: Pro
           <div className="relative flex-1">
             <Input 
               id={`ical-${platform}`}
-              value={icalUrl || ''}
+              value={icalUrl}
               readOnly
               className="pr-10"
             />
