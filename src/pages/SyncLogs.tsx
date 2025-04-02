@@ -62,7 +62,7 @@ export default function SyncLogs() {
     queryFn: async () => {
       try {
         const response = await propertyService.getAllProperties();
-        return response.data.properties;
+        return response.data?.properties || [];
       } catch (error) {
         console.error("Error fetching properties:", error);
         return convertToMongoIdFormat(getMockProperties());
@@ -74,7 +74,7 @@ export default function SyncLogs() {
     const matchesSearch = 
       log.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
       log.platform.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.property?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (log.property?.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false) ||
       log.action.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesProperty = selectedProperty ? log.property_id === selectedProperty : true;
@@ -128,7 +128,7 @@ export default function SyncLogs() {
                 <SelectValue placeholder="All Properties" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Properties</SelectItem>
+                <SelectItem value="all_properties">All Properties</SelectItem>
                 {properties.map((property: Property) => (
                   <SelectItem key={property._id} value={property._id}>
                     {property.name}
@@ -142,7 +142,7 @@ export default function SyncLogs() {
                 <SelectValue placeholder="All Platforms" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Platforms</SelectItem>
+                <SelectItem value="all_platforms">All Platforms</SelectItem>
                 <SelectItem value="Airbnb">Airbnb</SelectItem>
                 <SelectItem value="Booking">Booking.com</SelectItem>
                 <SelectItem value="Expedia">Expedia</SelectItem>
@@ -157,7 +157,7 @@ export default function SyncLogs() {
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all_statuses">All Statuses</SelectItem>
                 <SelectItem value="success">Success</SelectItem>
                 <SelectItem value="warning">Warning</SelectItem>
                 <SelectItem value="failure">Failure</SelectItem>
