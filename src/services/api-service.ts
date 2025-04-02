@@ -88,7 +88,7 @@ export const syncService = {
     try {
       console.log("Syncing all properties");
       const response = await api.post("/sync", {}, {
-        timeout: 120000 // 120 second timeout for sync operations
+        timeout: 180000 // 3 minute timeout for sync operations
       });
       console.log("Sync all response:", response.data);
       return response;
@@ -111,9 +111,9 @@ export const syncService = {
     try {
       console.log(`Syncing property ID: ${propertyId}`);
       const response = await api.post(`/properties/${propertyId}/sync`, {}, {
-        timeout: 120000, // 120 second timeout for sync operations
+        timeout: 180000, // 3 minute timeout for sync operations
         // Adding retry mechanism for network issues
-        signal: AbortSignal.timeout(120000),
+        signal: AbortSignal.timeout(180000),
         headers: {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'

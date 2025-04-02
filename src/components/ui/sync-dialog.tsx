@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -8,7 +9,7 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
-import { RefreshCw, CheckCircle, AlertCircle, Wifi, WifiOff } from "lucide-react";
+import { RefreshCw, CheckCircle, AlertCircle, Wifi, WifiOff, Loader2 } from "lucide-react";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { syncService } from "@/services/api-service";
 import { toast } from "sonner";
@@ -66,14 +67,57 @@ export function SyncDialog({
   const [status, setStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [syncProgress, setSyncProgress] = useState(0);
+  const [syncMessage, setSyncMessage] = useState<string>("Initializing sync...");
+  const [timeoutWarning, setTimeoutWarning] = useState(false);
   
   const queryClient = useQueryClient();
+
+  // Simulate progress when syncing is in progress
+  React.useEffect(() => {
+    if (!syncing) return;
+    
+    let progressInterval: number;
+    let timeoutWarningTimeout: number;
+    
+    // Start with fast progress that slows down
+    progressInterval = window.setInterval(() => {
+      setSyncProgress(prev => {
+        if (prev >= 90) return prev; // Cap at 90% until we get response
+        return prev + (90 - prev) * 0.1; // Gradually approach 90%
+      });
+      
+      // Update messages based on progress
+      if (syncProgress < 30) {
+        setSyncMessage("Connecting to platforms...");
+      } else if (syncProgress < 60) {
+        setSyncMessage("Fetching calendar data...");
+      } else if (syncProgress < 80) {
+        setSyncMessage("Processing events...");
+      } else {
+        setSyncMessage("Almost there...");
+      }
+    }, 1000);
+    
+    // Show timeout warning after 45 seconds
+    timeoutWarningTimeout = window.setTimeout(() => {
+      setTimeoutWarning(true);
+    }, 45000);
+    
+    return () => {
+      clearInterval(progressInterval);
+      clearTimeout(timeoutWarningTimeout);
+    };
+  }, [syncing, syncProgress]);
 
   const handleSync = async () => {
     setSyncing(true);
     setError(null);
     setStatus("syncing");
     setSyncResult(null);
+    setSyncProgress(5);
+    setSyncMessage("Initializing sync...");
+    setTimeoutWarning(false);
     
     try {
       let response;
@@ -81,6 +125,10 @@ export function SyncDialog({
         console.log("Starting property sync for:", propertyId);
         response = await syncService.syncProperty(propertyId);
         console.log("Sync response received:", response);
+        
+        // Set progress to 100% on success
+        setSyncProgress(100);
+        setSyncMessage("Sync completed!");
         
         if (response?.data?.success && response?.data?.data) {
           console.log("Sync completed successfully with data:", response.data.data);
@@ -96,6 +144,10 @@ export function SyncDialog({
         }
       } else {
         response = await syncService.syncAll();
+        
+        // Set progress to 100% on success
+        setSyncProgress(100);
+        setSyncMessage("Sync completed!");
         
         if (response?.data?.success && response?.data?.data) {
           setSyncResult(response.data.data);
@@ -164,6 +216,9 @@ export function SyncDialog({
     setStatus("idle");
     setSyncResult(null);
     setRetryCount(0);
+    setSyncProgress(0);
+    setSyncMessage("");
+    setTimeoutWarning(false);
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -291,13 +346,28 @@ export function SyncDialog({
           )}
           
           {status === "syncing" && (
-            <div className="flex flex-col items-center justify-center gap-3">
-              <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-              <p className="text-center">
-                {propertyId 
-                  ? "Syncing property calendar..."
-                  : "Syncing all properties..."}
+            <div className="flex flex-col items-center justify-center gap-4">
+              <Loader2 className="h-12 w-12 text-primary animate-spin" />
+              <p className="text-center font-medium">
+                {syncMessage}
               </p>
+              
+              {/* Progress bar */}
+              <div className="w-full bg-muted rounded-full h-2.5 mb-1">
+                <div 
+                  className="bg-primary h-2.5 rounded-full transition-all duration-300 ease-out" 
+                  style={{ width: `${syncProgress}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {propertyId ? "Syncing property with connected platforms..." : "Syncing all properties..."}
+              </p>
+              
+              {timeoutWarning && (
+                <div className="mt-2 text-sm text-amber-600 text-center max-w-md">
+                  <p>Sync is taking longer than expected. Please be patient, this may take several minutes in some cases.</p>
+                </div>
+              )}
             </div>
           )}
           
@@ -346,7 +416,7 @@ export function SyncDialog({
           
           {status === "syncing" && (
             <Button disabled>
-              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Syncing...
             </Button>
           )}

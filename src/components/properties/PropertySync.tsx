@@ -7,10 +7,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Calendar, Check, Clock, RefreshCw, Timer, Wifi, WifiOff } from "lucide-react";
+import { AlertCircle, Calendar, Check, Clock, Loader2, RefreshCw, Timer, Wifi, WifiOff } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Platform } from "@/types/enums";
+import { CircularProgress } from "@/components/ui/circular-progress";
 
 interface PropertySyncProps {
   propertyId: string;
@@ -21,6 +22,8 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
   const [syncError, setSyncError] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
   const [retryCount, setRetryCount] = useState(0);
+  const [syncProgress, setSyncProgress] = useState(0);
+  const [timeoutWarning, setTimeoutWarning] = useState(false);
 
   // Monitor online status
   useEffect(() => {
@@ -43,12 +46,39 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
       window.removeEventListener('offline', handleOffline);
     };
   }, [syncError]);
+  
+  // Simulate progress when syncing is in progress
+  React.useEffect(() => {
+    if (!isSyncing) return;
+    
+    let progressInterval: number;
+    let timeoutWarningTimeout: number;
+    
+    // Start with fast progress that slows down
+    progressInterval = window.setInterval(() => {
+      setSyncProgress(prev => {
+        if (prev >= 90) return prev; // Cap at 90% until we get response
+        return prev + (90 - prev) * 0.1; // Gradually approach 90%
+      });
+    }, 1000);
+    
+    // Show timeout warning after 45 seconds
+    timeoutWarningTimeout = window.setTimeout(() => {
+      setTimeoutWarning(true);
+    }, 45000);
+    
+    return () => {
+      clearInterval(progressInterval);
+      clearTimeout(timeoutWarningTimeout);
+    };
+  }, [isSyncing]);
 
   const { 
     data: syncData, 
     isLoading: isLoadingSyncStatus, 
     error: syncStatusError,
-    refetch: refetchSyncStatus 
+    refetch: refetchSyncStatus,
+    isRefetching
   } = useQuery({
     queryKey: ['property-sync-status', propertyId],
     queryFn: async () => {
@@ -81,10 +111,14 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
     setIsSyncing(true);
     setSyncError(null);
     setRetryCount(prev => prev + 1);
+    setSyncProgress(5);
+    setTimeoutWarning(false);
     
     try {
       await syncService.syncProperty(propertyId);
       toast.success("Synchronization initiated");
+      // Set progress to 100% on success
+      setSyncProgress(100);
       // Refetch data after a small delay to allow sync to process
       setTimeout(() => {
         refetchSyncStatus();
@@ -150,7 +184,15 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
           </p>
           <div className="flex gap-2 mt-4">
             <Button onClick={() => refetchSyncStatus()} variant="outline" className="mt-4">
-              <RefreshCw className="mr-2 h-4 w-4" /> Retry
+              {isRefetching ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" /> Retry
+                </>
+              )}
             </Button>
             {!isOnline && (
               <div className="flex items-center text-amber-600 text-sm mt-4">
@@ -177,8 +219,17 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
                 </div>
               )}
               <Button onClick={handleSync} disabled={isSyncing || !isOnline}>
-                <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                {isSyncing ? "Syncing..." : "Sync Now"}
+                {isSyncing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Syncing...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Sync Now
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -211,8 +262,40 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
             </div>
           )}
           
-          {isLoadingSyncStatus ? (
+          {isSyncing && (
+            <div className="mb-4 p-4 border border-blue-100 bg-blue-50 rounded-md">
+              <div className="flex flex-col items-center justify-center gap-4">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                  <h3 className="font-medium text-blue-700">Synchronization in progress</h3>
+                </div>
+                
+                {/* Progress bar */}
+                <div className="w-full bg-blue-100 rounded-full h-2.5 mb-1">
+                  <div 
+                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" 
+                    style={{ width: `${syncProgress}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-blue-600">
+                  Syncing property with connected platforms...
+                </p>
+                
+                {timeoutWarning && (
+                  <div className="mt-2 text-sm text-amber-600 text-center max-w-md">
+                    <p>Sync is taking longer than expected. Please be patient.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {isLoadingSyncStatus && !isSyncing ? (
             <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                <p>Loading synchronization status...</p>
+              </div>
               <Skeleton className="h-20 w-full rounded-md" />
               <Skeleton className="h-16 w-full rounded-md" />
             </div>
@@ -231,8 +314,27 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
                       </div>
                     </div>
                     {syncStatus.summary.health_percentage !== undefined && (
-                      <div className="text-2xl font-bold">
-                        {syncStatus.summary.health_percentage}%
+                      <div className="flex flex-col items-center">
+                        <CircularProgress 
+                          value={syncStatus.summary.health_percentage}
+                          size={50}
+                          showValue={true}
+                          progressClassName={
+                            syncStatus.summary.health_percentage > 80 
+                              ? "stroke-green-500" 
+                              : syncStatus.summary.health_percentage > 50 
+                                ? "stroke-amber-500" 
+                                : "stroke-red-500"
+                          }
+                          valueClassName={
+                            syncStatus.summary.health_percentage > 80 
+                              ? "text-green-600" 
+                              : syncStatus.summary.health_percentage > 50 
+                                ? "text-amber-600" 
+                                : "text-red-600"
+                          }
+                        />
+                        <span className="text-xs text-muted-foreground mt-1">Health</span>
                       </div>
                     )}
                   </div>
@@ -294,7 +396,15 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
             <div className="text-center py-6">
               <p className="text-muted-foreground">No synchronization data available</p>
               <Button onClick={handleSync} variant="outline" className="mt-4">
-                <RefreshCw className="mr-2 h-4 w-4" /> Sync Now
+                {isSyncing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Syncing...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" /> Sync Now
+                  </>
+                )}
               </Button>
             </div>
           )}

@@ -13,7 +13,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 60000, // 60 second default timeout
+  timeout: 180000, // Increased timeout to 3 minutes for long-running sync operations
   // Add retry mechanism
   validateStatus: function (status) {
     return status >= 200 && status < 300; // default

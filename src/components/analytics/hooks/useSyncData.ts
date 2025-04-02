@@ -34,13 +34,16 @@ export interface PropertySyncStatus {
 }
 
 export function useSyncData(propertyId?: string) {
+  const [retryAttempt, setRetryAttempt] = React.useState(0);
+
   const { 
     data: syncStatus, 
     isLoading: isLoadingSyncStatus,
     refetch: refetchSyncStatus,
-    error: syncError
+    error: syncError,
+    isRefetching
   } = useQuery({
-    queryKey: ["property-sync-status", propertyId],
+    queryKey: ["property-sync-status", propertyId, retryAttempt],
     queryFn: async () => {
       if (!propertyId) return null;
       try {
@@ -75,6 +78,10 @@ export function useSyncData(propertyId?: string) {
     retry: 3,
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000), // Exponential backoff
   });
+
+  const manualRetry = React.useCallback(() => {
+    setRetryAttempt(prev => prev + 1);
+  }, []);
 
   const {
     data: syncLogs,
@@ -128,6 +135,8 @@ export function useSyncData(propertyId?: string) {
     isLoadingSyncLogs,
     syncPerformanceData,
     refetchSyncStatus,
-    syncError
+    syncError,
+    isRefetching,
+    manualRetry
   };
 }

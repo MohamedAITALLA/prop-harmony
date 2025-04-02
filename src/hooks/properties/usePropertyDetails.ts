@@ -1,16 +1,20 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "@/services/api-service";
+import { useState } from "react";
 
 export function usePropertyDetails(id: string | undefined) {
+  const [retryAttempt, setRetryAttempt] = useState(0);
+
   const { 
     data: propertyResponse, 
     isLoading: propertyLoading, 
     error: propertyError, 
     refetch: refetchProperty,
-    isError
+    isError,
+    isRefetching
   } = useQuery({
-    queryKey: ["property", id],
+    queryKey: ["property", id, retryAttempt],
     queryFn: async () => {
       if (!id) throw new Error("Property ID is required");
       
@@ -37,6 +41,10 @@ export function usePropertyDetails(id: string | undefined) {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
+  const manualRetry = () => {
+    setRetryAttempt(prev => prev + 1);
+  };
+
   // Extract property from response with proper fallbacks
   const property = propertyResponse?.data?.property || 
                    propertyResponse?.property || 
@@ -48,6 +56,8 @@ export function usePropertyDetails(id: string | undefined) {
     propertyLoading,
     propertyError,
     refetchProperty,
-    isError
+    isError,
+    isRefetching,
+    manualRetry
   };
 }

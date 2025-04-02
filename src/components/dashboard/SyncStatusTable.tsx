@@ -1,13 +1,14 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, RefreshCw } from "lucide-react";
+import { ArrowRight, Loader2, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from "@/components/ui/status-badge";
+import React from "react";
 
 interface SyncItem {
   id: string;
@@ -22,6 +23,8 @@ interface SyncStatusTableProps {
 
 export function SyncStatusTable({ action }: SyncStatusTableProps) {
   const navigate = useNavigate();
+  const [syncingPlatform, setSyncingPlatform] = React.useState<string | null>(null);
+  const [isSyncingAll, setIsSyncingAll] = React.useState(false);
   
   const { data: syncItems = [], isLoading } = useQuery<SyncItem[]>({
     queryKey: ["sync", "status"],
@@ -58,12 +61,28 @@ export function SyncStatusTable({ action }: SyncStatusTableProps) {
 
   const handleSync = (platformId: string) => {
     // In a real app, we would make an API call to sync
-    toast.success(`Syncing ${platformId}...`);
+    setSyncingPlatform(platformId);
+    
+    // Simulate sync process
+    toast.info(`Starting sync for ${platformId}...`);
+    
+    setTimeout(() => {
+      toast.success(`Successfully synced ${platformId}`);
+      setSyncingPlatform(null);
+    }, 3000);
   };
 
   const handleSyncAll = () => {
     // In a real app, we would make an API call to sync all platforms
-    toast.success("Syncing all platforms...");
+    setIsSyncingAll(true);
+    
+    // Simulate sync process
+    toast.info("Starting sync for all platforms...");
+    
+    setTimeout(() => {
+      toast.success("Successfully synced all platforms");
+      setIsSyncingAll(false);
+    }, 5000);
   };
 
   const formatSyncDate = (dateString: string) => {
@@ -123,10 +142,20 @@ export function SyncStatusTable({ action }: SyncStatusTableProps) {
                       variant="outline" 
                       size="sm"
                       onClick={() => handleSync(item.platform)}
+                      disabled={syncingPlatform === item.platform}
                       className="gap-1"
                     >
-                      <RefreshCw className="h-3 w-3" />
-                      Sync
+                      {syncingPlatform === item.platform ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Syncing...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-3 w-3" />
+                          Sync
+                        </>
+                      )}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -141,10 +170,20 @@ export function SyncStatusTable({ action }: SyncStatusTableProps) {
           <Button 
             variant="default" 
             onClick={handleSyncAll}
+            disabled={isSyncingAll}
             className="gap-2"
           >
-            <RefreshCw className="h-4 w-4" />
-            {action}
+            {isSyncingAll ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Syncing...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4" />
+                {action}
+              </>
+            )}
           </Button>
         )}
         

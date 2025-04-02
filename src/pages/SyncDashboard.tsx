@@ -1,8 +1,8 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SyncStatusTable } from "@/components/dashboard/SyncStatusTable";
@@ -12,9 +12,32 @@ import { syncService } from "@/services/api-service";
 
 export default function SyncDashboard() {
   const queryClient = useQueryClient();
+  const [syncProgress, setSyncProgress] = useState(0);
+
+  // Sync progress simulation
+  React.useEffect(() => {
+    if (!syncAllMutation.isPending) {
+      setSyncProgress(0);
+      return;
+    }
+    
+    let progressInterval: number;
+    
+    // Start with fast progress that slows down
+    progressInterval = window.setInterval(() => {
+      setSyncProgress(prev => {
+        if (prev >= 90) return prev; // Cap at 90% until we get response
+        return prev + (90 - prev) * 0.1; // Gradually approach 90%
+      });
+    }, 1000);
+    
+    return () => {
+      clearInterval(progressInterval);
+    };
+  }, [syncAllMutation.isPending]);
 
   // Fetch sync status data
-  const { data: syncStatus, isLoading: isStatusLoading } = useQuery({
+  const { data: syncStatus, isLoading: isStatusLoading, refetch: refetchStatus } = useQuery({
     queryKey: ["sync", "status"],
     queryFn: async () => {
       try {
@@ -36,11 +59,12 @@ export default function SyncDashboard() {
       return await syncService.syncAll();
     },
     onSuccess: () => {
-      toast.success("Synchronization of all properties started");
+      setSyncProgress(100);
+      toast.success("Synchronization of all properties completed");
       queryClient.invalidateQueries({ queryKey: ["sync", "status"] });
     },
     onError: () => {
-      toast.error("Failed to start synchronization");
+      toast.error("Failed to complete synchronization");
     }
   });
 
@@ -64,10 +88,44 @@ export default function SyncDashboard() {
           disabled={syncAllMutation.isPending}
           className="gap-2"
         >
-          <RefreshCw className={`h-4 w-4 ${syncAllMutation.isPending ? "animate-spin" : ""}`} />
-          Sync All Properties
+          {syncAllMutation.isPending ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Syncing...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="h-4 w-4" />
+              Sync All Properties
+            </>
+          )}
         </Button>
       </div>
+
+      {/* Sync progress indicator */}
+      {syncAllMutation.isPending && (
+        <Card className="mb-4">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center gap-4">
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                <h3 className="font-medium text-blue-700">Global synchronization in progress</h3>
+              </div>
+              
+              {/* Progress bar */}
+              <div className="w-full bg-blue-100 rounded-full h-2.5 mb-1">
+                <div 
+                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" 
+                  style={{ width: `${syncProgress}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-blue-600">
+                Syncing all properties with their connected platforms...
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Overall Status Section */}
       <div className="grid gap-4 md:grid-cols-4">
