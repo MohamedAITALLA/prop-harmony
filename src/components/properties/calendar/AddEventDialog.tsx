@@ -1,13 +1,14 @@
 
 import React from 'react';
 import { PropertyEventDialog } from '@/components/properties/PropertyEventDialog';
+import { Platform, EventType } from '@/types/enums';
 
 interface AddEventDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   formData: {
     property_id: string;
-    platform: string;
+    platform: Platform;  // Changed from string to Platform enum
     summary: string;
     start_date: string;
     end_date: string;

@@ -21,7 +21,7 @@ interface ConflictDialogsProps {
   conflictDetails: any;
   conflictingEvents: any[];
   propertyId: string;
-  onResolveConflicts: () => void; // Changed from Promise<void> to void
+  onResolveConflicts: () => void;
   onConflictResolution: () => void;
   refetchEvents: () => void;
   resetEventForm: () => void;
@@ -112,7 +112,10 @@ export const ConflictDialogs: React.FC<ConflictDialogsProps> = ({
               conflictId="current-conflict"
               propertyId={propertyId}
               events={conflictingEvents}
-              onResolve={onConflictResolution}
+              onResolve={async () => {
+                // Wrap the callback in an async function to return a Promise
+                await Promise.resolve(onConflictResolution());
+              }}
             />
           </div>
         </DialogContent>
