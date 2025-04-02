@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -20,6 +19,7 @@ import { CalendarEvent, Property } from "@/types/api-responses";
 import { normalizeMongoObject } from "@/lib/mongo-helpers";
 import { format } from "date-fns";
 import { PropertyType } from "@/types/enums";
+import api from "@/lib/api";
 
 export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>();
