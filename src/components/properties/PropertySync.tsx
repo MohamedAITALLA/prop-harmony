@@ -33,23 +33,6 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
     refetchInterval: 60000, // Refetch every minute
   });
 
-  const { 
-    data: syncLogsResponse, 
-    isLoading: isLoadingSyncLogs,
-    refetch: refetchSyncLogs
-  } = useQuery({
-    queryKey: ['property-sync-logs', propertyId],
-    queryFn: async () => {
-      const response = await syncService.getPropertySyncLogs(propertyId, {
-        limit: 5
-      });
-      return response.data;
-    },
-  });
-
-  // Access the logs array from the response
-  const syncLogs = syncLogsResponse?.logs || [];
-
   const handleSync = async () => {
     if (isSyncing) return;
 
@@ -60,7 +43,6 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
       // Refetch data after a small delay to allow sync to process
       setTimeout(() => {
         refetchSyncStatus();
-        refetchSyncLogs();
       }, 2000);
     } catch (error) {
       console.error("Sync error:", error);
@@ -196,67 +178,6 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
               </Button>
             </div>
           )}
-        </CardContent>
-      </Card>
-      
-      {/* Recent Sync Activity */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-xl">Recent Sync Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoadingSyncLogs ? (
-            <div className="space-y-2">
-              {[1, 2, 3].map(i => (
-                <Skeleton key={i} className="h-16 w-full rounded-md" />
-              ))}
-            </div>
-          ) : syncLogs.length > 0 ? (
-            <div className="space-y-2">
-              {syncLogs.map((log, index) => (
-                <div 
-                  key={log._id || index} 
-                  className="p-3 border rounded-md flex justify-between items-center"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      {renderPlatformIcon(log.platform)}
-                      <span className="font-medium">{log.action || "Sync"}</span>
-                    </div>
-                    {log.results && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {log.results.events_processed !== undefined 
-                          ? `Processed ${log.results.events_processed} events` 
-                          : "Sync completed"}
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <div className="mb-1">
-                      <SyncStatusBadge status={log.status} />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(log.created_at)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-6">
-              <p className="text-muted-foreground">No recent sync activities found</p>
-            </div>
-          )}
-          
-          <div className="mt-4">
-            <Button 
-              variant="outline" 
-              onClick={() => refetchSyncLogs()} 
-              className="w-full"
-            >
-              <RefreshCw className="mr-2 h-4 w-4" /> Refresh Log
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>

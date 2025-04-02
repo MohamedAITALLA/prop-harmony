@@ -200,8 +200,7 @@ export const propertyService = {
   },
   
   getICalFeedUrl: (propertyId: string): string => {
-    const baseUrl = window.location.origin;
-    return `${baseUrl}/api/properties/${propertyId}/ical-feed`;
+    return `/properties/${propertyId}/ical-feed`;
   }
 };
 
@@ -491,39 +490,6 @@ export const syncService = {
   
   syncProperty: async (propertyId: string): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await api.post<ApiResponse<{ success: boolean }>>(`/properties/${propertyId}/sync`);
-    return response.data;
-  },
-  
-  getSyncSchedule: async (): Promise<ApiResponse<{ schedule: Array<Record<string, any>> }>> => {
-    const response = await api.get<ApiResponse<{ schedule: Array<Record<string, any>> }>>("/sync/schedule");
-    return response.data;
-  },
-  
-  getSyncLogs: async (params?: { 
-    property_id?: string; 
-    platform?: string;
-    status?: string;
-    start_date?: string;
-    end_date?: string;
-    page?: number;
-    limit?: number;
-  }): Promise<SyncLogsResponse> => {
-    const response = await api.get<SyncLogsResponse>("/sync/logs", { params });
-    return response.data;
-  },
-  
-  getPropertySyncLogs: async (
-    propertyId: string,
-    params?: { 
-      platform?: string;
-      status?: string;
-      start_date?: string;
-      end_date?: string;
-      page?: number;
-      limit?: number;
-    }
-  ): Promise<SyncLogsResponse> => {
-    const response = await api.get<SyncLogsResponse>(`/properties/${propertyId}/sync`, { params });
     return response.data;
   }
 };

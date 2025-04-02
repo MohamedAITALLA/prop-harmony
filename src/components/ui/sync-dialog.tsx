@@ -100,10 +100,6 @@ export function SyncDialog({
         queryClient.invalidateQueries({
           queryKey: ["property-sync-status", propertyId],
         });
-        
-        queryClient.invalidateQueries({
-          queryKey: ["property-sync-logs", propertyId],
-        });
       }
       
       if (onSyncComplete) {
