@@ -20,6 +20,5 @@ export const getEventColor = (platform?: Platform, eventType?: EventType): strin
 };
 
 export const createICalFeedUrl = (propertyId: string): string => {
-  const baseUrl = window.location.origin;
-  return `${baseUrl}/api/properties/${propertyId}/ical-feed`;
+  return `https://channel-manager-api.vercel.app/${propertyId}/ical-feed`;
 };

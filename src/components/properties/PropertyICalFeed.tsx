@@ -11,6 +11,7 @@ import { calendarService } from "@/services/api-service";
 import api from "@/lib/api";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { format } from 'date-fns';
+import { createICalFeedUrl } from '@/components/properties/calendar/CalendarUtils';
 
 interface PropertyICalFeedProps {
   propertyId: string;
@@ -21,15 +22,8 @@ export function PropertyICalFeed({ propertyId, platform = Platform.MANUAL }: Pro
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
   
-  // Fetch iCal feed URL from API
-  const { data: response, isLoading, refetch } = useQuery({
-    queryKey: [`property-ical-feed-${propertyId}`],
-    queryFn: async () => {
-      return await calendarService.getICalFeed(propertyId);
-    },
-  });
-  
-  const icalUrl = response?.data || '';
+  // Use our utility function to generate the iCal URL
+  const icalUrl = createICalFeedUrl(propertyId);
   
   const handleCopyToClipboard = async () => {
     if (!icalUrl) return;
@@ -48,7 +42,6 @@ export function PropertyICalFeed({ propertyId, platform = Platform.MANUAL }: Pro
   };
   
   const handleRefresh = () => {
-    refetch();
     toast.success(`Refreshed iCal feed for ${platform}`);
   };
   
@@ -57,7 +50,7 @@ export function PropertyICalFeed({ propertyId, platform = Platform.MANUAL }: Pro
     
     try {
       setDownloading(true);
-      const url = `/properties/${propertyId}/ical-feed`;
+      const url = `/${propertyId}/ical-feed`;
       const blob = await api.getICalFile(url);
       
       // Create a URL for the blob
@@ -81,10 +74,6 @@ export function PropertyICalFeed({ propertyId, platform = Platform.MANUAL }: Pro
       setDownloading(false);
     }
   };
-  
-  if (isLoading) {
-    return <div className="flex items-center justify-center p-4">Loading iCal feed...</div>;
-  }
   
   return (
     <div className="space-y-4 w-full border rounded-md p-4 bg-card">

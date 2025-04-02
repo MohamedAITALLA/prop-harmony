@@ -7,6 +7,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { FileText, Calendar as CalendarIcon, Copy } from "lucide-react";
+import { createICalFeedUrl } from './CalendarUtils';
+import { toast } from 'sonner';
 
 interface CalendarHeaderProps {
   hasConflicts?: boolean;
