@@ -19,19 +19,14 @@ import { eventService } from "@/services/api-service";
 import { Platform, EventType } from "@/types/enums";
 import { CalendarEvent } from "@/types/api-responses";
 import { convertToMongoIdFormat } from "@/lib/id-conversion";
+import { DateRange } from "react-day-picker";
 
 export default function Calendar() {
   const [view, setView] = useState("month");
   const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<EventType[]>([]);
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
-    from: undefined,
-    to: undefined
-  });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["calendar-events", selectedProperty, selectedPlatforms, selectedEventTypes, dateRange],
@@ -78,7 +73,7 @@ export default function Calendar() {
   const clearFilters = () => {
     setSelectedPlatforms([]);
     setSelectedEventTypes([]);
-    setDateRange({ from: undefined, to: undefined });
+    setDateRange(undefined);
   };
   
   return (
@@ -150,7 +145,7 @@ export default function Calendar() {
                 />
               </div>
               
-              {(selectedPlatforms.length > 0 || selectedEventTypes.length > 0 || dateRange.from) && (
+              {(selectedPlatforms.length > 0 || selectedEventTypes.length > 0 || dateRange?.from) && (
                 <Button 
                   variant="ghost" 
                   className="w-full mt-4"
