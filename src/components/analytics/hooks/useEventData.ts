@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { eventService } from "@/services/api-event-service";
 import React from "react";
-import { CalendarEvent } from "@/types/api-responses";
+import { CalendarEvent, ApiResponse } from "@/types/api-responses";
 import { format, parseISO, startOfMonth, endOfMonth } from "date-fns";
 
 export interface EventAnalyticsData {
@@ -46,7 +46,15 @@ export function useEventData(propertyId?: string): EventAnalyticsData {
         end_date: format(lastDayCurrentMonth, 'yyyy-MM-dd')
       });
       
-      return response;
+      // Ensure the response has the correct shape
+      return {
+        data: response.data || [],
+        meta: {
+          total: response.meta?.total || 0,
+          property_id: propertyId,
+          platforms: response.meta?.platforms || {}
+        }
+      };
     },
     enabled: !!propertyId,
     staleTime: 1000 * 60 * 5, // 5 minutes
