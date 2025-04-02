@@ -27,7 +27,7 @@ export function AddConnectionDialog({ open, onOpenChange, propertyId }: AddConne
   const [newConnection, setNewConnection] = React.useState({
     platform: Platform.AIRBNB,
     ical_url: '',
-    sync_frequency: 12
+    sync_frequency: 15
   });
   
   const queryClient = useQueryClient();
@@ -67,7 +67,7 @@ export function AddConnectionDialog({ open, onOpenChange, propertyId }: AddConne
     setNewConnection({
       platform: Platform.AIRBNB,
       ical_url: '',
-      sync_frequency: 12
+      sync_frequency: 15
     });
   };
   
@@ -108,7 +108,7 @@ export function AddConnectionDialog({ open, onOpenChange, propertyId }: AddConne
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="sync_frequency">Sync Frequency (hours)</Label>
+              <Label htmlFor="sync_frequency">Sync Frequency (minutes)</Label>
               <Select
                 value={String(newConnection.sync_frequency)}
                 onValueChange={(value) => setNewConnection(prev => ({ ...prev, sync_frequency: parseInt(value) }))}
@@ -117,11 +117,10 @@ export function AddConnectionDialog({ open, onOpenChange, propertyId }: AddConne
                   <SelectValue placeholder="Select Frequency" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">Every hour</SelectItem>
-                  <SelectItem value="3">Every 3 hours</SelectItem>
-                  <SelectItem value="6">Every 6 hours</SelectItem>
-                  <SelectItem value="12">Every 12 hours</SelectItem>
-                  <SelectItem value="24">Once a day</SelectItem>
+                  <SelectItem value="15">Every 15 minutes</SelectItem>
+                  <SelectItem value="30">Every 30 minutes</SelectItem>
+                  <SelectItem value="45">Every 45 minutes</SelectItem>
+                  <SelectItem value="60">Every hour</SelectItem>
                 </SelectContent>
               </Select>
             </div>
