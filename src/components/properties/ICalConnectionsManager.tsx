@@ -23,6 +23,14 @@ interface ICalConnectionsManagerProps {
   propertyId: string;
 }
 
+interface ConnectionsResponse {
+  data: ICalConnection[];
+  meta?: {
+    total: number;
+    active_connections: number;
+  };
+}
+
 export function ICalConnectionsManager({ propertyId }: ICalConnectionsManagerProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -34,7 +42,8 @@ export function ICalConnectionsManager({ propertyId }: ICalConnectionsManagerPro
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: [`property-ical-connections-${propertyId}`],
     queryFn: async () => {
-      return await icalConnectionService.getConnections(propertyId);
+      const response = await icalConnectionService.getConnections(propertyId);
+      return response.data as ConnectionsResponse;
     }
   });
 
