@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "@/services/api-service";
 import { useState } from "react";
 import { toast } from "sonner";
+import { ensureMongoId } from "@/lib/mongo-helpers";
 
 export function usePropertyDetails(id: string | undefined) {
   const [retryAttempt, setRetryAttempt] = useState(0);
@@ -21,7 +22,11 @@ export function usePropertyDetails(id: string | undefined) {
       
       try {
         console.log("Fetching property details for ID:", id);
-        return await propertyService.getProperty(id);
+        
+        // Try to validate or convert the ID format if needed
+        const validId = id; // We'll use the ID as-is and let the API handle validation
+        
+        return await propertyService.getProperty(validId);
       } catch (error) {
         console.error("Error fetching property:", error);
         

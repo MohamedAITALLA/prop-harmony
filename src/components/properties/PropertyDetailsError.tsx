@@ -7,10 +7,11 @@ import { Link } from "react-router-dom";
 
 interface PropertyDetailsErrorProps {
   onRetry: () => void;
+  onBack?: () => void;
   error?: Error | null;
 }
 
-export function PropertyDetailsError({ onRetry, error }: PropertyDetailsErrorProps) {
+export function PropertyDetailsError({ onRetry, onBack, error }: PropertyDetailsErrorProps) {
   const errorMessage = error?.message || "Unknown error occurred";
   
   return (
@@ -36,11 +37,17 @@ export function PropertyDetailsError({ onRetry, error }: PropertyDetailsErrorPro
           >
             <RefreshCw className="h-4 w-4" /> Try Again
           </Button>
-          <Link to="/properties">
-            <Button variant="secondary" className="gap-2">
+          {onBack ? (
+            <Button variant="secondary" onClick={onBack} className="gap-2">
               <Home className="h-4 w-4" /> Back to Properties
             </Button>
-          </Link>
+          ) : (
+            <Link to="/properties">
+              <Button variant="secondary" className="gap-2">
+                <Home className="h-4 w-4" /> Back to Properties
+              </Button>
+            </Link>
+          )}
         </div>
       </AlertDescription>
     </Alert>
