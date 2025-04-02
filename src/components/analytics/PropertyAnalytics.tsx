@@ -35,7 +35,8 @@ export function PropertyAnalytics() {
     isLoadingEvents,
     eventsDistributionData,
     eventStatusCounts,
-    eventTypeCounts
+    eventTypeCounts,
+    eventsByMonth
   } = useEventData(propertyId);
 
   const {
@@ -74,6 +75,7 @@ export function PropertyAnalytics() {
           <OverviewTab 
             eventsData={eventsData}
             eventsDistributionData={eventsDistributionData}
+            eventsByMonth={eventsByMonth}
             syncLogs={syncLogs}
             notificationsData={notificationsData}
             notificationTypeData={notificationTypeData}
@@ -95,6 +97,7 @@ export function PropertyAnalytics() {
             eventsData={eventsData}
             eventStatusCounts={eventStatusCounts}
             eventTypeCounts={eventTypeCounts}
+            eventsByMonth={eventsByMonth}
             isLoadingEvents={isLoadingEvents}
           />
         </TabsContent>

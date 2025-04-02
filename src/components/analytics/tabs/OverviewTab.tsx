@@ -4,12 +4,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend,
+} from "recharts";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
 interface OverviewTabProps {
   eventsData: any;
   eventsDistributionData: Array<{ name: string; value: number }>;
+  eventsByMonth: Array<{ name: string; count: number }>;
   syncLogs: any;
   notificationsData: any;
   notificationTypeData: Array<{ name: string; value: number }>;
@@ -21,6 +30,7 @@ interface OverviewTabProps {
 export function OverviewTab({
   eventsData,
   eventsDistributionData,
+  eventsByMonth,
   syncLogs,
   notificationsData,
   notificationTypeData,
@@ -63,6 +73,63 @@ export function OverviewTab({
           isLoading={isLoadingNotifications}
         />
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Events Trend</CardTitle>
+          <CardDescription>Events over the past 6 months</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoadingEvents ? (
+            <div className="h-[300px] w-full">
+              <Skeleton className="h-full w-full" />
+            </div>
+          ) : eventsByMonth.length > 0 ? (
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={eventsByMonth}
+                  margin={{
+                    top: 20,
+                    right: 30,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip 
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-background border border-border p-2 rounded shadow-md">
+                            <p className="font-medium">{String(payload[0].payload.name)}</p>
+                            <p>Events: {payload[0].value}</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    name="Events"
+                    stroke="#8884d8"
+                    activeDot={{ r: 8 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              No event data available
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
