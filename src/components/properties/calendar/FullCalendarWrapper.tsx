@@ -52,7 +52,7 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
 
   return (
     <div className="h-[600px] calendar-container">
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .fc .fc-daygrid-day {
           transition: background-color 0.2s;
         }
@@ -106,7 +106,7 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
         .fc .fc-daygrid-event {
           z-index: 2;
         }
-      `}</style>
+      `}} />
       
       <FullCalendar
         ref={calendarRef}
