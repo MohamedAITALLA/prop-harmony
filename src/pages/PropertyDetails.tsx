@@ -26,7 +26,8 @@ export default function PropertyDetails() {
     property, 
     propertyLoading, 
     propertyError, 
-    refetchProperty 
+    refetchProperty,
+    isError 
   } = usePropertyDetails(id);
 
   const { 
@@ -74,13 +75,18 @@ export default function PropertyDetails() {
     toast.info("Retrying to load property details...");
   };
 
+  const handleBackToProperties = () => {
+    navigate("/properties");
+  };
+
   if (propertyLoading) {
     return <PropertyDetailsLoading />;
   }
 
-  if (propertyError || !property) {
+  if (isError || !property) {
     return <PropertyDetailsError 
       onRetry={handleRetryLoadProperty} 
+      onBack={handleBackToProperties}
       error={propertyError instanceof Error ? propertyError : null} 
     />;
   }

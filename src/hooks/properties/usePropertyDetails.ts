@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "@/services/api-service";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export function usePropertyDetails(id: string | undefined) {
   const [retryAttempt, setRetryAttempt] = useState(0);
@@ -23,6 +24,15 @@ export function usePropertyDetails(id: string | undefined) {
         return await propertyService.getProperty(id);
       } catch (error) {
         console.error("Error fetching property:", error);
+        
+        // Enhanced error handling for the ObjectID error
+        if (error.message && (
+          error.message.includes("Cast to ObjectId failed") ||
+          error.message.includes("invalid ObjectId")
+        )) {
+          toast.error("Invalid property ID format. Please check the URL and try again.");
+          throw new Error("Invalid property ID format. The ID doesn't match the expected format.");
+        }
         
         // Enhanced error handling for network errors
         if (error.message && (

@@ -1,3 +1,4 @@
+
 import api from "@/lib/api";
 import { ApiResponse } from "@/types/api-responses";
 
@@ -29,6 +30,12 @@ export const propertyService = {
       console.log("Fetching property with ID:", id);
       const response = await api.get(`/properties/${id}`);
       console.log("Property API response:", response.data);
+      
+      // Check if the response is an error response
+      if (response?.data?.success === false && response?.data?.error) {
+        console.error("API returned an error response:", response.data);
+        throw new Error(response.data.details?.message || response.data.error);
+      }
       
       // Check if the response has the expected structure
       if (response?.data?.success && response?.data?.data?.property) {
