@@ -25,8 +25,16 @@ export const propertyService = {
       throw error;
     }
   },
-  getProperty: (id: string) => {
-    return api.get(`/properties/${id}`);
+  getProperty: async (id: string) => {
+    try {
+      console.log("Fetching property with ID:", id);
+      const response = await api.get(`/properties/${id}`);
+      console.log("Property API response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching property ${id}:`, error);
+      throw error;
+    }
   },
   createProperty: (data: any) => {
     return api.post("/properties", data);

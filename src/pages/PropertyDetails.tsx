@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -5,7 +6,6 @@ import { propertyService } from "@/services/api-service";
 import { eventService } from "@/services/api-event-service";
 import { Tabs } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { normalizeMongoObject } from "@/lib/mongo-helpers";
 import { PropertyType } from "@/types/enums";
 import api from "@/lib/api";
 import { SyncDialog } from "@/components/ui/sync-dialog";
@@ -34,11 +34,18 @@ export default function PropertyDetails() {
       if (!id) throw new Error("Property ID is required");
       
       try {
-        const response = await propertyService.getProperty(id);
-        if (response?.data?.property) {
-          return response.data.property;
+        console.log("Fetching property details for ID:", id);
+        const responseData = await propertyService.getProperty(id);
+        
+        console.log("API response:", responseData);
+        
+        // Check if the response has the expected structure
+        if (responseData?.success && responseData?.data?.property) {
+          console.log("Property data found:", responseData.data.property);
+          return responseData.data.property;
         } else {
-          throw new Error("Property not found");
+          console.error("Unexpected API response structure:", responseData);
+          throw new Error("Property data not found in the API response");
         }
       } catch (error) {
         console.error("Error fetching property:", error);

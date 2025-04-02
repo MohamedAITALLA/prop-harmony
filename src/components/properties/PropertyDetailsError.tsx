@@ -16,7 +16,12 @@ export function PropertyDetailsError({ onRetry, error }: PropertyDetailsErrorPro
       <AlertTitle>Error Loading Property</AlertTitle>
       <AlertDescription className="flex flex-col gap-2">
         <p>Failed to load property details. This could be due to a network issue or the property may no longer exist.</p>
-        {error && <p className="text-xs opacity-70">{error.message}</p>}
+        {error && (
+          <div className="bg-red-50 p-3 rounded-md border border-red-200 mt-2">
+            <p className="text-sm text-red-700 font-medium">Error details:</p>
+            <p className="text-xs text-red-600">{error.message}</p>
+          </div>
+        )}
         <Button 
           variant="outline" 
           onClick={onRetry} 
