@@ -1,9 +1,19 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { eventService } from "@/services/api-service";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { DateRange } from "react-day-picker";
+import { format } from "date-fns";
 
-export function usePropertyEvents(id: string | undefined) {
+interface FilterOptions {
+  platforms?: string[];
+  eventTypes?: string[];
+  dateRange?: DateRange;
+}
+
+export function usePropertyEvents(id: string | undefined, filters?: FilterOptions) {
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>(filters || {});
+  
   const { 
     data: eventsData, 
     isLoading: eventsLoading, 
@@ -11,11 +21,31 @@ export function usePropertyEvents(id: string | undefined) {
     error: eventsError,
     isError: isEventsError
   } = useQuery({
-    queryKey: ["property-events", id],
+    queryKey: ["property-events", id, filterOptions],
     queryFn: async () => {
       if (!id) return [];
       try {
-        const response = await eventService.getEvents(id);
+        // Prepare filter parameters
+        const params: any = {};
+        
+        if (filterOptions.platforms && filterOptions.platforms.length > 0) {
+          params.platforms = filterOptions.platforms;
+        }
+        
+        if (filterOptions.eventTypes && filterOptions.eventTypes.length > 0) {
+          params.event_types = filterOptions.eventTypes;
+        }
+        
+        if (filterOptions.dateRange) {
+          if (filterOptions.dateRange.from) {
+            params.start_date = format(filterOptions.dateRange.from, 'yyyy-MM-dd');
+          }
+          if (filterOptions.dateRange.to) {
+            params.end_date = format(filterOptions.dateRange.to, 'yyyy-MM-dd');
+          }
+        }
+        
+        const response = await eventService.getEvents(id, params);
         return response.data || [];
       } catch (error) {
         console.error("Error fetching property events:", error);
@@ -47,12 +77,18 @@ export function usePropertyEvents(id: string | undefined) {
     }));
   }, [eventsData, id]);
 
+  const updateFilters = (newFilters: FilterOptions) => {
+    setFilterOptions(prev => ({ ...prev, ...newFilters }));
+  };
+
   return {
     eventsData,
     formattedEvents,
     eventsLoading,
     refetchEvents,
     eventsError,
-    isEventsError
+    isEventsError,
+    updateFilters,
+    filterOptions
   };
 }

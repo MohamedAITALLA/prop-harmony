@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from "@fullcalendar/interaction";
@@ -14,6 +14,7 @@ interface FullCalendarWrapperProps {
   handleEventClick: (info: any) => void;
   getEventColor: (platform?: Platform, eventType?: EventType) => string;
   onDateChange: (date: Date) => void;
+  currentDate?: Date;
 }
 
 export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
@@ -22,9 +23,18 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
   handleDateClick,
   handleEventClick,
   getEventColor,
-  onDateChange
+  onDateChange,
+  currentDate
 }) => {
   const calendarRef = useRef<any>(null);
+  
+  // Update calendar date when currentDate changes externally
+  useEffect(() => {
+    if (currentDate && calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      calendarApi.gotoDate(currentDate);
+    }
+  }, [currentDate]);
 
   // Pre-process events to add color properties
   const eventsWithColors = events.map(event => {
@@ -150,6 +160,7 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
         displayEventTime={false}
         eventDisplay="block"
         firstDay={1}
+        initialDate={currentDate}
       />
     </div>
   );

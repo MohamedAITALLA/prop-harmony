@@ -67,6 +67,7 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
             handleEventClick={onEventClick}
             getEventColor={getEventColor}
             onDateChange={onDateChange}
+            currentDate={currentDate}
           />
         )}
       </div>
