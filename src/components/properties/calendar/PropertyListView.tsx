@@ -10,6 +10,7 @@ import { useListSorting } from './list-view/useListSorting';
 import { AdvancedPagination } from '@/components/ui/advanced-pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { CalendarRange } from "lucide-react";
 
 interface PropertyListViewProps {
   events: any[];
@@ -53,11 +54,11 @@ export const PropertyListView: React.FC<PropertyListViewProps> = ({
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
+      <Card className="shadow-md border-border/40">
+        <CardHeader className="bg-muted/30">
           <CardTitle>Events List</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 pt-6">
           <LoadingSkeleton />
         </CardContent>
       </Card>
@@ -65,10 +66,13 @@ export const PropertyListView: React.FC<PropertyListViewProps> = ({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          <span>Events List</span>
+    <Card className="shadow-md border-border/40">
+      <CardHeader className="bg-muted/30 pb-4">
+        <CardTitle className="flex justify-between items-center text-xl">
+          <div className="flex items-center gap-2">
+            <CalendarRange className="h-5 w-5 text-primary" />
+            <span>Events List</span>
+          </div>
           <ListSorter 
             sortField={sortField}
             sortDirection={sortDirection}
@@ -76,22 +80,22 @@ export const PropertyListView: React.FC<PropertyListViewProps> = ({
           />
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 relative">
+      <CardContent className="space-y-4 relative pt-6">
         <SearchNotice searchQuery={searchQuery} />
         
         {sortedEvents.length === 0 ? (
           <EmptyEventsList searchQuery={searchQuery} />
         ) : (
           <>
-            {/* Pagination controls moved above the scrollable area */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+            {/* Pagination controls above the scrollable area */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4 bg-muted/20 p-3 rounded-md">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Show</span>
+                <span className="text-sm font-medium text-muted-foreground">Display</span>
                 <Select
                   value={String(itemsPerPage)}
                   onValueChange={handleItemsPerPageChange}
                 >
-                  <SelectTrigger className="w-[80px] h-9 text-center">
+                  <SelectTrigger className="w-[70px] h-8 text-center bg-background border-input/80">
                     <SelectValue placeholder={itemsPerPage} />
                   </SelectTrigger>
                   <SelectContent>
@@ -101,19 +105,20 @@ export const PropertyListView: React.FC<PropertyListViewProps> = ({
                     <SelectItem value="50">50</SelectItem>
                   </SelectContent>
                 </Select>
-                <span className="text-sm text-muted-foreground">per page</span>
+                <span className="text-sm font-medium text-muted-foreground">events per page</span>
               </div>
               
               <AdvancedPagination 
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
+                className="mt-0"
               />
             </div>
             
             {/* Scrollable events area with fixed height */}
-            <ScrollArea className="h-[400px] rounded-md border">
-              <div className="space-y-4 p-4">
+            <ScrollArea className="h-[400px] rounded-lg border border-border/50 bg-card">
+              <div className="space-y-3 p-4">
                 {currentEvents.map((event) => (
                   <EventCard 
                     key={event.id} 
@@ -123,6 +128,11 @@ export const PropertyListView: React.FC<PropertyListViewProps> = ({
                 ))}
               </div>
             </ScrollArea>
+            
+            <div className="flex justify-between items-center text-xs text-muted-foreground pt-2 px-1">
+              <span>Showing {indexOfFirstEvent + 1}-{Math.min(indexOfLastEvent, sortedEvents.length)} of {sortedEvents.length} events</span>
+              <span>Page {currentPage} of {totalPages}</span>
+            </div>
           </>
         )}
       </CardContent>

@@ -79,7 +79,7 @@ export function AdvancedPagination({
   const pageNumbers = getPageNumbers();
 
   return (
-    <Pagination className={cn("my-4", className)}>
+    <Pagination className={cn("my-0", className)}>
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
@@ -87,6 +87,7 @@ export function AdvancedPagination({
               if (currentPage > 1) onPageChange(currentPage - 1);
             }}
             className={cn(
+              "h-8 pl-2 pr-3",
               currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"
             )}
             aria-disabled={currentPage === 1}
@@ -104,9 +105,10 @@ export function AdvancedPagination({
                   typeof pageNumber === "number" && onPageChange(pageNumber)
                 }
                 className={cn(
+                  "h-8 w-8 p-0 font-medium",
                   typeof pageNumber === "number" && pageNumber === currentPage
-                    ? ""
-                    : "cursor-pointer"
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground"
+                    : "cursor-pointer hover:bg-muted"
                 )}
               >
                 {pageNumber}
@@ -121,6 +123,7 @@ export function AdvancedPagination({
               if (currentPage < totalPages) onPageChange(currentPage + 1);
             }}
             className={cn(
+              "h-8 pl-3 pr-2",
               currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"
             )}
             aria-disabled={currentPage === totalPages}
