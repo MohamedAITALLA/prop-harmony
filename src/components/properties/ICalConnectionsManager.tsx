@@ -1,124 +1,48 @@
 
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { icalConnectionService } from '@/services/api-service';
-import { Button } from "@/components/ui/button";
-import { Plus, AlertTriangle, Link2, RefreshCw } from "lucide-react";
-import { ICalConnection } from "@/types/api-responses";
+import React from 'react';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
-  CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { ConnectionsTable } from './ical/ConnectionsTable';
-import { AddConnectionDialog } from './ical/AddConnectionDialog';
-import { EditConnectionDialog } from './ical/EditConnectionDialog';
-import { DeleteConnectionDialog } from './ical/DeleteConnectionDialog';
-import { TestConnectionDialog } from './ical/TestConnectionDialog';
+import { LoadingState } from './ical/LoadingState';
+import { ErrorState } from './ical/ErrorState';
+import { ConnectionDialogs } from './ical/ConnectionDialogs';
+import { ConnectionsHeader } from './ical/ConnectionsHeader';
+import { ConnectionsFooter } from './ical/ConnectionsFooter';
+import { useConnectionDialogs } from '@/hooks/useConnectionDialogs';
+import { useICalConnections } from '@/hooks/useICalConnections';
 
 interface ICalConnectionsManagerProps {
   propertyId: string;
 }
 
-interface ConnectionsResponse {
-  data: ICalConnection[];
-  meta?: {
-    total: number;
-    active_connections: number;
-  };
-}
-
 export function ICalConnectionsManager({ propertyId }: ICalConnectionsManagerProps) {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isTestDialogOpen, setIsTestDialogOpen] = useState(false);
-  const [selectedConnection, setSelectedConnection] = useState<ICalConnection | null>(null);
+  const {
+    isAddDialogOpen, setIsAddDialogOpen,
+    isEditDialogOpen, setIsEditDialogOpen,
+    isDeleteDialogOpen, setIsDeleteDialogOpen,
+    isTestDialogOpen, setIsTestDialogOpen,
+    selectedConnection, setSelectedConnection,
+    handleEditClick, handleDeleteClick, handleTestClick
+  } = useConnectionDialogs();
 
-  // Fetch all connections
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: [`property-ical-connections-${propertyId}`],
-    queryFn: async () => {
-      const response = await icalConnectionService.getConnections(propertyId);
-      return response.data as ConnectionsResponse;
-    }
-  });
-
-  const handleEditClick = (connection: ICalConnection) => {
-    setSelectedConnection(connection);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleDeleteClick = (connection: ICalConnection) => {
-    setSelectedConnection(connection);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleTestClick = (connection: ICalConnection) => {
-    setSelectedConnection(connection);
-    setIsTestDialogOpen(true);
-  };
+  const { connections, connectionsMeta, isLoading, isError, refetch } = useICalConnections(propertyId);
 
   if (isLoading) {
-    return (
-      <Card className="mb-8 shadow-sm border-primary/10">
-        <CardHeader className="bg-muted/30">
-          <CardTitle>External iCal Connections</CardTitle>
-          <CardDescription>Connect external calendars via iCal</CardDescription>
-        </CardHeader>
-        <CardContent className="py-8">
-          <div className="flex items-center justify-center">
-            <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
-            <span className="ml-2 text-muted-foreground">Loading iCal connections...</span>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <LoadingState />;
   }
 
   if (isError) {
-    return (
-      <Card className="mb-8 shadow-sm border-destructive/30">
-        <CardHeader className="bg-destructive/5">
-          <CardTitle>External iCal Connections</CardTitle>
-          <CardDescription>Connect external calendars via iCal</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-6 text-destructive/80">
-            <AlertTriangle className="w-10 h-10 mb-3" />
-            <p className="text-lg font-medium mb-1">Failed to load iCal connections</p>
-            <p className="text-sm text-muted-foreground mb-4">We encountered a problem fetching your connections. Please try again.</p>
-            <Button onClick={() => refetch()} variant="outline" className="border-destructive/30 hover:border-destructive/60">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Retry
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <ErrorState onRetry={refetch} />;
   }
-
-  const connections = data?.data || [];
-  const connectionsMeta = data?.meta || { total: 0, active_connections: 0 };
 
   return (
     <Card className="mb-8 shadow-sm border-primary/10">
       <CardHeader className="bg-primary/5 border-b">
-        <div className="flex justify-between items-center">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Link2 className="h-5 w-5 text-primary" />
-              <CardTitle>External iCal Connections</CardTitle>
-            </div>
-            <CardDescription>Connect external calendars via iCal</CardDescription>
-          </div>
-          <Button onClick={() => setIsAddDialogOpen(true)} className="gap-1">
-            <Plus className="w-4 h-4" /> Add Connection
-          </Button>
-        </div>
+        <ConnectionsHeader onAddClick={() => setIsAddDialogOpen(true)} />
       </CardHeader>
       <CardContent className="pt-6">
         <ConnectionsTable 
@@ -129,44 +53,25 @@ export function ICalConnectionsManager({ propertyId }: ICalConnectionsManagerPro
         />
       </CardContent>
       <CardFooter className="bg-muted/10 border-t py-3">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs">
-            {connectionsMeta.total} connection{connectionsMeta.total !== 1 ? 's' : ''}
-          </span>
-          <span className="px-2 py-0.5 bg-green-500/10 text-green-600 rounded-full text-xs">
-            {connectionsMeta.active_connections} active
-          </span>
-        </div>
+        <ConnectionsFooter 
+          totalConnections={connectionsMeta.total}
+          activeConnections={connectionsMeta.active_connections}
+        />
       </CardFooter>
 
       {/* Connection Dialogs */}
-      <AddConnectionDialog 
-        open={isAddDialogOpen} 
-        onOpenChange={setIsAddDialogOpen} 
-        propertyId={propertyId} 
-      />
-      
-      <EditConnectionDialog 
-        open={isEditDialogOpen} 
-        onOpenChange={setIsEditDialogOpen} 
+      <ConnectionDialogs 
         propertyId={propertyId}
-        connection={selectedConnection}
-        onConnectionChange={setSelectedConnection}
-      />
-      
-      <DeleteConnectionDialog 
-        open={isDeleteDialogOpen} 
-        onOpenChange={setIsDeleteDialogOpen} 
-        propertyId={propertyId}
-        connection={selectedConnection}
-        onDeleted={() => setSelectedConnection(null)}
-      />
-      
-      <TestConnectionDialog 
-        open={isTestDialogOpen} 
-        onOpenChange={setIsTestDialogOpen} 
-        propertyId={propertyId}
-        connection={selectedConnection}
+        isAddDialogOpen={isAddDialogOpen}
+        setIsAddDialogOpen={setIsAddDialogOpen}
+        isEditDialogOpen={isEditDialogOpen}
+        setIsEditDialogOpen={setIsEditDialogOpen}
+        isDeleteDialogOpen={isDeleteDialogOpen}
+        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+        isTestDialogOpen={isTestDialogOpen}
+        setIsTestDialogOpen={setIsTestDialogOpen}
+        selectedConnection={selectedConnection}
+        setSelectedConnection={setSelectedConnection}
       />
     </Card>
   );
