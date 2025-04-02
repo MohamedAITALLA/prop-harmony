@@ -41,6 +41,9 @@ export default function PropertyDetails() {
   const handleTabChange = (value) => {
     setActiveTab(value);
     setSearchParams({ tab: value });
+    
+    // Scroll to top when changing tabs
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSync = () => {
@@ -59,11 +62,12 @@ export default function PropertyDetails() {
   };
 
   const handleExport = (format) => {
-    toast(`Exporting calendar as ${format}...`);
+    toast.success(`Exporting calendar as ${format}...`);
   };
 
   const handleSyncComplete = () => {
     refetchEvents();
+    toast.success("Sync completed successfully");
   };
   
   const handleViewConflicts = () => {
@@ -92,32 +96,34 @@ export default function PropertyDetails() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto px-4 py-6">
       <PropertyDetailsHeader 
         property={property} 
         onSync={handleSync} 
         onDelete={handleDelete} 
       />
       
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-6">
-        <PropertyDetailsTabs 
-          activeTab={activeTab} 
-          onTabChange={handleTabChange} 
-          hasConflicts={hasConflicts} 
-        />
-        
-        <PropertyDetailsContent 
-          property={property}
-          activeTab={activeTab}
-          propertyId={id || ""}
-          formattedEvents={formattedEvents}
-          eventsLoading={eventsLoading}
-          hasConflicts={hasConflicts}
-          onExport={handleExport}
-          onViewConflicts={handleViewConflicts}
-          refetchEvents={refetchEvents}
-        />
-      </Tabs>
+      <div className="bg-background/50 rounded-lg p-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-0">
+          <PropertyDetailsTabs 
+            activeTab={activeTab} 
+            onTabChange={handleTabChange} 
+            hasConflicts={hasConflicts} 
+          />
+          
+          <PropertyDetailsContent 
+            property={property}
+            activeTab={activeTab}
+            propertyId={id || ""}
+            formattedEvents={formattedEvents}
+            eventsLoading={eventsLoading}
+            hasConflicts={hasConflicts}
+            onExport={handleExport}
+            onViewConflicts={handleViewConflicts}
+            refetchEvents={refetchEvents}
+          />
+        </Tabs>
+      </div>
 
       <SyncDialog
         open={isSyncDialogOpen}

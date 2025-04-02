@@ -7,6 +7,7 @@ import { CalendarContainer } from '@/components/properties/calendar/CalendarCont
 import { PropertyListView } from "@/components/properties/calendar/PropertyListView";
 import { PropertyValidityCheck } from "@/components/properties/calendar/PropertyValidityCheck";
 import { ViewControls } from '@/components/properties/calendar/ViewControls';
+import { cn } from "@/lib/utils";
 
 interface CalendarTabsContentProps {
   activeTab: string;
@@ -51,19 +52,28 @@ export const CalendarTabsContent: React.FC<CalendarTabsContentProps> = ({
 }) => {
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="mb-4 flex flex-wrap">
-        <TabsTrigger value="calendar" className="flex-grow sm:flex-grow-0">
+      <TabsList className="mb-6 flex flex-wrap bg-muted/30 p-1 rounded-lg border">
+        <TabsTrigger 
+          value="calendar" 
+          className={cn("flex-grow sm:flex-grow-0 data-[state=active]:bg-primary data-[state=active]:text-white")}
+        >
           <CalendarDays className="mr-2 h-4 w-4" /> Calendar
         </TabsTrigger>
-        <TabsTrigger value="list" className="flex-grow sm:flex-grow-0">
+        <TabsTrigger 
+          value="list" 
+          className={cn("flex-grow sm:flex-grow-0 data-[state=active]:bg-primary data-[state=active]:text-white")}
+        >
           <List className="mr-2 h-4 w-4" /> List View
         </TabsTrigger>
-        <TabsTrigger value="check" className="flex-grow sm:flex-grow-0">
-          <CheckCircle2 className="mr-2 h-4 w-4" /> Check Validity
+        <TabsTrigger 
+          value="check" 
+          className={cn("flex-grow sm:flex-grow-0 data-[state=active]:bg-primary data-[state=active]:text-white")}
+        >
+          <CheckCircle2 className="mr-2 h-4 w-4" /> Check Availability
         </TabsTrigger>
       </TabsList>
       
-      <TabsContent value="calendar" className="mt-4">
+      <TabsContent value="calendar" className="mt-0 space-y-4">
         <ViewControls 
           view={view}
           setView={setView}
@@ -72,7 +82,7 @@ export const CalendarTabsContent: React.FC<CalendarTabsContentProps> = ({
           onAddEvent={onAddEvent}
         />
         
-        <Card>
+        <Card className="shadow-sm border-border/40">
           <CardContent className="p-0 sm:p-6">
             <CalendarContainer
               events={formattedEvents}
@@ -92,7 +102,7 @@ export const CalendarTabsContent: React.FC<CalendarTabsContentProps> = ({
         </Card>
       </TabsContent>
       
-      <TabsContent value="list" className="mt-4">
+      <TabsContent value="list" className="mt-0">
         <PropertyListView 
           events={events} 
           isLoading={eventsLoading} 
@@ -102,7 +112,7 @@ export const CalendarTabsContent: React.FC<CalendarTabsContentProps> = ({
         />
       </TabsContent>
       
-      <TabsContent value="check" className="mt-4">
+      <TabsContent value="check" className="mt-0">
         <PropertyValidityCheck propertyId={propertyId} />
       </TabsContent>
     </Tabs>

@@ -46,56 +46,47 @@ export const ViewControls: React.FC<ViewControlsProps> = ({
   };
 
   return (
-    <div className="mb-4 bg-background border rounded-lg p-2 flex flex-wrap items-center justify-between gap-2">
-      <div className="flex items-center gap-2 flex-wrap">
-        <ToggleGroup type="single" value={view} onValueChange={(value) => value && setView(value)}>
-          <ToggleGroupItem value="month" aria-label="Month view">
+    <div className="mb-4 bg-muted/30 border rounded-lg p-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
+        <ToggleGroup type="single" value={view} onValueChange={(value) => value && setView(value)} className="bg-background border shadow-sm rounded-md">
+          <ToggleGroupItem value="month" aria-label="Month view" className="data-[state=on]:bg-primary data-[state=on]:text-white">
             <CalendarDays className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">Month</span>
           </ToggleGroupItem>
-          <ToggleGroupItem value="week" aria-label="Week view">
+          <ToggleGroupItem value="week" aria-label="Week view" className="data-[state=on]:bg-primary data-[state=on]:text-white">
             <Grid2x2 className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">Week</span>
           </ToggleGroupItem>
-          <ToggleGroupItem value="day" aria-label="Day view">
+          <ToggleGroupItem value="day" aria-label="Day view" className="data-[state=on]:bg-primary data-[state=on]:text-white">
             <CalendarIcon className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">Day</span>
           </ToggleGroupItem>
-          <ToggleGroupItem value="list" aria-label="List view">
+          <ToggleGroupItem value="list" aria-label="List view" className="data-[state=on]:bg-primary data-[state=on]:text-white">
             <List className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">List</span>
           </ToggleGroupItem>
         </ToggleGroup>
         <Button 
-          variant="outline"
+          variant="secondary"
           size="sm"
           onClick={() => handleCalendarNavigation('today')}
+          className="bg-background hover:bg-muted"
         >
           Today
         </Button>
-        {onAddEvent && (
-          <Button 
-            variant="default"
-            size="sm"
-            onClick={onAddEvent}
-            className="ml-auto sm:ml-0"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Add Event</span>
-          </Button>
-        )}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 ml-auto">
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={() => handleCalendarNavigation('prev')}
           aria-label="Previous"
+          className="h-8 w-8"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <div className="font-medium text-sm px-2 whitespace-nowrap">
+        <div className="font-medium text-sm px-3 py-1.5 bg-background border rounded-md min-w-[120px] text-center">
           {formatDateDisplay()}
         </div>
         <Button 
@@ -103,10 +94,23 @@ export const ViewControls: React.FC<ViewControlsProps> = ({
           size="icon" 
           onClick={() => handleCalendarNavigation('next')}
           aria-label="Next"
+          className="h-8 w-8"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
+
+      {onAddEvent && (
+        <Button 
+          variant="default"
+          size="sm"
+          onClick={onAddEvent}
+          className="gap-1"
+        >
+          <Plus className="h-4 w-4" />
+          <span className="hidden sm:inline">Add Event</span>
+        </Button>
+      )}
     </div>
   );
 };
