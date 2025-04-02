@@ -35,11 +35,14 @@ export default function PropertyDetails() {
       
       try {
         const response = await propertyService.getProperty(id);
-        return response.data.property;
+        if (response?.data?.property) {
+          return response.data.property;
+        } else {
+          throw new Error("Property not found");
+        }
       } catch (error) {
         console.error("Error fetching property:", error);
-        
-        return normalizeMongoObject(getMockPropertyData(id));
+        throw error;
       }
     },
   });
@@ -134,12 +137,20 @@ export default function PropertyDetails() {
     handleTabChange("conflicts");
   };
 
+  const handleRetryLoadProperty = () => {
+    refetchProperty();
+    toast.info("Retrying to load property details...");
+  };
+
   if (propertyLoading) {
     return <PropertyDetailsLoading />;
   }
 
   if (propertyError || !property) {
-    return <PropertyDetailsError onRetry={refetchProperty} />;
+    return <PropertyDetailsError 
+      onRetry={handleRetryLoadProperty} 
+      error={propertyError instanceof Error ? propertyError : null} 
+    />;
   }
 
   return (
