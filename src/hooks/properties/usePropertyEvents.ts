@@ -1,6 +1,6 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { eventService } from "@/services/api-event-service";
+import { eventService } from "@/services/api-service";
 import { useMemo } from "react";
 
 export function usePropertyEvents(id: string | undefined) {

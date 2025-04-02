@@ -1,30 +1,18 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from "@fullcalendar/interaction";
-import { Download, ChevronDown, Plus, ChevronLeft, ChevronRight, Copy, AlertTriangle, FileText, Calendar as CalendarIcon } from "lucide-react";
-import { 
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { Platform, EventType } from "@/types/enums";
+import React, { useState, useEffect } from 'react';
 import { toast } from "sonner";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { PropertyAvailabilityChecker } from './PropertyAvailabilityChecker';
-import { CalendarEvent, EventResponse } from "@/types/api-responses";
-import { format, parseISO } from "date-fns";
+import { CalendarEvent } from "@/types/api-responses";
+import { Platform, EventType } from "@/types/enums";
 import { eventService } from "@/services/api-service";
-import { PropertyEventDialog } from "./PropertyEventDialog";
-import { Badge } from "@/components/ui/badge";
-import { ConflictResolver } from "@/components/ui/conflict-resolver";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { PropertyAvailabilityChecker } from '@/components/properties/PropertyAvailabilityChecker';
+
+import { EventLegend } from "@/components/properties/calendar/EventLegend";
+import { CalendarHeader } from "@/components/properties/calendar/CalendarHeader";
+import { CalendarNavigation } from "@/components/properties/calendar/CalendarNavigation";
+import { FullCalendarWrapper } from "@/components/properties/calendar/FullCalendarWrapper";
+import { ViewEventDialog } from "@/components/properties/calendar/ViewEventDialog";
+import { PropertyEventDialog } from "@/components/properties/PropertyEventDialog";
+import { ConflictDialogs } from "@/components/properties/calendar/ConflictDialogs";
+import { getEventColor, createICalFeedUrl } from "@/components/properties/calendar/CalendarUtils";
 
 interface PropertyCalendarProps {
   events: any[];
@@ -338,7 +326,7 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
             </div>
           ) : (
             <div className="h-[600px]">
-              <FullCalendar
+              <FullCalendarWrapper
                 ref={calendarRef}
                 plugins={[dayGridPlugin, interactionPlugin]}
                 initialView="dayGridMonth"
@@ -388,37 +376,7 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
         
         <div className="border rounded-lg p-4 bg-background">
           <h3 className="font-medium mb-3">Event Legend</h3>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full" style={{backgroundColor: getEventColor(undefined, EventType.BOOKING)}}></div>
-              <span>Booking</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full" style={{backgroundColor: getEventColor(undefined, EventType.BLOCKED)}}></div>
-              <span>Blocked</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full" style={{backgroundColor: getEventColor(undefined, EventType.MAINTENANCE)}}></div>
-              <span>Maintenance</span>
-            </div>
-            <hr className="my-2" />
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full" style={{backgroundColor: getEventColor(Platform.AIRBNB)}}></div>
-              <span>Airbnb</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full" style={{backgroundColor: getEventColor(Platform.BOOKING)}}></div>
-              <span>Booking.com</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full" style={{backgroundColor: getEventColor(Platform.VRBO)}}></div>
-              <span>VRBO</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full" style={{backgroundColor: getEventColor(Platform.MANUAL)}}></div>
-              <span>Manual</span>
-            </div>
-          </div>
+          <EventLegend />
         </div>
       </div>
 
@@ -434,129 +392,19 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
       />
       
       {viewedEvent && (
-        <Dialog open={isViewEventOpen} onOpenChange={setIsViewEventOpen}>
-          <DialogContent className="sm:max-w-[525px]">
-            <DialogHeader>
-              <DialogTitle>Event Details</DialogTitle>
-              <DialogDescription>
-                View details for this event
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-1 gap-4">
-                <div className="flex justify-between">
-                  <h3 className="text-lg font-semibold">{viewedEvent.summary}</h3>
-                  <Badge>{viewedEvent.platform}</Badge>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Start Date</p>
-                    <p>{format(new Date(viewedEvent.start_date), 'MMM dd, yyyy HH:mm')}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">End Date</p>
-                    <p>{format(new Date(viewedEvent.end_date), 'MMM dd, yyyy HH:mm')}</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Type</p>
-                    <Badge variant="outline">{viewedEvent.event_type}</Badge>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Status</p>
-                    <Badge variant="outline">{viewedEvent.status}</Badge>
-                  </div>
-                </div>
-                
-                {viewedEvent.description && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Description</p>
-                    <p className="mt-1">{viewedEvent.description}</p>
-                  </div>
-                )}
-                
-                {viewedEvent.ical_uid && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">iCal UID</p>
-                    <p className="mt-1 text-xs text-muted-foreground break-all">{viewedEvent.ical_uid}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <Button 
-                type="button" 
-                variant="destructive" 
-                onClick={handleDeleteEvent}
-              >
-                Delete Event
-              </Button>
-              <Button type="button" variant="outline" onClick={() => setIsViewEventOpen(false)}>
-                Close
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <ViewEventDialog
+          isOpen={isViewEventOpen}
+          onOpenChange={setIsViewEventOpen}
+          eventData={viewedEvent}
+        />
       )}
       
-      <Dialog open={isConflictDialogOpen} onOpenChange={setIsConflictDialogOpen}>
-        <DialogContent className="sm:max-w-[525px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center text-red-600">
-              <AlertTriangle className="mr-2 h-5 w-5" />
-              Booking Conflict Detected
-            </DialogTitle>
-            <DialogDescription>
-              Your new event conflicts with {conflictDetails?.conflicts_detected || 0} existing events.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4 space-y-4">
-            <div className="p-3 bg-red-50 border border-red-100 rounded-md">
-              <p>The event you're trying to create overlaps with existing bookings. Would you like to:</p>
-              <ul className="mt-2 space-y-2 list-disc pl-4">
-                <li>Proceed anyway (may cause double bookings)</li>
-                <li>Cancel and edit the event dates</li>
-                <li>View the conflicts and resolve them</li>
-              </ul>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsConflictDialogOpen(false);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="default"
-              onClick={() => {
-                toast.success("Event created despite conflicts");
-                setIsConflictDialogOpen(false);
-                setIsAddEventOpen(false);
-                refetchEvents();
-                resetEventForm();
-              }}
-            >
-              Create Anyway
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleResolveConflicts}
-            >
-              Resolve Conflicts
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConflictDialogs
+        isOpen={isConflictDialogOpen}
+        onOpenChange={setIsConflictDialogOpen}
+        conflictDetails={conflictDetails}
+        onResolve={handleResolveConflicts}
+      />
       
       <Dialog open={isConflictResolverOpen} onOpenChange={setIsConflictResolverOpen}>
         <DialogContent className="sm:max-w-[600px]">
