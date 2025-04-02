@@ -16,17 +16,28 @@ export default function StatusToggle({ userId, isActive, onToggle }: StatusToggl
   const queryClient = useQueryClient();
   const { mutate, isPending } = useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-      return adminUserService.updateUser(id, { is_active: isActive });
+      try {
+        const result = await adminUserService.updateUser(id, { is_active: isActive });
+        return result;
+      } catch (error) {
+        console.error("Failed to update user status:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
-      toast.success(data?.data?.message || 'User status updated successfully');
+      const message = data?.message || 'User status updated successfully';
+      toast.success(message);
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      onToggle();
     },
+    onError: (error) => {
+      console.error("Error toggling user status:", error);
+      toast.error("Failed to update user status");
+    }
   });
 
   const handleToggle = (checked: boolean) => {
     mutate({ id: userId, isActive: checked });
-    onToggle();
   };
 
   return (

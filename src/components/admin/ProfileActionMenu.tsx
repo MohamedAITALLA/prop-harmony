@@ -20,7 +20,6 @@ import { adminProfileService } from '@/services/api-service';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { UserProfile } from '@/types/api-responses';
-import { getMongoId } from '@/lib/mongo-helpers';
 
 interface ProfileActionMenuProps {
   profile: UserProfile;
@@ -34,13 +33,24 @@ const ProfileActionMenu = ({ profile, onEdit, onView }: ProfileActionMenuProps) 
   
   const resetMutation = useMutation({
     mutationFn: async (userId: string) => {
-      return adminProfileService.resetUserProfile(userId);
+      try {
+        const response = await adminProfileService.resetUserProfile(userId);
+        return response;
+      } catch (error) {
+        console.error(`Error resetting profile for user ${userId}:`, error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
-      toast.success(data?.data?.message || 'User profile reset successfully');
+      const message = data?.message || 'User profile reset successfully';
+      toast.success(message);
       queryClient.invalidateQueries({ queryKey: ['userProfiles'] });
       setConfirmReset(false);
     },
+    onError: (error) => {
+      console.error("Error in reset mutation:", error);
+      toast.error("Failed to reset user profile");
+    }
   });
 
   const userId = profile.user_id;

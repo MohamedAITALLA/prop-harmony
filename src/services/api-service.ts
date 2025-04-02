@@ -1,3 +1,4 @@
+
 import api from "@/lib/api";
 import { ApiResponse } from "@/types/api-responses";
 
@@ -15,8 +16,14 @@ export const propertyService = {
   getProperties: (params?: PropertyQueryParams) => {
     return api.get("/properties", { params });
   },
-  getAllProperties: (params?: PropertyQueryParams) => {
-    return api.get("/properties", { params });
+  getAllProperties: async (params?: PropertyQueryParams) => {
+    try {
+      const response = await api.get("/properties", { params });
+      return response.data; // Return the data portion directly
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+      throw error;
+    }
   },
   getProperty: (id: string) => {
     return api.get(`/properties/${id}`);
@@ -110,17 +117,35 @@ export const profileService = {
 
 // Admin User Service
 export const adminUserService = {
-  getUsers: (params?: { page?: number; limit?: number }) => {
-    return api.get("/admin/users", { params });
+  getUsers: async (params?: { page?: number; limit?: number; role?: string; status?: string; search?: string }) => {
+    try {
+      const response = await api.get("/admin/users", { params });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      throw error;
+    }
   },
-  getUser: (id: string) => {
-    return api.get(`/admin/users/${id}`);
+  getUser: async (id: string) => {
+    try {
+      const response = await api.get(`/admin/users/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching user ${id}:`, error);
+      throw error;
+    }
   },
   createUser: (data: any) => {
     return api.post("/admin/users", data);
   },
-  updateUser: (id: string, data: any) => {
-    return api.put(`/admin/users/${id}`, data);
+  updateUser: async (id: string, data: any) => {
+    try {
+      const response = await api.put(`/admin/users/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating user ${id}:`, error);
+      throw error;
+    }
   },
   deleteUser: (id: string) => {
     return api.delete(`/admin/users/${id}`);
@@ -135,17 +160,41 @@ export const adminUserService = {
 
 // Admin Profile Service
 export const adminProfileService = {
-  getUserProfiles: (params?: { page?: number; limit?: number; sort?: string; status?: string }) => {
-    return api.get("/admin/user-profiles", { params });
+  getUserProfiles: async (params?: { page?: number; limit?: number; sort?: string; status?: string }) => {
+    try {
+      const response = await api.get("/admin/user-profiles", { params });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching user profiles:", error);
+      throw error;
+    }
   },
-  getUserProfile: (userId: string) => {
-    return api.get(`/admin/user-profiles/${userId}`);
+  getUserProfile: async (userId: string) => {
+    try {
+      const response = await api.get(`/admin/user-profiles/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching user profile ${userId}:`, error);
+      throw error;
+    }
   },
-  updateUserProfile: (userId: string, data: any) => {
-    return api.put(`/admin/user-profiles/${userId}`, data);
+  updateUserProfile: async (userId: string, data: any) => {
+    try {
+      const response = await api.put(`/admin/user-profiles/${userId}`, data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating user profile ${userId}:`, error);
+      throw error;
+    }
   },
-  resetUserProfile: (userId: string) => {
-    return api.post(`/admin/user-profiles/${userId}/reset`, {});
+  resetUserProfile: async (userId: string) => {
+    try {
+      const response = await api.post(`/admin/user-profiles/${userId}/reset`, {});
+      return response.data;
+    } catch (error) {
+      console.error(`Error resetting user profile ${userId}:`, error);
+      throw error;
+    }
   }
 };
 

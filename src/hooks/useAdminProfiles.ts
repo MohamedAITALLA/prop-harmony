@@ -10,11 +10,16 @@ export function useAdminProfiles() {
     return useQuery({
       queryKey: ["admin-profiles", page, limit],
       queryFn: async () => {
-        const response = await adminProfileService.getUserProfiles({
-          page,
-          limit
-        });
-        return response.data;
+        try {
+          const response = await adminProfileService.getUserProfiles({
+            page,
+            limit
+          });
+          return response?.data || { profiles: [], pagination: { total: 0, page: 1, limit: 10, pages: 0 } };
+        } catch (error) {
+          console.error("Failed to fetch profiles:", error);
+          return { profiles: [], pagination: { total: 0, page: 1, limit: 10, pages: 0 } };
+        }
       }
     });
   };
@@ -24,8 +29,13 @@ export function useAdminProfiles() {
       queryKey: ["admin-profile", userId],
       queryFn: async () => {
         if (!userId) return null;
-        const response = await adminProfileService.getUserProfile(userId);
-        return response.data;
+        try {
+          const response = await adminProfileService.getUserProfile(userId);
+          return response?.data || null;
+        } catch (error) {
+          console.error(`Failed to fetch profile for user ${userId}:`, error);
+          return null;
+        }
       },
       enabled: !!userId
     });
@@ -36,7 +46,8 @@ export function useAdminProfiles() {
       return adminProfileService.updateUserProfile(userId, data);
     },
     onSuccess: (response, variables) => {
-      toast.success(response.data?.message || "Profile updated successfully");
+      const message = response?.message || "Profile updated successfully";
+      toast.success(message);
       queryClient.invalidateQueries({ queryKey: ["admin-profile", variables.userId] });
       queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
     },
@@ -51,7 +62,8 @@ export function useAdminProfiles() {
       return adminProfileService.resetUserProfile(userId);
     },
     onSuccess: (response, userId) => {
-      toast.success(response.data?.message || "Profile reset successfully");
+      const message = response?.message || "Profile reset successfully";
+      toast.success(message);
       queryClient.invalidateQueries({ queryKey: ["admin-profile", userId] });
       queryClient.invalidateQueries({ queryKey: ["admin-profiles"] });
     },
@@ -64,7 +76,13 @@ export function useAdminProfiles() {
   // User management related functions
   const getUsersMutation = useMutation({
     mutationFn: async ({ page = 1, limit = 10 }: { page: number; limit: number }) => {
-      return adminUserService.getUsers({ page, limit });
+      try {
+        const response = await adminUserService.getUsers({ page, limit });
+        return response;
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+        throw error;
+      }
     }
   });
 
@@ -73,8 +91,13 @@ export function useAdminProfiles() {
       queryKey: ["admin-user", userId],
       queryFn: async () => {
         if (!userId) return null;
-        const response = await adminUserService.getUser(userId);
-        return response.data;
+        try {
+          const response = await adminUserService.getUser(userId);
+          return response?.data || null;
+        } catch (error) {
+          console.error(`Failed to fetch user details for ${userId}:`, error);
+          return null;
+        }
       },
       enabled: !!userId
     });

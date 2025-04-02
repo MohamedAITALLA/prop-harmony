@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Table, 
@@ -11,7 +10,6 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import ActionMenu from "@/components/admin/ActionMenu";
@@ -44,7 +42,7 @@ export default function UserManagement() {
   const pageSize = 10;
   
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["users", currentPage, activeTab],
+    queryKey: ["users", currentPage, activeTab, searchQuery],
     queryFn: async () => {
       try {
         const params: any = {
@@ -67,17 +65,16 @@ export default function UserManagement() {
         }
         
         const response = await adminUserService.getUsers(params);
+        console.log("Users API response:", response);
         return response;
       } catch (error) {
         console.error("Error fetching users:", error);
         return {
-          data: {
-            users: [],
-            total: 0,
-            page: 1,
-            limit: pageSize,
-            total_pages: 1
-          }
+          users: [],
+          total: 0,
+          page: 1,
+          limit: pageSize,
+          total_pages: 1
         };
       }
     }
@@ -146,7 +143,6 @@ export default function UserManagement() {
   };
   
   const handlePageChange = (page: number) => {
-    // Make sure we have valid data and the page is within range
     const totalPages = data?.data?.total_pages || 1;
     if (page > 0 && page <= totalPages) {
       setCurrentPage(page);
@@ -160,6 +156,7 @@ export default function UserManagement() {
   
   const handleToggleUserStatus = async (userId: string, isActive: boolean) => {
     try {
+      console.log(`Toggling user ${userId} status to ${!isActive}`);
       await adminUserService.updateUser(userId, { is_active: !isActive });
       toast.success("User status updated");
       refetch();
@@ -196,49 +193,53 @@ export default function UserManagement() {
     }),
   ];
   
-  // Use mock users if no data is available
-  const users = data?.data?.users || mockUsers;
-  const totalPages = data?.data?.total_pages || 1;
+  let users = [];
+  let totalPages = 1;
   
-  // Create array of page numbers for pagination
+  if (data) {
+    if (data.data && data.data.users) {
+      users = data.data.users;
+      totalPages = data.data.total_pages || 1;
+    } else if (data.users) {
+      users = data.users;
+      totalPages = data.total_pages || 1;
+    } else {
+      users = mockUsers;
+    }
+  } else {
+    users = mockUsers;
+  }
+  
   const getPageNumbers = () => {
     const pages = [];
     const maxPagesToShow = 5;
     
     if (totalPages <= maxPagesToShow) {
-      // Show all pages if total pages is less than or equal to maxPagesToShow
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
       }
     } else {
-      // Always include first page
       pages.push(1);
       
-      // Calculate start and end of current window
       let startPage = Math.max(2, currentPage - Math.floor(maxPagesToShow / 2) + 1);
       let endPage = Math.min(totalPages - 1, startPage + maxPagesToShow - 3);
       
-      // Adjust window if we're near the end
       if (endPage - startPage < maxPagesToShow - 3) {
         startPage = Math.max(2, totalPages - maxPagesToShow + 2);
       }
       
-      // Add ellipsis after first page if needed
       if (startPage > 2) {
-        pages.push(-1); // -1 represents ellipsis
+        pages.push(-1);
       }
       
-      // Add pages in the current window
       for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
       }
       
-      // Add ellipsis before last page if needed
       if (endPage < totalPages - 1) {
-        pages.push(-2); // -2 represents ellipsis
+        pages.push(-2);
       }
       
-      // Always include last page if there's more than one page
       if (totalPages > 1) {
         pages.push(totalPages);
       }
@@ -310,7 +311,7 @@ export default function UserManagement() {
                 <TableBody>
                   {users.map((user: User) => (
                     <TableRow key={user._id}>
-                      <TableCell className="font-medium">{user.full_name}</TableCell>
+                      <TableCell className="font-medium">{user.full_name || `${user.first_name} ${user.last_name}`}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
                         <RoleBadge role={user.role} />

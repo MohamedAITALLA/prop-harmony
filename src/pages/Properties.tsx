@@ -59,8 +59,14 @@ export default function Properties() {
           sort: sortOption
         });
         
-        // Ensure we return an array of properties
-        return response.data || { properties: getMockProperties(), pagination: createMockPagination() };
+        console.log("API Response:", response);
+        
+        if (response?.success === false) {
+          throw new Error(response?.message || "Failed to fetch properties");
+        }
+        
+        // Return the response data or mock data if needed
+        return response || { properties: getMockProperties(), pagination: createMockPagination() };
       } catch (error) {
         console.error("Error fetching properties:", error);
         toast.error("Failed to load properties");
@@ -107,12 +113,18 @@ export default function Properties() {
   };
 
   if (data) {
-    if (Array.isArray(data)) {
+    if (data.data && data.data.properties) {
+      // API returned the correct structure
+      properties = data.data.properties;
+      pagination = data.data.pagination || pagination;
+    } else if (data.properties) {
+      // Direct properties field
+      properties = data.properties;
+      pagination = data.pagination || pagination;
+    } else if (Array.isArray(data)) {
+      // Array of properties
       properties = data;
       pagination = createMockPagination();
-    } else if (data.properties) {
-      properties = data.properties;
-      pagination = data.pagination;
     }
   }
 
