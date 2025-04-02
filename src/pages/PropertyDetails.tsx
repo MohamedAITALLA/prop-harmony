@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -12,7 +13,7 @@ import { ICalConnectionsManager } from "@/components/properties/ICalConnectionsM
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Platform, EventType } from "@/types/enums";
-import { PropertyConflictsView } from "@/components/conflicts/PropertyConflictsView";
+import { PropertyConflictsList } from "@/components/conflicts/PropertyConflictsList";
 import { PropertyCalendar } from "@/components/properties/PropertyCalendar";
 import { SyncDialog } from "@/components/ui/sync-dialog";
 import { CalendarEvent, Property } from "@/types/api-responses";
@@ -230,9 +231,12 @@ export default function PropertyDetails() {
         </TabsContent>
         
         <TabsContent value="conflicts" className="space-y-4">
-          <div className="p-4 border rounded-md">
-            <h2 className="text-xl font-semibold mb-2">Conflicts</h2>
-            {id && <PropertyConflictsView propertyId={id} />}
+          <div className="border rounded-md">
+            <div className="p-4 border-b">
+              <h2 className="text-xl font-semibold">Calendar Conflicts</h2>
+              <p className="text-muted-foreground">Review and resolve calendar conflicts for this property</p>
+            </div>
+            {id && <PropertyConflictsList propertyId={id} />}
           </div>
         </TabsContent>
         

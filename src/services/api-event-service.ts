@@ -1,6 +1,6 @@
 
 import api from "@/lib/api";
-import { CalendarEvent, EventResponse } from "@/types/api-responses";
+import { CalendarEvent, EventResponse, Conflict } from "@/types/api-responses";
 
 export const eventService = {
   /**
@@ -65,6 +65,22 @@ export const eventService = {
     const response = await api.get(`/properties/${propertyId}/events/conflicts`, {
       params: { event_id: eventId, start_date: startDate, end_date: endDate }
     });
+    return response.data;
+  },
+
+  /**
+   * Get all conflicts for a property
+   * @param {string} propertyId - The property ID
+   * @param {string} [status] - Optional filter by status
+   * @returns {Promise<{
+   *   success: boolean,
+   *   data: Conflict[],
+   *   meta: object,
+   *   message: string
+   * }>}
+   */
+  getPropertyConflicts: async (propertyId: string, params: { status?: string } = {}) => {
+    const response = await api.get(`/properties/${propertyId}/conflicts`, { params });
     return response.data;
   },
 
