@@ -124,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       navigate("/dashboard");
-      toast.success(response.message || "Login successful!");
+      toast.success(response.data?.message || "Login successful!");
     } catch (error) {
       console.error("Login error:", error);
       // The error toast is already handled by the API interceptor
@@ -175,7 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       navigate("/dashboard");
-      toast.success(response.message || "Registration successful!");
+      toast.success(response.data?.message || "Registration successful!");
     } catch (error) {
       console.error("Registration error:", error);
       // The error toast is already handled by the API interceptor

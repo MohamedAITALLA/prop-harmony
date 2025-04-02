@@ -53,7 +53,7 @@ export default function Conflicts() {
       try {
         if (selectedProperty) {
           const params = selectedStatus ? { status: selectedStatus } : undefined;
-          const response = await conflictService.getConflicts(selectedProperty, params);
+          const response = await conflictService.getPropertyConflicts(selectedProperty, params);
           return response.data;
         } else {
           return convertToMongoIdFormat(getMockConflicts());

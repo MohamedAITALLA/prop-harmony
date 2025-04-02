@@ -37,7 +37,7 @@ const ProfileActionMenu = ({ profile, onEdit, onView }: ProfileActionMenuProps) 
       return adminProfileService.resetUserProfile(userId);
     },
     onSuccess: (data) => {
-      toast.success(data.message || 'User profile reset successfully');
+      toast.success(data?.data?.message || 'User profile reset successfully');
       queryClient.invalidateQueries({ queryKey: ['userProfiles'] });
       setConfirmReset(false);
     },

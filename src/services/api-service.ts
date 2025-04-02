@@ -185,5 +185,9 @@ export const conflictService = {
   },
   resolveConflict: (conflictId: string, resolution: { resolution: string; event_id?: string }) => {
     return api.post(`/conflicts/${conflictId}/resolve`, resolution);
+  },
+  // Adding the missing getConflicts method
+  getConflicts: (propertyId: string, params?: { status?: string; page?: number; limit?: number }) => {
+    return api.get(`/properties/${propertyId}/conflicts`, { params });
   }
 };

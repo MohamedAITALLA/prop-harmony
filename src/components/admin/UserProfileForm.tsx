@@ -69,11 +69,11 @@ const UserProfileForm = ({ profile, onSuccess }: UserProfileFormProps) => {
       });
     },
     onSuccess: (data) => {
-      const successMessage = data.message || 'User profile updated successfully';
+      const successMessage = data?.data?.message || 'User profile updated successfully';
       toast.success(successMessage);
       
       // Updated fields will be available in response data if supported by the API
-      if (data.data?.updated_fields && data.data.updated_fields.length > 0) {
+      if (data?.data?.updated_fields && data.data.updated_fields.length > 0) {
         console.log('Updated profile fields:', data.data.updated_fields.join(', '));
       }
       

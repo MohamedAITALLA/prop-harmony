@@ -19,7 +19,7 @@ export default function StatusToggle({ userId, isActive, onToggle }: StatusToggl
       return adminUserService.updateUser(id, { is_active: isActive });
     },
     onSuccess: (data) => {
-      toast.success(data?.message || 'User status updated successfully');
+      toast.success(data?.data?.message || 'User status updated successfully');
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });
