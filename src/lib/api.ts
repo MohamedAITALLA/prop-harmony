@@ -2,7 +2,7 @@
 import axios, { AxiosInstance } from "axios";
 import { toast } from "sonner";
 
-const API_URL = "/api";
+const API_URL = "https://channel-manager-api.vercel.app";
 
 // Extend the AxiosInstance type to include our custom method
 interface ExtendedAxiosInstance extends AxiosInstance {
