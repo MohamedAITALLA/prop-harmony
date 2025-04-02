@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CalendarRange } from "@/components/ui/calendar-range";
 import { Search, Filter, X } from "lucide-react";
+import { Property } from "@/types/api-responses";
 
 export const EventFilters: React.FC = () => {
   const { 

@@ -1,19 +1,25 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { CalendarEvent } from "@/types/api-responses";
 import { Platform, EventType } from "@/types/enums";
 import { getEventColor, createICalFeedUrl } from "@/components/properties/calendar/CalendarUtils";
-import { CalendarContainer } from '@/components/properties/calendar/CalendarContainer';
-import { PropertyAvailabilitySection } from '@/components/properties/calendar/PropertyAvailabilitySection';
 import { EventDialogManager, EventDialogManagerRef } from '@/components/properties/calendar/EventDialogManager';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarRange } from "@/components/ui/calendar-range";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Filter, X } from "lucide-react";
+import { 
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
+} from "@/components/ui/select";
+import { CalendarView } from "@/components/calendar/CalendarView";
+import {
+  AlertCircle, CalendarDays, List, BedDouble, Home, Filter, Plus, Download, X
+} from "lucide-react";
+import { PlatformSelect } from "@/components/sync/PlatformSelect";
+import { EventTypeSelect } from "@/components/events/EventTypeSelect";
+import { DateRangeSelect } from "@/components/ui/date-range-select";
+import { Badge } from "@/components/ui/badge";
 import { DateRange } from "react-day-picker";
 
 interface PropertyCalendarProps {
@@ -38,41 +44,26 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
   onViewConflicts,
   refetchEvents
 }) => {
-  const calendarRef = useRef<any>(null);
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const eventDialogRef = useRef<EventDialogManagerRef>(null);
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
+  const [view, setView] = useState("month");
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([]);
+  const [selectedEventTypes, setSelectedEventTypes] = useState<EventType[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-
-  useEffect(() => {
-    if (propertyId) {
-      // Reset or initialize any property-specific state here if needed
+  
+  const formattedEvents = events.map(event => ({
+    id: event.id,
+    title: event.title,
+    start: event.start,
+    end: event.end,
+    allDay: true,
+    resourceId: event.extendedProps?.property_id,
+    extendedProps: {
+      platform: event.extendedProps?.platform,
+      event_type: event.extendedProps?.event_type,
+      status: event.extendedProps?.status,
+      description: event.extendedProps?.description
     }
-  }, [propertyId]);
-
-  const handleCalendarNavigation = (action: 'prev' | 'next' | 'today') => {
-    if (action === 'prev') {
-      const newDate = new Date(currentDate);
-      newDate.setMonth(newDate.getMonth() - 1);
-      setCurrentDate(newDate);
-    } else if (action === 'next') {
-      const newDate = new Date(currentDate);
-      newDate.setMonth(newDate.getMonth() + 1);
-      setCurrentDate(newDate);
-    } else if (action === 'today') {
-      setCurrentDate(new Date());
-    }
-  };
-
-  const copyICalFeedUrl = () => {
-    if (propertyId) {
-      const url = createICalFeedUrl(propertyId);
-      navigator.clipboard.writeText(url);
-      toast.success("iCal feed URL copied to clipboard");
-    }
-  };
+  }));
 
   const handleDateClick = (info: any) => {
     const clickedDate = info.dateStr;
@@ -111,12 +102,22 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
     }
   };
 
-  const applyFilters = () => {
-    refetchEvents();
-    // In a real implementation, we would pass the filters to the refetch function
-    toast.info("Filters applied");
+  const handleExport = (format: string) => {
+    if (onExport) {
+      onExport(format);
+    } else {
+      toast.info(`Exporting calendar as ${format}...`);
+    }
   };
 
+  const copyICalFeedUrl = () => {
+    if (propertyId) {
+      const url = createICalFeedUrl(propertyId);
+      navigator.clipboard.writeText(url);
+      toast.success("iCal feed URL copied to clipboard");
+    }
+  };
+  
   const clearFilters = () => {
     setSelectedPlatforms([]);
     setSelectedEventTypes([]);
@@ -124,122 +125,191 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
     refetchEvents();
     toast.info("Filters cleared");
   };
+  
+  const applyFilters = () => {
+    // In a real implementation, we would use the filters when fetching events
+    refetchEvents();
+    toast.info("Filters applied");
+  };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-6">
-        {/* Filter section */}
-        <div className="flex items-center justify-between">
-          <Button 
-            variant="outline" 
-            onClick={() => setShowFilters(!showFilters)}
-            className="shadow-sm"
-          >
-            <Filter className="mr-2 h-4 w-4" />
-            Filters
-            {(selectedPlatforms.length > 0 || selectedEventTypes.length > 0 || dateRange) && (
-              <span className="ml-1 rounded-full bg-primary w-5 h-5 text-xs flex items-center justify-center text-primary-foreground">
-                {(selectedPlatforms.length > 0 ? 1 : 0) + 
-                 (selectedEventTypes.length > 0 ? 1 : 0) + 
-                 (dateRange ? 1 : 0)}
-              </span>
-            )}
-          </Button>
-        </div>
-        
-        {showFilters && (
-          <Card className="border">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle>Filters</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
-                  <X className="h-4 w-4" />
+    <div className="flex flex-col lg:flex-row gap-6">
+      <div className="w-full lg:w-[260px] space-y-4">
+        <Card>
+          <CardHeader className="px-4 py-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Filter className="h-5 w-5" /> Filters
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 py-2 space-y-5">
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">Platforms</h3>
+              <PlatformSelect
+                selected={selectedPlatforms}
+                onSelectionChange={setSelectedPlatforms}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">Event Types</h3>
+              <EventTypeSelect
+                selected={selectedEventTypes}
+                onSelectionChange={setSelectedEventTypes}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">Date Range</h3>
+              <DateRangeSelect
+                dateRange={dateRange}
+                onDateRangeChange={setDateRange}
+              />
+            </div>
+            
+            <div className="flex flex-col gap-2 mt-4">
+              <Button 
+                onClick={applyFilters}
+                className="w-full"
+              >
+                Apply Filters
+              </Button>
+              
+              {(selectedPlatforms.length > 0 || selectedEventTypes.length > 0 || dateRange?.from) && (
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={clearFilters}
+                >
+                  <X className="mr-2 h-4 w-4" /> Clear Filters
                 </Button>
-              </div>
-              <CardDescription>Filter events by platform, type, and date</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-6 grid-cols-1 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="platforms">Platforms</Label>
-                <Select 
-                  value={selectedPlatforms.length > 0 ? selectedPlatforms[0] : "all_platforms"}
-                  onValueChange={(value) => {
-                    setSelectedPlatforms(value === "all_platforms" ? [] : [value]);
-                  }}
-                >
-                  <SelectTrigger id="platforms">
-                    <SelectValue placeholder="All platforms" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all_platforms">All platforms</SelectItem>
-                    <SelectItem value="Airbnb">Airbnb</SelectItem>
-                    <SelectItem value="Booking">Booking.com</SelectItem>
-                    <SelectItem value="Expedia">Expedia</SelectItem>
-                    <SelectItem value="TripAdvisor">TripAdvisor</SelectItem>
-                    <SelectItem value="Vrbo">Vrbo</SelectItem>
-                    <SelectItem value="manual">Manual</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="event-types">Event Types</Label>
-                <Select
-                  value={selectedEventTypes.length > 0 ? selectedEventTypes[0] : "all_types"}
-                  onValueChange={(value) => {
-                    setSelectedEventTypes(value === "all_types" ? [] : [value]);
-                  }}
-                >
-                  <SelectTrigger id="event-types">
-                    <SelectValue placeholder="All types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all_types">All types</SelectItem>
-                    <SelectItem value="booking">Booking</SelectItem>
-                    <SelectItem value="blocked">Blocked</SelectItem>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Date Range</Label>
-                <CalendarRange 
-                  value={dateRange} 
-                  onChange={(value) => setDateRange(value)}
-                />
-              </div>
-              
-              <div className="col-span-1 sm:col-span-3 flex justify-end gap-2 mt-4">
-                <Button variant="outline" onClick={clearFilters}>Clear Filters</Button>
-                <Button onClick={applyFilters}>Apply Filters</Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              )}
+            </div>
+          </CardContent>
+        </Card>
         
-        <CalendarContainer 
-          events={events}
-          eventsLoading={eventsLoading}
-          propertyId={propertyId}
-          onDateClick={handleDateClick}
-          onEventClick={handleEventClick}
-          onDateChange={setCurrentDate}
-          hasConflicts={hasConflicts}
-          onViewConflicts={onViewConflicts}
-          onAddEvent={() => eventDialogRef.current?.openAddEventDialog()}
-          onExport={onExport}
-          copyICalFeedUrl={copyICalFeedUrl}
-          currentDate={currentDate}
-          handleCalendarNavigation={handleCalendarNavigation}
-        />
+        <Card>
+          <CardHeader className="px-4 py-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Download className="h-5 w-5" /> Export
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 py-2 space-y-2">
+            <Button variant="outline" className="w-full" onClick={() => handleExport('iCal')}>
+              Export as iCal
+            </Button>
+            <Button variant="outline" className="w-full" onClick={() => handleExport('PDF')}>
+              Export as PDF
+            </Button>
+            <Button variant="outline" className="w-full" onClick={copyICalFeedUrl}>
+              Copy iCal Feed URL
+            </Button>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="px-4 py-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" /> Legend
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 py-2 space-y-2">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-[#ff5a5f]">
+                <BedDouble className="h-3 w-3 mr-1" /> Airbnb
+              </Badge>
+              <span className="text-xs text-muted-foreground">Airbnb bookings</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Badge className="bg-[#003580]">
+                <BedDouble className="h-3 w-3 mr-1" /> Booking
+              </Badge>
+              <span className="text-xs text-muted-foreground">Booking.com</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Badge className="bg-[#ef4444]">
+                <Home className="h-3 w-3 mr-1" /> Blocked
+              </Badge>
+              <span className="text-xs text-muted-foreground">Property unavailable</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Badge className="bg-[#f97316]">
+                <AlertCircle className="h-3 w-3 mr-1" /> Maintenance
+              </Badge>
+              <span className="text-xs text-muted-foreground">Repairs, cleaning</span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
       
-      <PropertyAvailabilitySection 
-        propertyId={propertyId}
-        getEventColor={getEventColor}
-      />
-
+      <div className="flex-1">
+        <div className="mb-4 flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-semibold">Property Calendar</h2>
+            <p className="text-muted-foreground">Manage bookings and availability</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => eventDialogRef.current?.openAddEventDialog()}>
+              <Plus className="mr-2 h-4 w-4" /> Add Event
+            </Button>
+            
+            <Select value={view} onValueChange={setView}>
+              <SelectTrigger className="w-[130px]">
+                <SelectValue placeholder="Select view" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="month">Month</SelectItem>
+                <SelectItem value="week">Week</SelectItem>
+                <SelectItem value="day">Day</SelectItem>
+                <SelectItem value="list">List</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {hasConflicts && (
+              <Button variant="destructive" onClick={onViewConflicts}>
+                <AlertCircle className="mr-2 h-4 w-4" /> View Conflicts
+              </Button>
+            )}
+          </div>
+        </div>
+        
+        <Tabs defaultValue="calendar" className="w-full">
+          <TabsList>
+            <TabsTrigger value="calendar">
+              <CalendarDays className="mr-2 h-4 w-4" /> Calendar
+            </TabsTrigger>
+            <TabsTrigger value="list">
+              <List className="mr-2 h-4 w-4" /> List View
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="calendar" className="mt-4">
+            <Card>
+              <CardContent className="p-0 sm:p-6">
+                <CalendarView 
+                  events={formattedEvents}
+                  isLoading={eventsLoading}
+                  view={view}
+                  onViewChange={setView}
+                  onEventClick={handleEventClick}
+                  onDateClick={handleDateClick}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="list" className="mt-4">
+            <Card>
+              <CardContent className="p-6">
+                <h3>List view coming soon...</h3>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+      
       <EventDialogManager 
         ref={eventDialogRef}
         propertyId={propertyId}

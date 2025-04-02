@@ -4,10 +4,11 @@ import { eventService } from "@/services/api-service";
 import { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
+import { Platform, EventType } from "@/types/enums";
 
 interface FilterOptions {
-  platforms?: string[];
-  eventTypes?: string[];
+  platforms?: Platform[];
+  eventTypes?: EventType[];
   dateRange?: DateRange;
 }
 
