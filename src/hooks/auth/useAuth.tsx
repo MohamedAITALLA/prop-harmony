@@ -1,12 +1,14 @@
 
 import { ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthContext, AuthContextType, RegisterData } from "./AuthContext";
 import { useAuthState } from "./useAuthState";
 import { useAuthMethods } from "./useAuthMethods";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { user, setUser, isLoading } = useAuthState();
-  const { login, register, logout } = useAuthMethods(setUser);
+  const navigate = useNavigate();
+  const { login, register, logout } = useAuthMethods(setUser, navigate);
 
   const contextValue: AuthContextType = {
     user,

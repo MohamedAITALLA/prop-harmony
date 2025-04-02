@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { authService } from "@/services/api-service";
 import { ensureMongoId } from "@/lib/mongo-helpers";
@@ -11,8 +10,10 @@ import { useTokenManagement } from "./useTokenManagement";
 /**
  * Hook for authentication methods (login, register, logout)
  */
-export function useAuthMethods(setUser: (user: User | null) => void) {
-  const navigate = useNavigate();
+export function useAuthMethods(
+  setUser: (user: User | null) => void,
+  navigate: (path: string) => void
+) {
   const { setToken, removeToken } = useTokenManagement();
 
   const login = async (email: string, password: string) => {
