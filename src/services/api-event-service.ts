@@ -1,102 +1,111 @@
 
 import api from "@/lib/api";
-import { CalendarEvent, EventResponse, Conflict } from "@/types/api-responses";
+import { ApiResponse, CalendarEvent, Conflict } from "@/types/api-responses";
+
+export interface EventFilters {
+  start_date?: string;
+  end_date?: string;
+  platforms?: string[];
+  event_types?: string[];
+}
 
 export const eventService = {
-  /**
-   * Get events for a property with optional filters
-   * @returns {Promise<{
-   *   success: boolean,
-   *   data: CalendarEvent[],
-   *   meta: {
-   *     total: number,
-   *     property_id: string,
-   *     platforms: object,
-   *     date_range: { from: string, to: string }
-   *   },
-   *   message: string,
-   *   timestamp: string
-   * }>}
-   */
-  getEvents: async (propertyId: string, params: any = {}) => {
-    const response = await api.get(`/properties/${propertyId}/events`, { params });
-    return response.data;
+  getEvents: async (propertyId: string, filters?: EventFilters): Promise<ApiResponse<CalendarEvent[]>> => {
+    try {
+      const response = await api.get(`/properties/${propertyId}/events`, {
+        params: filters
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      return { success: false, data: [], message: "Failed to fetch events" };
+    }
   },
 
-  /**
-   * Create a new event for a property
-   * Returns the created event and conflict information if any
-   * @returns {Promise<EventResponse>} Object containing event data and conflict metadata
-   */
-  createEvent: async (propertyId: string, eventData: Partial<CalendarEvent>) => {
-    const response = await api.post(`/properties/${propertyId}/events`, eventData);
-    return response.data as EventResponse;
+  createEvent: async (
+    propertyId: string,
+    eventData: {
+      summary: string;
+      start_date: string;
+      end_date: string;
+      event_type: string;
+      description?: string;
+      platform?: string;
+      status?: string;
+    }
+  ): Promise<ApiResponse<CalendarEvent>> => {
+    try {
+      const response = await api.post(`/properties/${propertyId}/events`, eventData);
+      return response.data;
+    } catch (error) {
+      console.error("Error creating event:", error);
+      throw error;
+    }
   },
 
-  /**
-   * Delete an event from a property
-   * @returns {Promise<{
-   *   success: boolean,
-   *   data: CalendarEvent,
-   *   meta: {
-   *     property_id: string,
-   *     event_id: string,
-   *     preserve_history: boolean,
-   *     action: string
-   *   },
-   *   message: string,
-   *   timestamp: string
-   * }>}
-   */
-  deleteEvent: async (propertyId: string, eventId: string) => {
-    const response = await api.delete(`/properties/${propertyId}/events/${eventId}`);
-    return response.data;
+  updateEvent: async (
+    propertyId: string,
+    eventId: string,
+    eventData: Partial<{
+      summary: string;
+      start_date: string;
+      end_date: string;
+      event_type: string;
+      description: string;
+      status: string;
+    }>
+  ): Promise<ApiResponse<CalendarEvent>> => {
+    try {
+      const response = await api.put(
+        `/properties/${propertyId}/events/${eventId}`,
+        eventData
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error updating event:", error);
+      throw error;
+    }
   },
 
-  /**
-   * Check for event conflicts in the specified date range
-   * @returns {Promise<{
-   *   success: boolean, 
-   *   data: { conflicts: CalendarEvent[] }, 
-   *   message: string
-   * }>}
-   */
-  checkConflicts: async (propertyId: string, eventId: string = "", startDate: string, endDate: string) => {
-    const response = await api.get(`/properties/${propertyId}/events/conflicts`, {
-      params: { event_id: eventId, start_date: startDate, end_date: endDate }
-    });
-    return response.data;
+  deleteEvent: async (
+    propertyId: string,
+    eventId: string
+  ): Promise<ApiResponse<{ success: boolean }>> => {
+    try {
+      const response = await api.delete(`/properties/${propertyId}/events/${eventId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      throw error;
+    }
   },
 
-  /**
-   * Get all conflicts for a property
-   * @param {string} propertyId - The property ID
-   * @param {string} [status] - Optional filter by status
-   * @returns {Promise<{
-   *   success: boolean,
-   *   data: Conflict[],
-   *   meta: object,
-   *   message: string
-   * }>}
-   */
-  getPropertyConflicts: async (propertyId: string, params: { status?: string } = {}) => {
-    const response = await api.get(`/properties/${propertyId}/conflicts`, { params });
-    return response.data;
+  getPropertyConflicts: async (
+    propertyId: string,
+    params?: { status?: string }
+  ): Promise<ApiResponse<Conflict[]>> => {
+    try {
+      const response = await api.get(`/properties/${propertyId}/conflicts`, { params });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching conflicts:", error);
+      return { success: false, data: [], message: "Failed to fetch conflicts" };
+    }
   },
 
-  /**
-   * Resolve a booking conflict
-   * @param {string} propertyId - The property ID
-   * @param {string} conflictId - The conflict ID to resolve
-   * @param {string} action - The resolution action ('keep_all', 'keep_one', 'delete_all')
-   * @param {string} [selectedEventId] - The event ID to keep (if action is 'keep_one')
-   * @returns {Promise<{success: boolean, message: string}>}
-   */
-  resolveConflict: async (propertyId: string, conflictId: string, action: string, selectedEventId?: string) => {
-    const response = await api.post(`/properties/${propertyId}/conflicts/${conflictId}/resolve`, { 
-      action, 
-      selected_event_id: selectedEventId 
-    });
-    return response.data;
+  resolveConflict: async (
+    propertyId: string, 
+    conflictId: string,
+    resolution: string
+  ): Promise<ApiResponse<{}>> => {
+    try {
+      const response = await api.put(`/properties/${propertyId}/conflicts/${conflictId}/resolve`, {
+        resolution
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error resolving conflict:", error);
+      throw error;
+    }
   }
 };

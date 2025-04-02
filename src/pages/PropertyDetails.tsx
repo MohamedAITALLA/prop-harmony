@@ -6,7 +6,7 @@ import { propertyService } from "@/services/api-service";
 import { eventService } from "@/services/api-event-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Edit, RefreshCw, Trash, Info, Calendar, Link, AlertTriangle, Settings } from "lucide-react";
+import { Edit, RefreshCw, Trash, Info, Calendar, Link, AlertTriangle, Settings, CloudSync } from "lucide-react";
 import { PropertyOverview } from "@/components/properties/PropertyOverview";
 import { PropertyICalFeed } from "@/components/properties/PropertyICalFeed";
 import { ICalConnectionsManager } from "@/components/properties/ICalConnectionsManager";
@@ -15,6 +15,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Platform, EventType } from "@/types/enums";
 import { PropertyConflictsList } from "@/components/conflicts/PropertyConflictsList";
 import { PropertyCalendar } from "@/components/properties/PropertyCalendar";
+import { PropertySync } from "@/components/properties/PropertySync";
 import { SyncDialog } from "@/components/ui/sync-dialog";
 import { CalendarEvent, Property } from "@/types/api-responses";
 import { normalizeMongoObject } from "@/lib/mongo-helpers";
@@ -197,6 +198,9 @@ export default function PropertyDetails() {
           <TabsTrigger value="ical">
             <Link className="mr-2 h-4 w-4" /> iCal Connections
           </TabsTrigger>
+          <TabsTrigger value="sync">
+            <CloudSync className="mr-2 h-4 w-4" /> Sync
+          </TabsTrigger>
           <TabsTrigger value="conflicts">
             <AlertTriangle className="mr-2 h-4 w-4" /> Conflicts {hasConflicts && (
               <span className="ml-1 rounded-full bg-destructive w-4 h-4 text-xs flex items-center justify-center text-white">
@@ -228,6 +232,10 @@ export default function PropertyDetails() {
         <TabsContent value="ical" className="space-y-4">
           <PropertyICalFeed propertyId={id || ""} platform={Platform.MANUAL} />
           {id && <ICalConnectionsManager propertyId={id} />}
+        </TabsContent>
+        
+        <TabsContent value="sync" className="space-y-4">
+          {id && <PropertySync propertyId={id} />}
         </TabsContent>
         
         <TabsContent value="conflicts" className="space-y-4">
