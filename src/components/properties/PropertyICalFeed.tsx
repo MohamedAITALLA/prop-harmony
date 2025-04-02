@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Check, Copy, RefreshCw } from "lucide-react";
+import { Check, Copy, RefreshCw, Download, Calendar } from "lucide-react";
 import { Platform } from "@/types/enums";
 import { calendarService } from "@/services/api-service";
+import api from "@/lib/api";
+import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
+import { format } from 'date-fns';
 
 interface PropertyICalFeedProps {
   propertyId: string;
@@ -16,6 +19,7 @@ interface PropertyICalFeedProps {
 
 export function PropertyICalFeed({ propertyId, platform = Platform.MANUAL }: PropertyICalFeedProps) {
   const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   
   // Fetch iCal feed URL from API
   const { data: response, isLoading, refetch } = useQuery({
@@ -48,12 +52,47 @@ export function PropertyICalFeed({ propertyId, platform = Platform.MANUAL }: Pro
     toast.success(`Refreshed iCal feed for ${platform}`);
   };
   
+  const handleDownloadICalFile = async () => {
+    if (!propertyId) return;
+    
+    try {
+      setDownloading(true);
+      const url = `/properties/${propertyId}/ical-feed`;
+      const blob = await api.getICalFile(url);
+      
+      // Create a URL for the blob
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      // Create an anchor element and trigger download
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `property-${propertyId}-${format(new Date(), 'yyyy-MM-dd')}.ics`;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      window.URL.revokeObjectURL(blobUrl);
+      document.body.removeChild(a);
+      toast.success("iCal file downloaded");
+    } catch (err) {
+      console.error("Failed to download iCal file:", err);
+      toast.error("Failed to download iCal file");
+    } finally {
+      setDownloading(false);
+    }
+  };
+  
   if (isLoading) {
     return <div className="flex items-center justify-center p-4">Loading iCal feed...</div>;
   }
   
   return (
-    <div className="space-y-4 w-full">
+    <div className="space-y-4 w-full border rounded-md p-4 bg-card">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-lg font-semibold">iCal Feed</h3>
+        <SyncStatusBadge status="success" lastSync={new Date().toISOString()} />
+      </div>
+      
       <div className="space-y-2">
         <Label htmlFor={`ical-${platform}`}>
           iCal Feed URL
@@ -81,8 +120,46 @@ export function PropertyICalFeed({ propertyId, platform = Platform.MANUAL }: Pro
           </Button>
         </div>
       </div>
+      
+      <div className="flex items-center gap-2 pt-2">
+        <Button 
+          variant="secondary" 
+          size="sm"
+          className="flex items-center gap-1"
+          onClick={handleDownloadICalFile}
+          disabled={downloading}
+        >
+          {downloading ? (
+            <span className="flex items-center gap-1">
+              <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+              Downloading...
+            </span>
+          ) : (
+            <>
+              <Download className="h-4 w-4 mr-1" />
+              Download iCal File
+            </>
+          )}
+        </Button>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-1"
+          onClick={() => {
+            if (icalUrl) {
+              window.open(icalUrl, '_blank');
+            }
+          }}
+        >
+          <Calendar className="h-4 w-4 mr-1" />
+          Open in Calendar
+        </Button>
+      </div>
+      
       <p className="text-sm text-muted-foreground">
         Use this iCal feed URL to sync this property's calendar with external calendars.
+        You can add this URL to Google Calendar, Apple Calendar, or any other calendar that supports iCal.
       </p>
     </div>
   );

@@ -28,6 +28,11 @@ api.interceptors.request.use(
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
+    // For iCal file downloads, just return the response directly
+    if (response.headers["content-type"]?.includes("text/calendar")) {
+      return response;
+    }
+    
     // For successful responses, check if there's a success flag in our API format
     if (response.data && response.data.success === false) {
       // Even though HTTP status is 200, the API indicates an error
@@ -52,5 +57,22 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Special method for downloading iCal files
+api.getICalFile = async (url) => {
+  try {
+    const response = await api.get(url, { 
+      responseType: 'blob',
+      headers: {
+        'Accept': 'text/calendar'
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error downloading iCal file:", error);
+    toast.error("Failed to download iCal file");
+    throw error;
+  }
+};
 
 export default api;
