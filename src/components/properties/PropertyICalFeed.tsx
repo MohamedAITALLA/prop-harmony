@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Check, Copy, RefreshCw, Download, Calendar, Link } from "lucide-react";
+import { Check, Copy, RefreshCw, Download, Calendar, Link, ExternalLink } from "lucide-react";
 import { Platform } from "@/types/enums";
 import { calendarService } from "@/services/api-service";
 import api from "@/lib/api";
@@ -13,6 +13,11 @@ import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { format } from 'date-fns';
 import { createICalFeedUrl } from '@/components/properties/calendar/CalendarUtils';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface PropertyICalFeedProps {
   propertyId: string;
@@ -77,12 +82,12 @@ export function PropertyICalFeed({ propertyId, platform = Platform.MANUAL }: Pro
   };
   
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="bg-muted/20 pb-3 border-b">
+    <Card className="shadow-sm border-primary/10">
+      <CardHeader className="bg-primary/5 pb-3 border-b">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Link className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-semibold">iCal Feed</h3>
+            <h3 className="text-lg font-semibold">Property iCal Feed</h3>
           </div>
           <SyncStatusBadge status="success" lastSync={new Date().toISOString()} />
         </div>
@@ -99,7 +104,7 @@ export function PropertyICalFeed({ propertyId, platform = Platform.MANUAL }: Pro
                 id={`ical-${platform}`}
                 value={icalUrl}
                 readOnly
-                className="pr-10 bg-muted/20 border-muted-foreground/20 focus:border-primary"
+                className="pr-10 bg-muted/20 border-muted-foreground/20 focus-visible:ring-primary/50"
               />
               <Button
                 type="button"
@@ -111,13 +116,29 @@ export function PropertyICalFeed({ propertyId, platform = Platform.MANUAL }: Pro
                 {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
-            <Button variant="outline" size="icon" onClick={handleRefresh} className="shadow-sm">
-              <RefreshCw className="h-4 w-4" />
-            </Button>
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" className="shadow-sm">
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <div className="space-y-2">
+                  <h4 className="font-medium">Refresh iCal Feed</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Manually refresh the iCal feed to ensure it contains the latest reservation data.
+                  </p>
+                  <Button size="sm" onClick={handleRefresh} className="w-full">
+                    Refresh Now
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
         
-        <div className="flex items-center gap-2 pt-2">
+        <div className="flex flex-wrap items-center gap-3 pt-2">
           <Button 
             variant="secondary" 
             size="sm"
@@ -148,17 +169,23 @@ export function PropertyICalFeed({ propertyId, platform = Platform.MANUAL }: Pro
               }
             }}
           >
-            <Calendar className="h-4 w-4 mr-1" />
+            <ExternalLink className="h-4 w-4 mr-1" />
             Open in Calendar
           </Button>
         </div>
       </CardContent>
       
-      <CardFooter className="text-sm text-muted-foreground bg-muted/10 border-t">
-        <p>
-          Use this iCal feed URL to sync this property's calendar with external calendars.
-          You can add this URL to Google Calendar, Apple Calendar, or any other calendar that supports iCal.
-        </p>
+      <CardFooter className="text-sm text-muted-foreground bg-muted/10 border-t flex flex-col items-start">
+        <div className="flex items-start gap-2">
+          <Calendar className="h-4 w-4 mt-0.5 text-primary/70" />
+          <div>
+            <p className="mb-1 font-medium text-foreground">How to use this iCal feed</p>
+            <p>
+              Add this URL to Google Calendar, Apple Calendar, or any other calendar application
+              that supports iCal to sync this property's calendar with external calendars.
+            </p>
+          </div>
+        </div>
       </CardFooter>
     </Card>
   );
