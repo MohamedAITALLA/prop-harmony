@@ -1,3 +1,4 @@
+
 import api from "@/lib/api";
 import { 
   AuthResponse, 
@@ -27,6 +28,10 @@ import {
   NotificationSettings,
   UserProfile
 } from "@/types/api-responses";
+import { notificationService } from "./notification-service";
+
+// Re-export the notification service
+export { notificationService };
 
 // Authentication Services
 export const authService = {

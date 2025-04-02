@@ -1,7 +1,8 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Notification, NotificationSettings } from "@/types/api-responses";
+import { NotificationSettings } from "@/types/api-responses";
 import { toast } from "sonner";
-import { notificationService } from "@/services/api-service";
+import { notificationService } from "@/services/notification-service";
 import { NotificationType, NotificationSeverity } from "@/types/enums";
 
 interface NotificationFilters {
@@ -220,7 +221,7 @@ export function useNotifications(filters?: NotificationFilters) {
     queryFn: async () => {
       try {
         const response = await notificationService.getSettings();
-        return response.data;
+        return response.data.settings;
       } catch (error) {
         console.error("Error fetching notification settings:", error);
         return defaultSettings();
