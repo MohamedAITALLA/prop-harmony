@@ -1,9 +1,14 @@
 
 import api from "@/lib/api";
+import { ApiResponse } from "@/types/api-responses";
 
 // Property Service
 export const propertyService = {
   getProperties: (params?: { page?: number; limit?: number }) => {
+    return api.get("/properties", { params });
+  },
+  // Adding getAllProperties as an alias to getProperties for backward compatibility
+  getAllProperties: (params?: { page?: number; limit?: number }) => {
     return api.get("/properties", { params });
   },
   getProperty: (id: string) => {
@@ -20,18 +25,7 @@ export const propertyService = {
   },
 };
 
-// Event Service
-export const eventService = {
-  getEvents: (propertyId: string, params?: any) => {
-    return api.get(`/properties/${propertyId}/events`, { params });
-  },
-  createEvent: (propertyId: string, data: any) => {
-    return api.post(`/properties/${propertyId}/events`, data);
-  },
-  deleteEvent: (propertyId: string, eventId: string) => {
-    return api.delete(`/properties/${propertyId}/events/${eventId}`);
-  },
-};
+// Event Service is now in api-event-service.ts
 
 // iCal Connection Service
 export const icalConnectionService = {
@@ -76,8 +70,6 @@ export const conflictService = {
   deleteConflict: (propertyId: string, conflictId: string) => {
     return api.delete(`/properties/${propertyId}/conflicts/${conflictId}`);
   },
-  // Removed getConflicts and getAllConflicts and kept only the valid getPropertyConflicts 
-  // according to the spec endpoint: GET /properties/{propertyId}/conflicts
 };
 
 // Auth Service
@@ -88,7 +80,6 @@ export const authService = {
   register: (userData: any) => {
     return api.post("/auth/register", userData);
   },
-  // Removed forgotPassword, resetPassword, and verifyEmail as they're not in the spec
 };
 
 // Profile Service
@@ -159,5 +150,3 @@ export const calendarService = {
     });
   }
 };
-
-// Notification Service moved to a separate file

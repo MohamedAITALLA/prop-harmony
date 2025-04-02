@@ -56,7 +56,7 @@ export const eventService = {
       page?: number;
       limit?: number;
     }
-  ) => {
+  ): Promise<ApiResponse<any>> => {
     const response = await api.get(
       `/properties/${propertyId}/conflicts`,
       { params }
@@ -64,5 +64,19 @@ export const eventService = {
     return response.data;
   },
 
-  // Removed resolveConflict method as it's not in the spec
+  // Adding the resolveConflict method since components are using it
+  resolveConflict: async (
+    propertyId: string,
+    conflictId: string,
+    resolutionData: {
+      resolution: string;
+      notes?: string;
+    }
+  ): Promise<ApiResponse<{ success: boolean }>> => {
+    const response = await api.post<ApiResponse<{ success: boolean }>>(
+      `/properties/${propertyId}/conflicts/${conflictId}/resolve`,
+      resolutionData
+    );
+    return response.data;
+  }
 };
