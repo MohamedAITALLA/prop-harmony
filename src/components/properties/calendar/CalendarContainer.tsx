@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { CalendarHeader } from '@/components/properties/calendar/CalendarHeader';
 import { CalendarNavigation } from '@/components/properties/calendar/CalendarNavigation';
 import { FullCalendarWrapper } from '@/components/properties/calendar/FullCalendarWrapper';
 import { getEventColor } from '@/components/properties/calendar/CalendarUtils';
@@ -20,6 +19,7 @@ interface CalendarContainerProps {
   copyICalFeedUrl: () => void;
   currentDate: Date;
   handleCalendarNavigation: (action: 'prev' | 'next' | 'today') => void;
+  view: string;
 }
 
 export const CalendarContainer: React.FC<CalendarContainerProps> = ({
@@ -29,31 +29,14 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
   onDateClick,
   onEventClick,
   onDateChange,
-  hasConflicts,
-  onViewConflicts,
   onAddEvent,
-  onExport,
-  copyICalFeedUrl,
   currentDate,
-  handleCalendarNavigation
+  handleCalendarNavigation,
+  view
 }) => {
   return (
-    <div className="lg:col-span-2 space-y-6">
-      <CalendarHeader
-        hasConflicts={hasConflicts}
-        onViewConflicts={onViewConflicts}
-        onAddEvent={onAddEvent}
-        onExport={onExport}
-        copyICalFeedUrl={copyICalFeedUrl}
-        propertyId={propertyId}
-      />
-      
-      <div className="border rounded-lg p-5 bg-card shadow-sm">
-        <CalendarNavigation 
-          currentDate={currentDate}
-          handleCalendarNavigation={handleCalendarNavigation}
-        />
-        
+    <div className="space-y-4">
+      <div className="border rounded-lg p-3 sm:p-5 bg-card shadow-sm">
         {eventsLoading ? (
           <div className="flex items-center justify-center h-80">
             <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
@@ -68,6 +51,7 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
             getEventColor={getEventColor}
             onDateChange={onDateChange}
             currentDate={currentDate}
+            view={view}
           />
         )}
       </div>

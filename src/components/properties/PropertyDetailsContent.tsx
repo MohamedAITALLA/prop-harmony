@@ -48,6 +48,7 @@ export function PropertyDetailsContent({
           hasConflicts={hasConflicts}
           onViewConflicts={onViewConflicts}
           refetchEvents={refetchEvents}
+          propertyName={property.name}
         />
       </TabsContent>
       

@@ -11,26 +11,43 @@ import {
   Calendar as CalendarIcon, 
   List, 
   Grid2x2, 
-  CalendarDays 
+  CalendarDays,
+  Plus
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 
 interface ViewControlsProps {
   view: string;
   setView: (view: string) => void;
   handleCalendarNavigation: (action: 'prev' | 'next' | 'today') => void;
   currentDate: Date;
+  onAddEvent?: () => void;
 }
 
 export const ViewControls: React.FC<ViewControlsProps> = ({
   view,
   setView,
   handleCalendarNavigation,
-  currentDate
+  currentDate,
+  onAddEvent
 }) => {
+  // Format the display based on view type
+  const formatDateDisplay = () => {
+    switch(view) {
+      case 'day':
+        return format(currentDate, 'd MMMM yyyy');
+      case 'week':
+        const endOfWeek = addDays(currentDate, 6);
+        return `${format(currentDate, 'd MMM')} - ${format(endOfWeek, 'd MMM yyyy')}`;
+      case 'month':
+      default:
+        return format(currentDate, 'MMMM yyyy');
+    }
+  };
+
   return (
     <div className="mb-4 bg-background border rounded-lg p-2 flex flex-wrap items-center justify-between gap-2">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <ToggleGroup type="single" value={view} onValueChange={(value) => value && setView(value)}>
           <ToggleGroupItem value="month" aria-label="Month view">
             <CalendarDays className="h-4 w-4 mr-1" />
@@ -56,6 +73,17 @@ export const ViewControls: React.FC<ViewControlsProps> = ({
         >
           Today
         </Button>
+        {onAddEvent && (
+          <Button 
+            variant="default"
+            size="sm"
+            onClick={onAddEvent}
+            className="ml-auto sm:ml-0"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            <span className="hidden sm:inline">Add Event</span>
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center gap-2">
@@ -67,8 +95,8 @@ export const ViewControls: React.FC<ViewControlsProps> = ({
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <div className="font-medium text-sm px-2">
-          {format(currentDate, 'MMMM yyyy')}
+        <div className="font-medium text-sm px-2 whitespace-nowrap">
+          {formatDateDisplay()}
         </div>
         <Button 
           variant="ghost" 

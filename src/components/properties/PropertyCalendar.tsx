@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { format, addMonths } from "date-fns";
+import { format, addMonths, addWeeks, addDays } from "date-fns";
 import { toast } from "sonner";
 import { CalendarEvent } from "@/types/api-responses";
 import { Platform, EventType } from "@/types/enums";
@@ -9,7 +9,6 @@ import { EventDialogManager, EventDialogManagerRef } from '@/components/properti
 import { Card } from "@/components/ui/card";
 import { DateRange } from "react-day-picker";
 import { CalendarSidebar } from '@/components/properties/calendar/CalendarSidebar';
-import { ViewControls } from '@/components/properties/calendar/ViewControls';
 import { CalendarPageHeader } from '@/components/properties/calendar/CalendarPageHeader';
 import { CalendarTabsContent } from '@/components/properties/calendar/CalendarTabsContent';
 import { useCalendarEvents } from '@/components/properties/calendar/useCalendarEvents';
@@ -25,6 +24,7 @@ interface PropertyCalendarProps {
   hasConflicts?: boolean;
   onViewConflicts?: () => void;
   refetchEvents: () => void;
+  propertyName?: string;
 }
 
 export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({ 
@@ -34,7 +34,8 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
   onExport,
   hasConflicts,
   onViewConflicts,
-  refetchEvents
+  refetchEvents,
+  propertyName
 }) => {
   const eventDialogRef = useRef<EventDialogManagerRef>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([]);
@@ -46,12 +47,24 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
   const [view, setView] = useState("month");
   
   const handleCalendarNavigation = (action: 'prev' | 'next' | 'today') => {
-    if (action === 'prev') {
-      setCurrentDate(prev => addMonths(prev, -1));
-    } else if (action === 'next') {
-      setCurrentDate(prev => addMonths(prev, 1));
-    } else if (action === 'today') {
+    if (action === 'today') {
       setCurrentDate(new Date());
+      return;
+    }
+    
+    // Handle different navigation based on the current view
+    switch(view) {
+      case 'month':
+        setCurrentDate(prev => action === 'prev' ? addMonths(prev, -1) : addMonths(prev, 1));
+        break;
+      case 'week':
+        setCurrentDate(prev => action === 'prev' ? addWeeks(prev, -1) : addWeeks(prev, 1));
+        break;
+      case 'day':
+        setCurrentDate(prev => action === 'prev' ? addDays(prev, -1) : addDays(prev, 1));
+        break;
+      default:
+        setCurrentDate(prev => action === 'prev' ? addMonths(prev, -1) : addMonths(prev, 1));
     }
   };
 
@@ -132,6 +145,12 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
 
   return (
     <div className="w-full">
+      <CalendarPageHeader 
+        onExport={handleExport}
+        propertyId={propertyId}
+        propertyName={propertyName}
+      />
+      
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Sidebar filters - collapsible on mobile */}
         <CalendarSidebar
@@ -151,21 +170,6 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
         
         {/* Main content area */}
         <div className="flex-1">
-          <CalendarPageHeader 
-            hasConflicts={hasConflicts}
-            onViewConflicts={onViewConflicts}
-            onExport={handleExport}
-            propertyId={propertyId}
-            onAddEvent={() => eventDialogRef.current?.openAddEventDialog()}
-          />
-          
-          <ViewControls 
-            view={view}
-            setView={setView}
-            handleCalendarNavigation={handleCalendarNavigation}
-            currentDate={currentDate}
-          />
-          
           <CalendarTabsContent
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -184,6 +188,8 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
             onExport={handleExport}
             copyICalFeedUrl={copyICalFeedUrl}
             setCurrentDate={setCurrentDate}
+            view={view}
+            setView={setView}
           />
         </div>
       </div>

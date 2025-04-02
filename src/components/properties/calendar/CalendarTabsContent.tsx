@@ -6,6 +6,7 @@ import { CalendarDays, List, CheckCircle2 } from "lucide-react";
 import { CalendarContainer } from '@/components/properties/calendar/CalendarContainer';
 import { PropertyListView } from "@/components/properties/calendar/PropertyListView";
 import { PropertyValidityCheck } from "@/components/properties/calendar/PropertyValidityCheck";
+import { ViewControls } from '@/components/properties/calendar/ViewControls';
 
 interface CalendarTabsContentProps {
   activeTab: string;
@@ -25,6 +26,8 @@ interface CalendarTabsContentProps {
   onExport?: (format: string) => void;
   copyICalFeedUrl: () => void;
   setCurrentDate: (date: Date) => void;
+  view: string;
+  setView: (view: string) => void;
 }
 
 export const CalendarTabsContent: React.FC<CalendarTabsContentProps> = ({
@@ -39,28 +42,36 @@ export const CalendarTabsContent: React.FC<CalendarTabsContentProps> = ({
   currentDate,
   handleCalendarNavigation,
   searchQuery,
-  hasConflicts,
-  onViewConflicts,
   onAddEvent,
   onExport,
   copyICalFeedUrl,
-  setCurrentDate
+  setCurrentDate,
+  view,
+  setView
 }) => {
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="mb-4">
-        <TabsTrigger value="calendar">
+      <TabsList className="mb-4 flex flex-wrap">
+        <TabsTrigger value="calendar" className="flex-grow sm:flex-grow-0">
           <CalendarDays className="mr-2 h-4 w-4" /> Calendar
         </TabsTrigger>
-        <TabsTrigger value="list">
+        <TabsTrigger value="list" className="flex-grow sm:flex-grow-0">
           <List className="mr-2 h-4 w-4" /> List View
         </TabsTrigger>
-        <TabsTrigger value="check">
+        <TabsTrigger value="check" className="flex-grow sm:flex-grow-0">
           <CheckCircle2 className="mr-2 h-4 w-4" /> Check Validity
         </TabsTrigger>
       </TabsList>
       
       <TabsContent value="calendar" className="mt-4">
+        <ViewControls 
+          view={view}
+          setView={setView}
+          handleCalendarNavigation={handleCalendarNavigation}
+          currentDate={currentDate}
+          onAddEvent={onAddEvent}
+        />
+        
         <Card>
           <CardContent className="p-0 sm:p-6">
             <CalendarContainer
@@ -70,13 +81,12 @@ export const CalendarTabsContent: React.FC<CalendarTabsContentProps> = ({
               onDateClick={handleDateClick}
               onEventClick={handleEventClick}
               onDateChange={setCurrentDate}
-              hasConflicts={hasConflicts}
-              onViewConflicts={onViewConflicts}
-              onAddEvent={onAddEvent}
+              onAddEvent={onAddEvent!}
               onExport={onExport}
               copyICalFeedUrl={copyICalFeedUrl}
               currentDate={currentDate}
               handleCalendarNavigation={handleCalendarNavigation}
+              view={view}
             />
           </CardContent>
         </Card>

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Calendar as CalendarIcon, Download, ChevronDown, Copy } from "lucide-react";
+import { Calendar as CalendarIcon, Download, ChevronDown, Copy } from "lucide-react";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -10,21 +10,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { createICalFeedUrl } from './CalendarUtils';
+import { Badge } from "@/components/ui/badge";
 
 interface CalendarPageHeaderProps {
   hasConflicts?: boolean;
-  onViewConflicts?: () => void;
   onExport?: (format: string) => void;
   propertyId?: string;
   onAddEvent?: () => void;
+  propertyName?: string;
 }
 
 export const CalendarPageHeader: React.FC<CalendarPageHeaderProps> = ({
-  hasConflicts,
-  onViewConflicts,
   onExport,
   propertyId,
-  onAddEvent
+  propertyName
 }) => {
   const handleExport = (format: string) => {
     if (onExport) {
@@ -43,32 +42,18 @@ export const CalendarPageHeader: React.FC<CalendarPageHeaderProps> = ({
       <div>
         <h2 className="text-2xl font-semibold flex items-center gap-2">
           <CalendarIcon className="h-6 w-6 text-primary" />
-          Property Calendar
+          {propertyName ? `${propertyName} Calendar` : 'Property Calendar'}
         </h2>
         <p className="text-muted-foreground">Manage bookings and availability</p>
       </div>
-      <div className="flex items-center gap-2 flex-wrap">
-        {hasConflicts && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="destructive" onClick={onViewConflicts} size="sm">
-                  <AlertCircle className="mr-2 h-4 w-4" /> View Conflicts
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>This property has booking conflicts that need attention</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+      <div className="flex items-center gap-2 self-end sm:self-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" /> Export <ChevronDown className="ml-1 h-3 w-3" />
+            <Button variant="outline" size="sm" className="gap-1">
+              <Download className="h-4 w-4 mr-1" /> Export <ChevronDown className="h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuItem onClick={() => handleExport("PDF")}>
               Export as PDF
             </DropdownMenuItem>

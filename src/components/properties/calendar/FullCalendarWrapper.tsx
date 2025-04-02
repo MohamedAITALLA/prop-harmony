@@ -2,6 +2,8 @@
 import React, { useRef, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import listPlugin from '@fullcalendar/list';
 import interactionPlugin from "@fullcalendar/interaction";
 import { AlertTriangle } from "lucide-react";
 import { Platform, EventType } from "@/types/enums";
@@ -15,6 +17,7 @@ interface FullCalendarWrapperProps {
   getEventColor: (platform?: Platform, eventType?: EventType) => string;
   onDateChange: (date: Date) => void;
   currentDate?: Date;
+  view?: string;
 }
 
 export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
@@ -24,7 +27,8 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
   handleEventClick,
   getEventColor,
   onDateChange,
-  currentDate
+  currentDate,
+  view = 'month'
 }) => {
   const calendarRef = useRef<any>(null);
   
@@ -35,6 +39,18 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
       calendarApi.gotoDate(currentDate);
     }
   }, [currentDate]);
+  
+  // Update calendar view when view changes externally
+  useEffect(() => {
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      const calendarView = view === 'month' ? 'dayGridMonth' : 
+                          view === 'week' ? 'timeGridWeek' : 
+                          view === 'day' ? 'timeGridDay' : 
+                          'listWeek';
+      calendarApi.changeView(calendarView);
+    }
+  }, [view]);
 
   // Pre-process events to add color properties
   const eventsWithColors = events.map(event => {
@@ -116,12 +132,32 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
         .fc .fc-daygrid-event {
           z-index: 2;
         }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+          .fc-toolbar-title {
+            font-size: 1rem !important;
+          }
+          
+          .fc-header-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+          }
+          
+          .fc .fc-toolbar-title {
+            margin: 0;
+          }
+        }
       `}} />
       
       <FullCalendar
         ref={calendarRef}
-        plugins={[dayGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
+        plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+        initialView={view === 'month' ? 'dayGridMonth' : 
+                    view === 'week' ? 'timeGridWeek' : 
+                    view === 'day' ? 'timeGridDay' : 
+                    'listWeek'}
         headerToolbar={false}
         events={eventsWithColors}
         height="100%"
@@ -157,10 +193,16 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
         datesSet={(dateInfo) => {
           onDateChange(dateInfo.view.currentStart);
         }}
-        displayEventTime={false}
+        displayEventTime={view !== 'month'}
         eventDisplay="block"
         firstDay={1}
         initialDate={currentDate}
+        nowIndicator={true}
+        slotMinTime="06:00:00"
+        slotMaxTime="22:00:00"
+        slotDuration="00:30:00"
+        expandRows={true}
+        allDaySlot={true}
       />
     </div>
   );
