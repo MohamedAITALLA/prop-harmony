@@ -83,10 +83,6 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
         eventClick={handleEventClick}
         datesSet={(dateInfo) => {
           onDateChange(dateInfo.view.currentStart);
-          const titleEl = document.getElementById('calendar-title');
-          if (titleEl) {
-            titleEl.textContent = dateInfo.view.title;
-          }
         }}
       />
     </div>

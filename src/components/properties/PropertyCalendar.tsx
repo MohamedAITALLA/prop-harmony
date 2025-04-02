@@ -1,9 +1,22 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { format } from "date-fns";
 import { toast } from "sonner";
 import { CalendarEvent } from "@/types/api-responses";
 import { Platform, EventType } from "@/types/enums";
 import { eventService } from "@/services/api-service";
 import { PropertyAvailabilityChecker } from '@/components/properties/PropertyAvailabilityChecker';
+import { Button } from "@/components/ui/button";
+import { 
+  AlertTriangle, Plus, Download, ChevronDown, 
+  FileText, Calendar as CalendarIcon, Copy,
+  ChevronLeft, ChevronRight
+} from "lucide-react";
+import { 
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import { EventLegend } from "@/components/properties/calendar/EventLegend";
 import { CalendarHeader } from "@/components/properties/calendar/CalendarHeader";
@@ -13,6 +26,7 @@ import { ViewEventDialog } from "@/components/properties/calendar/ViewEventDialo
 import { PropertyEventDialog } from "@/components/properties/PropertyEventDialog";
 import { ConflictDialogs } from "@/components/properties/calendar/ConflictDialogs";
 import { getEventColor, createICalFeedUrl } from "@/components/properties/calendar/CalendarUtils";
+import { ConflictResolver } from "@/components/ui/conflict-resolver";
 
 interface PropertyCalendarProps {
   events: any[];
@@ -74,28 +88,9 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
     }
   };
 
-  const getEventColor = (platform?: Platform, eventType?: EventType): string => {
-    if (eventType === EventType.BLOCKED) return "#ef4444";
-    if (eventType === EventType.MAINTENANCE) return "#f97316";
-    
-    switch (platform) {
-      case Platform.AIRBNB:
-        return "#ff5a5f";
-      case Platform.VRBO:
-        return "#3b5998";
-      case Platform.BOOKING:
-        return "#003580";
-      case Platform.MANUAL:
-        return "#10b981";
-      default:
-        return "#6366f1";
-    }
-  };
-
   const copyICalFeedUrl = () => {
     if (propertyId) {
-      const baseUrl = window.location.origin;
-      const url = `${baseUrl}/api/properties/${propertyId}/ical-feed`;
+      const url = createICalFeedUrl(propertyId);
       navigator.clipboard.writeText(url);
       toast.success("iCal feed URL copied to clipboard");
     }
@@ -247,77 +242,20 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Property Calendar</h2>
-          <div className="flex space-x-2">
-            {hasConflicts && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="destructive" 
-                      onClick={onViewConflicts}
-                      className="flex items-center gap-1"
-                    >
-                      <AlertTriangle className="mr-1 h-4 w-4" />
-                      View Conflicts
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>This property has booking conflicts that need attention</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            <Button onClick={() => setIsAddEventOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Event
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  <Download className="mr-2 h-4 w-4" />
-                  Export
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => onExport && onExport("PDF")}>
-                  <FileText className="mr-2 h-4 w-4" />
-                  Export as PDF
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onExport && onExport("iCal")}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  Export as iCal
-                </DropdownMenuItem>
-                {propertyId && (
-                  <DropdownMenuItem onClick={copyICalFeedUrl}>
-                    <Copy className="mr-2 h-4 w-4" />
-                    Copy iCal URL
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
+        <CalendarHeader
+          hasConflicts={hasConflicts}
+          onViewConflicts={onViewConflicts}
+          onAddEvent={() => setIsAddEventOpen(true)}
+          onExport={onExport}
+          copyICalFeedUrl={copyICalFeedUrl}
+          propertyId={propertyId}
+        />
         
         <div className="border rounded-lg p-6 bg-background">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('prev')}>
-                <ChevronLeft className="h-4 w-4 mr-1" /> Previous
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('today')}>
-                Today
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => handleCalendarNavigation('next')}>
-                Next <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            </div>
-            <div id="calendar-title" className="text-lg font-medium">
-              {format(currentDate, 'MMMM yyyy')}
-            </div>
-          </div>
+          <CalendarNavigation 
+            currentDate={currentDate}
+            handleCalendarNavigation={handleCalendarNavigation}
+          />
           
           {eventsLoading ? (
             <div className="flex items-center justify-center h-80">
@@ -325,48 +263,14 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
               <p className="ml-3">Loading events...</p>
             </div>
           ) : (
-            <div className="h-[600px]">
-              <FullCalendarWrapper
-                ref={calendarRef}
-                plugins={[dayGridPlugin, interactionPlugin]}
-                initialView="dayGridMonth"
-                headerToolbar={false}
-                events={eventsWithColors}
-                height="100%"
-                eventTimeFormat={{
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  meridiem: 'short'
-                }}
-                eventContent={(info) => {
-                  const hasConflict = info.event.extendedProps.status === 'conflict';
-                  
-                  return (
-                    <div className={`fc-event-main-frame p-1 ${hasConflict ? 'border-l-4 border-red-500' : ''}`}>
-                      <div className="fc-event-title-container">
-                        <div className="fc-event-title font-medium text-xs flex items-center gap-1">
-                          {hasConflict && <AlertTriangle className="h-3 w-3" />}
-                          {info.event.title}
-                        </div>
-                        <div className="text-[10px] opacity-70">
-                          {info.event.extendedProps.platform}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }}
-                dayMaxEvents={true}
-                dateClick={handleDateClick}
-                eventClick={handleEventClick}
-                datesSet={(dateInfo) => {
-                  setCurrentDate(dateInfo.view.currentStart);
-                  const titleEl = document.getElementById('calendar-title');
-                  if (titleEl) {
-                    titleEl.textContent = dateInfo.view.title;
-                  }
-                }}
-              />
-            </div>
+            <FullCalendarWrapper
+              events={eventsWithColors}
+              eventsLoading={eventsLoading}
+              handleDateClick={handleDateClick}
+              handleEventClick={handleEventClick}
+              getEventColor={getEventColor}
+              onDateChange={setCurrentDate}
+            />
           )}
         </div>
       </div>
@@ -374,10 +278,7 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
       <div className="lg:col-span-1 space-y-4">
         {propertyId && <PropertyAvailabilityChecker propertyId={propertyId} />}
         
-        <div className="border rounded-lg p-4 bg-background">
-          <h3 className="font-medium mb-3">Event Legend</h3>
-          <EventLegend />
-        </div>
+        <EventLegend getEventColor={getEventColor} />
       </div>
 
       <PropertyEventDialog
@@ -393,17 +294,26 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
       
       {viewedEvent && (
         <ViewEventDialog
-          isOpen={isViewEventOpen}
-          onOpenChange={setIsViewEventOpen}
-          eventData={viewedEvent}
+          isViewEventOpen={isViewEventOpen}
+          setIsViewEventOpen={setIsViewEventOpen}
+          viewedEvent={viewedEvent}
+          handleDeleteEvent={handleDeleteEvent}
         />
       )}
       
       <ConflictDialogs
-        isOpen={isConflictDialogOpen}
-        onOpenChange={setIsConflictDialogOpen}
+        isConflictDialogOpen={isConflictDialogOpen}
+        setIsConflictDialogOpen={setIsConflictDialogOpen}
+        isConflictResolverOpen={isConflictResolverOpen}
+        setIsConflictResolverOpen={setIsConflictResolverOpen}
         conflictDetails={conflictDetails}
-        onResolve={handleResolveConflicts}
+        conflictingEvents={conflictingEvents}
+        propertyId={propertyId}
+        onResolveConflicts={handleResolveConflicts}
+        onConflictResolution={handleConflictResolution}
+        refetchEvents={refetchEvents}
+        resetEventForm={resetEventForm}
+        setIsAddEventOpen={setIsAddEventOpen}
       />
       
       <Dialog open={isConflictResolverOpen} onOpenChange={setIsConflictResolverOpen}>
