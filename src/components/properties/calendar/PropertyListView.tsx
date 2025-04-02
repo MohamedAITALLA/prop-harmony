@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ListSorter } from './list-view/ListSorter';
 import { EventCard } from './list-view/EventCard';
@@ -7,6 +7,8 @@ import { SearchNotice } from './list-view/SearchNotice';
 import { EmptyEventsList } from './list-view/EmptyEventsList';
 import { LoadingSkeleton } from './list-view/LoadingSkeleton';
 import { useListSorting } from './list-view/useListSorting';
+import { AdvancedPagination } from '@/components/ui/advanced-pagination';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface PropertyListViewProps {
   events: any[];
@@ -24,11 +26,28 @@ export const PropertyListView: React.FC<PropertyListViewProps> = ({
   searchQuery = ""
 }) => {
   const { sortField, sortDirection, handleSort, sortedEvents } = useListSorting(events);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
 
   const handleEventClick = (event: any) => {
     if (onEventClick) {
       onEventClick({ event: { id: event.id } });
     }
+  };
+
+  // Calculate pagination
+  const indexOfLastEvent = currentPage * itemsPerPage;
+  const indexOfFirstEvent = indexOfLastEvent - itemsPerPage;
+  const currentEvents = sortedEvents.slice(indexOfFirstEvent, indexOfLastEvent);
+  const totalPages = Math.ceil(sortedEvents.length / itemsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1); // Reset to first page when changing items per page
   };
 
   if (isLoading) {
@@ -62,13 +81,45 @@ export const PropertyListView: React.FC<PropertyListViewProps> = ({
         {sortedEvents.length === 0 ? (
           <EmptyEventsList searchQuery={searchQuery} />
         ) : (
-          sortedEvents.map((event) => (
-            <EventCard 
-              key={event.id} 
-              event={event} 
-              onClick={() => handleEventClick(event)}
-            />
-          ))
+          <>
+            <div className="space-y-4">
+              {currentEvents.map((event) => (
+                <EventCard 
+                  key={event.id} 
+                  event={event} 
+                  onClick={() => handleEventClick(event)}
+                />
+              ))}
+            </div>
+            
+            {/* Pagination controls */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Show</span>
+                <Select
+                  value={String(itemsPerPage)}
+                  onValueChange={handleItemsPerPageChange}
+                >
+                  <SelectTrigger className="w-[70px]">
+                    <SelectValue placeholder={itemsPerPage} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">per page</span>
+              </div>
+              
+              <AdvancedPagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          </>
         )}
       </CardContent>
     </Card>

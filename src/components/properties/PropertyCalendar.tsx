@@ -9,7 +9,6 @@ import { EventDialogManager, EventDialogManagerRef } from '@/components/properti
 import { Card } from "@/components/ui/card";
 import { DateRange } from "react-day-picker";
 import { CalendarSidebar } from '@/components/properties/calendar/CalendarSidebar';
-import { CalendarPageHeader } from '@/components/properties/calendar/CalendarPageHeader';
 import { CalendarTabsContent } from '@/components/properties/calendar/CalendarTabsContent';
 import { useCalendarEvents } from '@/components/properties/calendar/useCalendarEvents';
 
@@ -137,20 +136,9 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
     refetchEvents();
     toast.info("Filters cleared");
   };
-  
-  const applyFilters = () => {
-    // This function is called directly when applying filters
-    toast.success("Filters applied");
-  };
 
   return (
     <div className="w-full">
-      <CalendarPageHeader 
-        onExport={handleExport}
-        propertyId={propertyId}
-        propertyName={propertyName}
-      />
-      
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Sidebar filters - collapsible on mobile */}
         <CalendarSidebar
@@ -162,10 +150,7 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
           setDateRange={setDateRange}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          onApplyFilters={applyFilters}
           onClearFilters={clearFilters}
-          onExport={handleExport}
-          copyICalFeedUrl={copyICalFeedUrl}
         />
         
         {/* Main content area */}
@@ -183,7 +168,6 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
             handleCalendarNavigation={handleCalendarNavigation}
             searchQuery={searchQuery}
             hasConflicts={hasConflicts}
-            onViewConflicts={onViewConflicts}
             onAddEvent={() => eventDialogRef.current?.openAddEventDialog()}
             onExport={handleExport}
             copyICalFeedUrl={copyICalFeedUrl}
