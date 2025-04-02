@@ -7,7 +7,7 @@ import { authService, profileService } from "@/services/api-service";
 import { ensureMongoId } from "@/lib/mongo-helpers";
 
 // Enable development mode to bypass authentication
-const DEV_MODE = false; // Set to false to use the actual API
+const DEV_MODE = true; // Set to false to use the actual API
 
 interface AuthContextType {
   user: User | null;
@@ -105,50 +105,67 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const response = await authService.login(email, password);
+      // Log the request to help with debugging
+      console.log("Sending login request with:", { email, password: "***" });
       
-      // Handle different API response formats for tokens
-      if (response.data) {
-        let token = null;
+      try {
+        const response = await authService.login(email, password);
+        console.log("Login API response:", response);
         
-        // Extract token based on different possible response formats
-        if (response.data.access_token) {
-          token = response.data.access_token;
-        } else if (response.data.token) {
-          token = response.data.token;
-        } else if (typeof response.data === 'string') {
-          // Some APIs might return the token directly as a string
-          token = response.data;
-        }
-        
-        if (token) {
-          localStorage.setItem("token", token);
+        // Handle different API response formats for tokens
+        if (response && response.data) {
+          let token = null;
           
-          try {
-            // Get user data from the response or fetch profile
-            if (response.data.user) {
-              setUser(ensureMongoId(response.data.user));
-            } else {
-              // If login doesn't return user data, fetch it separately
-              const userResponse = await profileService.getProfile();
-              if (userResponse?.data) {
-                const userData = userResponse.data.user || userResponse.data;
-                setUser(ensureMongoId(userData));
-              }
-            }
+          // Extract token based on different possible response formats
+          if (response.data.access_token) {
+            token = response.data.access_token;
+          } else if (response.data.token) {
+            token = response.data.token;
+          } else if (typeof response.data === 'string') {
+            // Some APIs might return the token directly as a string
+            token = response.data;
+          } else if (response.data.data && (response.data.data.token || response.data.data.access_token)) {
+            // Some APIs nest data inside a data property
+            token = response.data.data.token || response.data.data.access_token;
+          }
+          
+          if (token) {
+            localStorage.setItem("token", token);
             
-            navigate("/dashboard");
-            toast.success("Login successful!");
-          } catch (profileError) {
-            console.error("Error fetching user profile:", profileError);
-            // If we can't get the profile, but have a token, still proceed
-            navigate("/dashboard");
-            toast.success("Login successful!");
+            try {
+              // Get user data from the response or fetch profile
+              if (response.data.user) {
+                setUser(ensureMongoId(response.data.user));
+              } else {
+                // If login doesn't return user data, fetch it separately
+                const userResponse = await profileService.getProfile();
+                if (userResponse?.data) {
+                  const userData = userResponse.data.user || userResponse.data;
+                  setUser(ensureMongoId(userData));
+                }
+              }
+              
+              navigate("/dashboard");
+              toast.success("Login successful!");
+            } catch (profileError) {
+              console.error("Error fetching user profile:", profileError);
+              // If we can't get the profile, but have a token, still proceed
+              navigate("/dashboard");
+              toast.success("Login successful!");
+            }
+          } else {
+            console.error("Login response structure:", response.data);
+            toast.error("Invalid response format from server. Token not found.");
+            throw new Error("No token received from server");
           }
         } else {
-          toast.error("Invalid response from server. Please try again.");
-          throw new Error("No token received from server");
+          toast.error("Empty response received from server");
+          throw new Error("Empty response from server");
         }
+      } catch (apiError) {
+        console.error("API error during login:", apiError);
+        toast.error("Login failed. Please check your credentials and try again.");
+        throw apiError;
       }
     } catch (error) {
       console.error("Login error:", error);

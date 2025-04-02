@@ -44,6 +44,12 @@ api.interceptors.response.use(
       toast.error(response.data.message || "Operation failed");
       return Promise.reject(response);
     }
+    
+    // Log the successful response for debugging
+    if (response.config.url?.includes('/auth/login')) {
+      console.log("Authentication response received:", JSON.stringify(response.data, null, 2));
+    }
+    
     return response;
   },
   (error) => {
@@ -62,11 +68,20 @@ api.interceptors.response.use(
         window.location.href = "/login";
         toast.error("Your session has expired. Please log in again.");
       }
+    } else if (response?.status === 400 && isLoginPage) {
+      toast.error("Login failed. Please check your credentials.");
     } else if (response?.data?.message) {
       toast.error(response.data.message);
     } else {
       toast.error("Something went wrong. Please try again later.");
     }
+    
+    // Log the error for easier debugging
+    console.error("API Error:", {
+      url: error.config?.url,
+      status: response?.status,
+      data: response?.data
+    });
     
     return Promise.reject(error);
   }

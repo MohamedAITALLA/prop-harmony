@@ -74,8 +74,14 @@ export const conflictService = {
 
 // Auth Service
 export const authService = {
-  login: (email: string, password: string) => {
-    return api.post("/auth/login", { email, password });
+  login: async (email: string, password: string) => {
+    try {
+      const response = await api.post("/auth/login", { email, password });
+      return response;
+    } catch (error) {
+      console.error("Authentication service error:", error);
+      throw error;
+    }
   },
   register: (userData: any) => {
     return api.post("/auth/register", userData);
