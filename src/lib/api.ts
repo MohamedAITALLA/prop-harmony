@@ -4,7 +4,6 @@ import { toast } from "sonner";
 
 const API_URL = "https://channel-manager-api.vercel.app";
 
-// Extend the AxiosInstance type to include our custom method
 interface ExtendedAxiosInstance extends AxiosInstance {
   getICalFile: (url: string) => Promise<Blob>;
 }
@@ -25,48 +24,30 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
-    // For iCal file downloads, just return the response directly
     if (response.headers["content-type"]?.includes("text/calendar")) {
       return response;
-    }
-    
-    // For successful responses, check if there's a success flag in our API format
-    if (response.data && response.data.success === false) {
-      // Even though HTTP status is 200, the API indicates an error
-      toast.error(response.data.message || "Operation failed");
-      return Promise.reject(response);
-    }
-    
-    // Log the successful response for debugging
-    if (response.config.url?.includes('/auth/login')) {
-      console.log("Authentication response received:", JSON.stringify(response.data, null, 2));
     }
     
     return response;
   },
   (error) => {
     const { response } = error;
-    
-    // Handle login page specifically
     const isLoginPage = window.location.pathname.includes('/login');
     const isRegisterPage = window.location.pathname.includes('/register');
     const isAuthEndpoint = error.config?.url?.includes('/auth/');
     
     if (response?.status === 401) {
-      // Don't redirect during auth operations
+      // Don't redirect during authentication
       if (isLoginPage || isRegisterPage || isAuthEndpoint) {
-        // On login/register page or during auth requests, show error message without redirecting
         toast.error("Authentication failed. Please check your credentials.");
       } else {
-        // On other pages, clear token and redirect to login
+        // Clear token and redirect for non-auth pages
         localStorage.removeItem("token");
         window.location.href = "/login";
         toast.error("Your session has expired. Please log in again.");
@@ -78,13 +59,6 @@ api.interceptors.response.use(
     } else {
       toast.error("Something went wrong. Please try again later.");
     }
-    
-    // Log the error for easier debugging
-    console.error("API Error:", {
-      url: error.config?.url,
-      status: response?.status,
-      data: response?.data
-    });
     
     return Promise.reject(error);
   }
