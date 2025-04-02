@@ -56,7 +56,7 @@ export const eventService = {
       page?: number;
       limit?: number;
     }
-  ): Promise<any> {
+  ) => {
     const response = await api.get(
       `/properties/${propertyId}/conflicts`,
       { params }

@@ -88,6 +88,7 @@ const App = () => (
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
+            {/* Login and Register manage their own AuthProvider */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/components" element={<ComponentsDemo />} />
