@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
@@ -154,11 +153,10 @@ export function PropertyAnalytics() {
     refetchSyncStatus();
   };
 
-  // Fix the type issue by providing an initial value with the correct type
   const eventStatusCounts = React.useMemo(() => {
     if (!eventsData?.data?.length) return {} as Record<string, number>;
     
-    return eventsData.data.reduce((acc: Record<string, number>, event) => {
+    return eventsData.data.reduce((acc, event) => {
       const status = event.status || "unknown";
       acc[status] = (acc[status] || 0) + 1;
       return acc;
@@ -168,7 +166,7 @@ export function PropertyAnalytics() {
   const eventTypeCounts = React.useMemo(() => {
     if (!eventsData?.data?.length) return {} as Record<string, number>;
     
-    return eventsData.data.reduce((acc: Record<string, number>, event) => {
+    return eventsData.data.reduce((acc, event) => {
       const eventType = event.event_type || "unknown";
       acc[eventType] = (acc[eventType] || 0) + 1;
       return acc;
