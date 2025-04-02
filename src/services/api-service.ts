@@ -1,13 +1,21 @@
-
 import api from "@/lib/api";
 import { ApiResponse } from "@/types/api-responses";
 
+interface PropertyQueryParams {
+  page?: number;
+  limit?: number;
+  property_type?: string;
+  city?: string;
+  sort?: string;
+  status?: string;
+}
+
 // Property Service
 export const propertyService = {
-  getProperties: (params?: { page?: number; limit?: number }) => {
+  getProperties: (params?: PropertyQueryParams) => {
     return api.get("/properties", { params });
   },
-  getAllProperties: (params?: { page?: number; limit?: number }) => {
+  getAllProperties: (params?: PropertyQueryParams) => {
     return api.get("/properties", { params });
   },
   getProperty: (id: string) => {

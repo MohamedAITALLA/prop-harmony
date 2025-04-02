@@ -8,27 +8,57 @@ import { Property } from "@/types/api-responses";
 import { PropertyType } from "@/types/enums";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, Grid, List } from "lucide-react";
+import { 
+  Plus, 
+  Grid, 
+  List, 
+  Filter, 
+  SortAsc, 
+  ArrowUpDown,
+  X,
+  RefreshCw
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AdvancedPagination } from "@/components/ui/advanced-pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 export default function Properties() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [propertyType, setPropertyType] = useState<string>("");
+  const [city, setCity] = useState<string>("");
+  const [sortOption, setSortOption] = useState<string>("");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // Use our propertyService to fetch properties
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["properties", currentPage, pageSize],
+    queryKey: ["properties", currentPage, pageSize, propertyType, city, sortOption],
     queryFn: async () => {
       try {
         // Call the updated API endpoint with pagination
         const response = await propertyService.getAllProperties({
           page: currentPage,
-          limit: pageSize
+          limit: pageSize,
+          property_type: propertyType,
+          city: city,
+          sort: sortOption
         });
+        
         // Ensure we return an array of properties
         return response.data || { properties: getMockProperties(), pagination: createMockPagination() };
       } catch (error) {
@@ -44,9 +74,9 @@ export default function Properties() {
             by_property_type: {},
             by_city: {},
             applied_filters: {
-              property_type: '',
-              city: '',
-              sort: '',
+              property_type: propertyType || '',
+              city: city || '',
+              sort: sortOption || '',
             }
           }
         };
@@ -89,6 +119,19 @@ export default function Properties() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+  
+  const handleFilterReset = () => {
+    setPropertyType("");
+    setCity("");
+    setSortOption("");
+  };
+  
+  const handleRefresh = () => {
+    refetch();
+    toast.success("Properties refreshed");
+  };
+
+  const activeFiltersCount = [propertyType, city, sortOption].filter(Boolean).length;
 
   if (error) {
     return (
@@ -110,12 +153,104 @@ export default function Properties() {
           </p>
         </div>
         
-        <Button 
-          onClick={() => navigate("/properties/new")}
-        >
-          <Plus className="mr-2 h-4 w-4" /> New Property
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={handleRefresh}
+            title="Refresh properties"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+          
+          <Button 
+            variant={isFilterOpen ? "secondary" : "outline"}
+            onClick={() => setIsFilterOpen(!isFilterOpen)}
+            className="gap-2"
+          >
+            <Filter className="h-4 w-4" /> 
+            Filter
+            {activeFiltersCount > 0 && (
+              <Badge variant="secondary" className="ml-1 h-5 w-5 rounded-full p-0 flex items-center justify-center">
+                {activeFiltersCount}
+              </Badge>
+            )}
+          </Button>
+          
+          <Button 
+            onClick={() => navigate("/properties/new")}
+          >
+            <Plus className="mr-2 h-4 w-4" /> New Property
+          </Button>
+        </div>
       </div>
+      
+      {isFilterOpen && (
+        <Card className="mb-4">
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label htmlFor="property-type" className="text-sm font-medium block mb-2">Property Type</label>
+                <Select 
+                  value={propertyType} 
+                  onValueChange={setPropertyType}
+                >
+                  <SelectTrigger id="property-type">
+                    <SelectValue placeholder="All Types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Types</SelectItem>
+                    {Object.values(PropertyType).map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label htmlFor="city" className="text-sm font-medium block mb-2">City</label>
+                <Input
+                  id="city"
+                  placeholder="Filter by city"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="sort" className="text-sm font-medium block mb-2">Sort By</label>
+                <Select 
+                  value={sortOption} 
+                  onValueChange={setSortOption}
+                >
+                  <SelectTrigger id="sort">
+                    <SelectValue placeholder="Default" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Default</SelectItem>
+                    <SelectItem value="name_asc">Name (A-Z)</SelectItem>
+                    <SelectItem value="name_desc">Name (Z-A)</SelectItem>
+                    <SelectItem value="created_desc">Newest First</SelectItem>
+                    <SelectItem value="created_asc">Oldest First</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex items-end gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={handleFilterReset}
+                  className="gap-2"
+                >
+                  <X className="h-4 w-4" /> Clear Filters
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       
       <Tabs defaultValue="grid" onValueChange={(value) => setViewMode(value as "grid" | "table")}>
         <TabsList>

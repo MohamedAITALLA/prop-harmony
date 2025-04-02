@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +9,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Properties from "./pages/Properties";
+import NewProperty from "./pages/NewProperty";
 import PropertyDetails from "./pages/PropertyDetails";
 import Calendar from "./pages/Calendar";
 import EventManagement from "./pages/EventManagement";
@@ -28,14 +28,11 @@ import { ensureMongoId } from "./lib/mongo-helpers";
 
 const queryClient = new QueryClient();
 
-// Set DEV_MODE to true to bypass authentication checks
 const DEV_MODE = true;
 
-// Protected route wrapper
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   
-  // In development mode, always render the protected content
   if (DEV_MODE) {
     return <MainLayout>{children}</MainLayout>;
   }
@@ -51,11 +48,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <MainLayout>{children}</MainLayout>;
 };
 
-// Admin route wrapper
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   
-  // In development mode, always render the admin content
   if (DEV_MODE) {
     return <MainLayout>{children}</MainLayout>;
   }
@@ -71,7 +66,6 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   return <MainLayout>{children}</MainLayout>;
 };
 
-// Placeholder component for routes not yet implemented
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="flex flex-col items-center justify-center py-12">
     <h1 className="text-2xl font-bold mb-4">{title}</h1>
@@ -87,15 +81,14 @@ const App = () => (
           <Toaster />
           <Sonner />
           <Routes>
-            {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/components" element={<ComponentsDemo />} />
             
-            {/* Protected routes */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
+            <Route path="/properties/new" element={<ProtectedRoute><NewProperty /></ProtectedRoute>} />
             <Route path="/properties/:id" element={<ProtectedRoute><PropertyDetails /></ProtectedRoute>} />
             <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
             <Route path="/events" element={<ProtectedRoute><EventManagement /></ProtectedRoute>} />
@@ -107,7 +100,6 @@ const App = () => (
             <Route path="/analytics" element={<ProtectedRoute><PlaceholderPage title="Analytics" /></ProtectedRoute>} />
             <Route path="/preferences" element={<ProtectedRoute><PlaceholderPage title="Preferences" /></ProtectedRoute>} />
             
-            {/* Admin routes */}
             <Route path="/admin/users" element={<AdminRoute><UserManagement /></AdminRoute>} />
             <Route path="/admin/user-profiles" element={<AdminRoute><UserProfiles /></AdminRoute>} />
             <Route path="/admin" element={<AdminRoute><PlaceholderPage title="Admin" /></AdminRoute>} />
@@ -117,7 +109,6 @@ const App = () => (
               </MainLayout>
             } />
             
-            {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </TooltipProvider>
