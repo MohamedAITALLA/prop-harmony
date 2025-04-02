@@ -142,7 +142,8 @@ export function PropertyConflictsList({ propertyId }: PropertyConflictsListProps
     if (!dismissingConflictId) return;
     
     try {
-      await eventService.resolveConflict(propertyId, dismissingConflictId, 'dismiss');
+      // Fix: Pass an object with resolution property instead of a string
+      await eventService.resolveConflict(propertyId, dismissingConflictId, { resolution: 'dismiss' });
       toast.success("Conflict dismissed successfully");
       refetch();
     } catch (error) {
