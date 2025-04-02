@@ -55,35 +55,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       const token = localStorage.getItem("token");
       
-      if (token) {
-        try {
-          const response = await profileService.getProfile();
-          if (response && response.data) {
-            // Check if the response.data has a user property that contains the actual User data
-            if (response.data.user) {
-              setUser(ensureMongoId(response.data.user));
-            } else {
-              // If we don't have user data directly, we need to make another API call
-              const userResponse = await authService.getCurrentUser();
-              if (userResponse && userResponse.data) {
-                setUser(ensureMongoId(userResponse.data));
-              }
-            }
-          }
-        } catch (error) {
-          console.error("Error fetching user profile:", error);
-          localStorage.removeItem("token");
-        }
+      if (!token) {
+        setIsLoading(false);
+        return;
       }
       
-      setIsLoading(false);
+      try {
+        const response = await profileService.getProfile();
+        if (response && response.data) {
+          // Check if the response.data has a user property that contains the actual User data
+          if (response.data.user) {
+            setUser(ensureMongoId(response.data.user));
+          } else {
+            // If response.data is the user object directly
+            setUser(ensureMongoId(response.data));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+        localStorage.removeItem("token");
+      } finally {
+        setIsLoading(false);
+      }
     };
     
     checkAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
-    setIsLoading(true);
     try {
       // In development mode, create a mock user and bypass authentication
       if (DEV_MODE) {
@@ -103,38 +102,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(mockUser);
         navigate("/dashboard");
         toast.success("Development mode: Authentication bypassed");
-        setIsLoading(false);
         return;
       }
 
       const response = await authService.login(email, password);
       
       // Store the JWT token from the response
-      localStorage.setItem("token", response.data.access_token);
+      if (response.data.access_token) {
+        localStorage.setItem("token", response.data.access_token);
+      } else if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
+      }
       
       // Get user data from the response or fetch profile
       if (response.data.user) {
         setUser(ensureMongoId(response.data.user));
       } else {
         // If login doesn't return user data, fetch it separately
-        const userResponse = await authService.getCurrentUser();
-        if (userResponse && userResponse.data) {
-          setUser(ensureMongoId(userResponse.data));
+        const userResponse = await profileService.getProfile();
+        if (userResponse?.data) {
+          const userData = userResponse.data.user || userResponse.data;
+          setUser(ensureMongoId(userData));
         }
       }
       
       navigate("/dashboard");
-      toast.success(response.data?.message || "Login successful!");
+      const successMessage = response.data?.message || "Login successful!";
+      toast.success(successMessage);
     } catch (error) {
       console.error("Login error:", error);
       // The error toast is already handled by the API interceptor
-    } finally {
-      setIsLoading(false);
+      throw error; // Re-throw to handle in the component
     }
   };
 
   const register = async (userData: RegisterData) => {
-    setIsLoading(true);
     try {
       // In development mode, create a mock user and bypass registration
       if (DEV_MODE) {
@@ -154,33 +156,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(mockUser);
         navigate("/dashboard");
         toast.success("Development mode: Registration bypassed");
-        setIsLoading(false);
         return;
       }
 
-      const response = await authService.register(userData);
+      const response = await authService.register({
+        email: userData.email,
+        password: userData.password,
+        first_name: userData.firstName,
+        last_name: userData.lastName,
+      });
       
       // Store the JWT token
-      localStorage.setItem("token", response.data.access_token);
+      if (response.data.access_token) {
+        localStorage.setItem("token", response.data.access_token);
+      } else if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
+      }
       
       // Set user from the response
       if (response.data.user) {
         setUser(ensureMongoId(response.data.user));
       } else {
         // If registration doesn't return user data, fetch it separately
-        const userResponse = await authService.getCurrentUser();
+        const userResponse = await profileService.getProfile();
         if (userResponse && userResponse.data) {
-          setUser(ensureMongoId(userResponse.data));
+          const userData = userResponse.data.user || userResponse.data;
+          setUser(ensureMongoId(userData));
         }
       }
       
       navigate("/dashboard");
-      toast.success(response.data?.message || "Registration successful!");
+      const successMessage = response.data?.message || "Registration successful!";
+      toast.success(successMessage);
     } catch (error) {
       console.error("Registration error:", error);
       // The error toast is already handled by the API interceptor
-    } finally {
-      setIsLoading(false);
+      throw error;
     }
   };
 

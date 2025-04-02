@@ -7,15 +7,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Home, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login, isLoading } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password);
+    setIsSubmitting(true);
+    
+    try {
+      await login(email, password);
+      // The redirect is handled in the useAuth hook
+    } catch (error) {
+      // Error is already handled by the API interceptor
+      console.error("Login failed:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -63,8 +75,8 @@ export default function LoginForm() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Please wait

@@ -50,9 +50,14 @@ api.interceptors.response.use(
     const { response } = error;
     
     if (response?.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-      toast.error("Your session has expired. Please log in again.");
+      // Only clear token and redirect to login if we're not already on the login page
+      if (!window.location.pathname.includes('/login')) {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+        toast.error("Your session has expired. Please log in again.");
+      } else {
+        toast.error("Invalid email or password. Please try again.");
+      }
     } else if (response?.data?.message) {
       toast.error(response.data.message);
     } else {
