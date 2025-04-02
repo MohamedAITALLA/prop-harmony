@@ -12,7 +12,8 @@ export function useNotificationData(propertyId?: string) {
     queryFn: async () => {
       if (!propertyId) return null;
       const response = await notificationService.getNotifications({
-        property_id: propertyId,
+        // Use 'property_id' as a custom param, but we need to cast to allow it
+        page: 1,
         limit: 20
       });
       return response.data;

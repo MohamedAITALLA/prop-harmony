@@ -6,6 +6,11 @@ export const notificationService = {
   getNotifications: async (params?: {
     page?: number;
     limit?: number;
+    property_id?: string; // Add property_id to support components using it
+    type?: string;
+    severity?: string;
+    read?: boolean;
+    search?: string;
   }): Promise<NotificationsResponse> => {
     const response = await api.get<NotificationsResponse>("/notifications", { params });
     return response.data;
@@ -23,7 +28,6 @@ export const notificationService = {
   },
 
   deleteNotification: async (notificationId: string): Promise<ApiResponse<{ success: boolean }>> => {
-    // Removed preserveHistory parameter as it's not in the spec
     const response = await api.delete<ApiResponse<{ success: boolean }>>(`/notifications/${notificationId}`);
     return response.data;
   },

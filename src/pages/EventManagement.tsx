@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarEvent, Property } from "@/types/api-responses";
@@ -12,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CalendarRange } from "@/components/ui/calendar-range";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Plus, MoreVertical, Download, Filter, X } from "lucide-react";
-import { propertyService, eventService } from "@/services/api-service";
+import { propertyService } from "@/services/api-service";
+import { eventService } from "@/services/api-event-service"; // Updated import
 import { EventTypeBadge } from "@/components/ui/event-type-badge";
 import { format, parseISO } from "date-fns";
 import { DateRange as DateRangeType } from "react-day-picker";

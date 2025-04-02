@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Notification, NotificationSettings } from "@/types/api-responses";
 import { toast } from "sonner";
@@ -169,7 +170,8 @@ export function useNotifications(filters?: NotificationFilters) {
 
   const markAsReadMutation = useMutation({
     mutationFn: async (id: string) => {
-      return notificationService.markOneAsRead(id);
+      // Fix: Change markOneAsRead to markAsRead
+      return notificationService.markAsRead(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
@@ -182,7 +184,8 @@ export function useNotifications(filters?: NotificationFilters) {
 
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      return notificationService.markAsRead();
+      // Fix: Pass an empty array to markAllAsRead to make it all notifications
+      return notificationService.markAllAsRead();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });

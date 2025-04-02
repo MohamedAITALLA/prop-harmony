@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -78,11 +77,10 @@ export function SyncDialog({
     try {
       let response;
       if (propertyId) {
-        // Force payload to be empty object instead of undefined
-        response = await syncService.syncProperty(propertyId, {});
+        response = await syncService.syncProperty(propertyId);
         toast.success(`Property synced successfully`);
       } else {
-        response = await syncService.syncAll({});
+        response = await syncService.syncAll();
         toast.success(`All properties synced successfully`);
       }
       

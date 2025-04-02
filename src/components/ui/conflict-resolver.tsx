@@ -49,13 +49,14 @@ export function ConflictResolver({
 
     setLoading(true);
     try {
-      // Use the updated signature that accepts a resolution object
+      // Update to use notes param instead of event_id
       await eventService.resolveConflict(
         propertyId,
         conflictId,
-        selectedAction === "keep_one" 
-          ? { resolution: selectedAction, event_id: selectedEvent } 
-          : { resolution: selectedAction }
+        { 
+          resolution: selectedAction,
+          notes: selectedAction === "keep_one" ? `Selected event ID: ${selectedEvent}` : "" 
+        }
       );
       
       toast.success("Conflict has been resolved");
