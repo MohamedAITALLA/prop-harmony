@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -67,7 +66,6 @@ export function SyncDialog({
   const [status, setStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
   
-  // Add QueryClient to invalidate notifications query after sync
   const queryClient = useQueryClient();
 
   const handleSync = async () => {
@@ -79,11 +77,9 @@ export function SyncDialog({
     try {
       let response;
       if (propertyId) {
-        // Sync specific property
         response = await syncService.syncProperty(propertyId);
         toast.success(`Property synced successfully`);
       } else {
-        // Sync all properties
         response = await syncService.syncAll();
         toast.success(`All properties synced successfully`);
       }
@@ -91,17 +87,14 @@ export function SyncDialog({
       setSyncComplete(true);
       setStatus("success");
       
-      // Store detailed sync results if available
       if (response.data && response.data.sync_results) {
         setSyncResult(response.data);
       }
       
-      // Invalidate notifications query to fetch any new notifications from the sync
       queryClient.invalidateQueries({
         queryKey: ["notifications"],
       });
       
-      // Also invalidate property sync status
       if (propertyId) {
         queryClient.invalidateQueries({
           queryKey: ["property-sync-status", propertyId],
@@ -112,7 +105,6 @@ export function SyncDialog({
         });
       }
       
-      // Notify parent component that sync is complete
       if (onSyncComplete) {
         onSyncComplete();
       }

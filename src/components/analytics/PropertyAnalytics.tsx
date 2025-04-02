@@ -1,9 +1,7 @@
 
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { syncService } from "@/services/api-service";
 import { SyncDialog } from "@/components/ui/sync-dialog";
 import { RefreshCw, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";

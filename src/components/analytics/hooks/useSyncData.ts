@@ -4,6 +4,36 @@ import { format } from "date-fns";
 import { syncService } from "@/services/api-service";
 import React from "react";
 
+// Define types for the API response based on the provided endpoint documentation
+interface PropertySyncStatus {
+  property_id: string;
+  connections: Array<{
+    _id: string;
+    platform: string;
+    status: string;
+    last_synced: string;
+    next_sync: string | null;
+    error_message: string | null;
+    last_error_time: string | null;
+    sync_frequency_minutes: number;
+    url_hash: string | null;
+  }>;
+  event_counts: Array<{
+    platform: string;
+    total_events: number;
+    active_events: number;
+  }>;
+  summary: {
+    last_sync: string | null;
+    next_sync: string | null;
+    overall_status: string;
+    total_connections: number;
+    active_connections: number;
+    error_connections: number;
+    health_percentage: number;
+  };
+}
+
 export function useSyncData(propertyId?: string) {
   const { 
     data: syncStatus, 
@@ -15,7 +45,8 @@ export function useSyncData(propertyId?: string) {
       if (!propertyId) return null;
       try {
         const response = await syncService.getPropertySyncStatus(propertyId);
-        return response.data?.syncStatus || null;
+        // Access the syncStatus from the correct path in the response
+        return response.data || null;
       } catch (error) {
         console.error("Error fetching sync status:", error);
         return null; // Return null instead of undefined on error
