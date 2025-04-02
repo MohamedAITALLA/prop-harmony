@@ -282,6 +282,7 @@ export interface ICalConnectionsResponse {
 export interface CalendarEvent {
   _id: string;
   property_id: string;
+  property?: Property;
   ical_uid: string;
   platform: Platform;
   summary: string;
@@ -289,9 +290,27 @@ export interface CalendarEvent {
   start_date: string;
   end_date: string;
   event_type: EventType;
-  status: EventStatus;
+  status: string;
   created_at: string;
   updated_at: string;
+  duration_days?: number;
+}
+
+export interface EventResponse {
+  success: boolean;
+  data: CalendarEvent;
+  meta: {
+    conflicts_detected?: number;
+    property_id: string;
+    total?: number;
+    platforms?: Record<string, number>;
+    date_range?: {
+      from: string;
+      to: string;
+    };
+  };
+  message: string;
+  timestamp: string;
 }
 
 export interface EventsResponse {
@@ -301,7 +320,7 @@ export interface EventsResponse {
     total: number;
     property_id: string;
     platforms: Record<string, number>;
-    date_range: {
+    date_range?: {
       from: string;
       to: string;
     };

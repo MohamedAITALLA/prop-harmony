@@ -11,11 +11,10 @@ import {
 import {
   AlertCircle, CalendarDays, List, BedDouble, Home, Filter, Plus, Download, X
 } from "lucide-react";
-import { PropertySelect } from "@/components/properties/PropertySelect";
 import { PlatformSelect } from "@/components/sync/PlatformSelect";
 import { EventTypeSelect } from "@/components/events/EventTypeSelect";
 import { DateRangeSelect } from "@/components/ui/date-range-select";
-import { eventService } from "@/services/api-service";
+import { eventService } from "@/services/api-event-service";
 import { Platform, EventType } from "@/types/enums";
 import { CalendarEvent } from "@/types/api-responses";
 import { convertToMongoIdFormat } from "@/lib/id-conversion";
@@ -23,25 +22,14 @@ import { DateRange } from "react-day-picker";
 
 export default function Calendar() {
   const [view, setView] = useState("month");
-  const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<EventType[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   
   const { data: events = [], isLoading } = useQuery({
-    queryKey: ["calendar-events", selectedProperty, selectedPlatforms, selectedEventTypes, dateRange],
+    queryKey: ["calendar-events", selectedPlatforms, selectedEventTypes, dateRange],
     queryFn: async () => {
       try {
-        // This would be a real API call in a production app
-        // const response = await eventService.getEvents(selectedProperty!, {
-        //   platforms: selectedPlatforms,
-        //   event_types: selectedEventTypes,
-        //   start_date: dateRange.from?.toISOString(),
-        //   end_date: dateRange.to?.toISOString()
-        // });
-        // return response.data;
-        
-        // For demonstration, we'll use mock data
         return convertToMongoIdFormat(getMockEvents());
       } catch (error) {
         console.error("Error fetching events:", error);
@@ -66,7 +54,6 @@ export default function Calendar() {
   }));
   
   const handleExport = (format: string) => {
-    // In a real app, this would trigger an export process
     console.log(`Exporting calendar as ${format}`);
   };
   
@@ -113,14 +100,6 @@ export default function Calendar() {
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 py-2 space-y-5">
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium">Property</h3>
-                <PropertySelect 
-                  value={selectedProperty} 
-                  onValueChange={setSelectedProperty} 
-                />
-              </div>
-              
               <div className="space-y-2">
                 <h3 className="text-sm font-medium">Platforms</h3>
                 <PlatformSelect
