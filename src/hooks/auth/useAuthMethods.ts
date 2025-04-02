@@ -19,16 +19,20 @@ export function useAuthMethods(setUser: (user: User | null) => void) {
     try {
       const response = await authService.login(email, password);
       
-      if (response?.data?.access_token) {
-        const { access_token, user } = response.data;
+      // Handle the nested response structure
+      const responseData = response.data?.data || response.data;
+      
+      if (responseData?.access_token) {
+        const { access_token, user } = responseData;
         
         setToken(access_token);
         
         if (user) {
+          // Convert _id to id if needed
           const processedUser = ensureMongoId(user);
           setUser(processedUser);
           navigate("/dashboard");
-          toast.success("Login successful!");
+          toast.success(response.data?.message || "Login successful!");
         } else {
           console.warn("No user data in login response");
           toast.error("Login was incomplete. Please try again.");
@@ -52,8 +56,11 @@ export function useAuthMethods(setUser: (user: User | null) => void) {
         last_name: userData.lastName,
       });
       
-      if (response?.data?.access_token && response.data.user) {
-        const { access_token, user } = response.data;
+      // Handle the nested response structure
+      const responseData = response.data?.data || response.data;
+      
+      if (responseData?.access_token && responseData.user) {
+        const { access_token, user } = responseData;
         
         setToken(access_token);
         
