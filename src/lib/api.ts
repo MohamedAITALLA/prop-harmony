@@ -49,14 +49,18 @@ api.interceptors.response.use(
   (error) => {
     const { response } = error;
     
+    // Handle login page specifically
+    const isLoginPage = window.location.pathname.includes('/login');
+    
     if (response?.status === 401) {
-      // Only clear token and redirect to login if we're not already on the login page
-      if (!window.location.pathname.includes('/login')) {
+      if (isLoginPage) {
+        // On login page, show invalid credentials message without redirecting
+        toast.error("Invalid email or password. Please try again.");
+      } else {
+        // On other pages, clear token and redirect to login
         localStorage.removeItem("token");
         window.location.href = "/login";
         toast.error("Your session has expired. Please log in again.");
-      } else {
-        toast.error("Invalid email or password. Please try again.");
       }
     } else if (response?.data?.message) {
       toast.error(response.data.message);

@@ -17,13 +17,19 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast.error("Please enter both email and password");
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
       await login(email, password);
-      // The redirect is handled in the useAuth hook
+      // Redirect will be handled in the useAuth hook if successful
     } catch (error) {
-      // Error is already handled by the API interceptor
+      // Error handling is now managed by the API interceptor
       console.error("Login failed:", error);
     } finally {
       setIsSubmitting(false);

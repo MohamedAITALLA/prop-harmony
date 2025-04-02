@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -107,32 +106,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const response = await authService.login(email, password);
       
-      // Store the JWT token from the response
-      if (response.data.access_token) {
-        localStorage.setItem("token", response.data.access_token);
-      } else if (response.data.token) {
-        localStorage.setItem("token", response.data.token);
-      }
-      
-      // Get user data from the response or fetch profile
-      if (response.data.user) {
-        setUser(ensureMongoId(response.data.user));
-      } else {
-        // If login doesn't return user data, fetch it separately
-        const userResponse = await profileService.getProfile();
-        if (userResponse?.data) {
-          const userData = userResponse.data.user || userResponse.data;
-          setUser(ensureMongoId(userData));
+      // Handle different API response formats for tokens
+      if (response.data) {
+        let token = null;
+        
+        // Extract token based on different possible response formats
+        if (response.data.access_token) {
+          token = response.data.access_token;
+        } else if (response.data.token) {
+          token = response.data.token;
+        } else if (typeof response.data === 'string') {
+          // Some APIs might return the token directly as a string
+          token = response.data;
+        }
+        
+        if (token) {
+          localStorage.setItem("token", token);
+          
+          try {
+            // Get user data from the response or fetch profile
+            if (response.data.user) {
+              setUser(ensureMongoId(response.data.user));
+            } else {
+              // If login doesn't return user data, fetch it separately
+              const userResponse = await profileService.getProfile();
+              if (userResponse?.data) {
+                const userData = userResponse.data.user || userResponse.data;
+                setUser(ensureMongoId(userData));
+              }
+            }
+            
+            navigate("/dashboard");
+            toast.success("Login successful!");
+          } catch (profileError) {
+            console.error("Error fetching user profile:", profileError);
+            // If we can't get the profile, but have a token, still proceed
+            navigate("/dashboard");
+            toast.success("Login successful!");
+          }
+        } else {
+          toast.error("Invalid response from server. Please try again.");
+          throw new Error("No token received from server");
         }
       }
-      
-      navigate("/dashboard");
-      const successMessage = response.data?.message || "Login successful!";
-      toast.success(successMessage);
     } catch (error) {
       console.error("Login error:", error);
       // The error toast is already handled by the API interceptor
-      throw error; // Re-throw to handle in the component
+      throw error;
     }
   };
 

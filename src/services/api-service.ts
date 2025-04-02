@@ -1,4 +1,3 @@
-
 import api from "@/lib/api";
 
 // Property Service
@@ -109,9 +108,6 @@ export const authService = {
   },
   register: (userData: any) => {
     return api.post("/auth/register", userData);
-  },
-  getCurrentUser: () => {
-    return api.get("/user-profile");
   },
   forgotPassword: (email: string) => {
     return api.post("/auth/forgot-password", { email });
