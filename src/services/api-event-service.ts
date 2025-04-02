@@ -1,4 +1,3 @@
-
 import api from "@/lib/api";
 import { ApiResponse, CalendarEvent, Conflict } from "@/types/api-responses";
 
@@ -18,7 +17,12 @@ export const eventService = {
       return response.data;
     } catch (error) {
       console.error("Error fetching events:", error);
-      return { success: false, data: [], message: "Failed to fetch events" };
+      return { 
+        success: false, 
+        data: [], 
+        message: "Failed to fetch events",
+        timestamp: new Date().toISOString()
+      };
     }
   },
 
@@ -89,19 +93,24 @@ export const eventService = {
       return response.data;
     } catch (error) {
       console.error("Error fetching conflicts:", error);
-      return { success: false, data: [], message: "Failed to fetch conflicts" };
+      return { 
+        success: false, 
+        data: [], 
+        message: "Failed to fetch conflicts",
+        timestamp: new Date().toISOString()
+      };
     }
   },
 
   resolveConflict: async (
     propertyId: string, 
     conflictId: string,
-    resolution: string
+    resolutionData: { resolution: string; event_id?: string } | { resolution: string }
   ): Promise<ApiResponse<{}>> => {
     try {
-      const response = await api.put(`/properties/${propertyId}/conflicts/${conflictId}/resolve`, {
-        resolution
-      });
+      const response = await api.put(`/properties/${propertyId}/conflicts/${conflictId}/resolve`, 
+        resolutionData
+      );
       return response.data;
     } catch (error) {
       console.error("Error resolving conflict:", error);

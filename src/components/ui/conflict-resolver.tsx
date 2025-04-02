@@ -49,11 +49,13 @@ export function ConflictResolver({
 
     setLoading(true);
     try {
-      // Fix: Pass only 3 arguments, selectedEvent is passed in the resolution object
+      // Use the updated signature that accepts a resolution object
       await eventService.resolveConflict(
         propertyId,
         conflictId,
-        selectedAction === "keep_one" ? { resolution: selectedAction, event_id: selectedEvent } : { resolution: selectedAction }
+        selectedAction === "keep_one" 
+          ? { resolution: selectedAction, event_id: selectedEvent } 
+          : { resolution: selectedAction }
       );
       
       toast.success("Conflict has been resolved");

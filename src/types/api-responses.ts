@@ -426,6 +426,13 @@ export interface SyncLog {
   message: string;
   details?: Record<string, any>;
   created_at: string;
+  results?: {
+    events_processed?: number;
+    events_created?: number;
+    events_updated?: number;
+    events_deleted?: number;
+    errors?: string[];
+  };
 }
 
 export interface SyncLogsResponse {
