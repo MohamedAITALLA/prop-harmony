@@ -9,24 +9,28 @@ import { AdvancedPagination } from '@/components/ui/advanced-pagination';
 
 interface NotificationsListProps {
   notifications: Notification[];
-  totalPages: number;
-  currentPage: number;
-  onPageChange: (page: number) => void;
+  totalPages?: number;
+  currentPage?: number;
+  onPageChange?: (page: number) => void;
   isLoading: boolean;
   onMarkAsRead?: (id: string) => void;
-  onMarkAllAsRead?: () => void;
+  onMarkAllRead?: () => void;
   onDelete?: (id: string) => void;
+  maxHeight?: string;
+  showHeader?: boolean;
 }
 
 export function NotificationsList({
   notifications,
-  totalPages,
-  currentPage,
+  totalPages = 1,
+  currentPage = 1,
   onPageChange,
   isLoading,
   onMarkAsRead,
-  onMarkAllAsRead,
-  onDelete
+  onMarkAllRead,
+  onDelete,
+  maxHeight,
+  showHeader = true
 }: NotificationsListProps) {
   const [selectedNotifications, setSelectedNotifications] = useState<string[]>([]);
 
@@ -56,8 +60,8 @@ export function NotificationsList({
   };
 
   const handleMarkSelectedAsRead = () => {
-    if (onMarkAllAsRead) {
-      onMarkAllAsRead(selectedNotifications);
+    if (onMarkAllRead) {
+      onMarkAllRead();
     }
     setSelectedNotifications([]);
   };
@@ -93,7 +97,7 @@ export function NotificationsList({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" style={{ maxHeight: maxHeight ? maxHeight : 'auto', overflowY: maxHeight ? 'auto' : 'visible' }}>
       {isLoading ? (
         <div className="flex items-center justify-center py-4">
           <RefreshCw className="h-5 w-5 animate-spin mr-2" />
@@ -105,40 +109,42 @@ export function NotificationsList({
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Checkbox
-                id="select-all"
-                checked={isAllSelected}
-                onCheckedChange={handleSelectAll}
-              />
-              <label
-                htmlFor="select-all"
-                className="ml-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Select All
-              </label>
+          {showHeader && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Checkbox
+                  id="select-all"
+                  checked={isAllSelected}
+                  onCheckedChange={handleSelectAll}
+                />
+                <label
+                  htmlFor="select-all"
+                  className="ml-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Select All
+                </label>
+              </div>
+              <div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleMarkSelectedAsRead}
+                  disabled={selectedNotifications.length === 0}
+                >
+                  Mark as Read
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteSelected}
+                  disabled={selectedNotifications.length === 0}
+                  className="ml-2"
+                >
+                  Delete
+                </Button>
+              </div>
             </div>
-            <div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleMarkSelectedAsRead}
-                disabled={selectedNotifications.length === 0}
-              >
-                Mark as Read
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDeleteSelected}
-                disabled={selectedNotifications.length === 0}
-                className="ml-2"
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
+          )}
           <div className="divide-y divide-border rounded-md border">
             {notifications.map((notification) => (
               <div
@@ -197,7 +203,7 @@ export function NotificationsList({
       )}
       
       {/* Pagination */}
-      {totalPages > 1 && (
+      {totalPages > 1 && onPageChange && (
         <div className="flex justify-center mt-4">
           <AdvancedPagination
             currentPage={currentPage}

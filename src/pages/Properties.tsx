@@ -30,7 +30,7 @@ export default function Properties() {
           limit: pageSize
         });
         // Ensure we return an array of properties
-        return response.data || getMockProperties();
+        return response.data || { properties: getMockProperties(), pagination: createMockPagination() };
       } catch (error) {
         console.error("Error fetching properties:", error);
         toast.error("Failed to load properties");
@@ -38,22 +38,36 @@ export default function Properties() {
         // For demo purposes, return mock data if the API fails
         return {
           properties: getMockProperties(),
-          pagination: {
-            total: 5,
-            page: currentPage,
-            limit: pageSize,
-            pages: Math.ceil(5 / pageSize),
-            has_next_page: currentPage < Math.ceil(5 / pageSize),
-            has_previous_page: currentPage > 1
+          pagination: createMockPagination(),
+          summary: {
+            total_properties: 5,
+            by_property_type: {},
+            by_city: {},
+            applied_filters: {
+              property_type: '',
+              city: '',
+              sort: '',
+            }
           }
         };
       }
     }
   });
 
-  // Ensure we always have an array of properties
-  const properties = data?.properties || [];
-  const pagination = data?.pagination || {
+  function createMockPagination() {
+    return {
+      total: 5,
+      page: currentPage,
+      limit: pageSize,
+      pages: Math.ceil(5 / pageSize),
+      has_next_page: currentPage < Math.ceil(5 / pageSize),
+      has_previous_page: currentPage > 1
+    };
+  }
+
+  // Extract properties and pagination from the response
+  let properties: Property[] = [];
+  let pagination = {
     total: 0,
     page: 1,
     limit: 10,
@@ -61,6 +75,16 @@ export default function Properties() {
     has_next_page: false,
     has_previous_page: false
   };
+
+  if (data) {
+    if (Array.isArray(data)) {
+      properties = data;
+      pagination = createMockPagination();
+    } else if (data.properties) {
+      properties = data.properties;
+      pagination = data.pagination;
+    }
+  }
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);

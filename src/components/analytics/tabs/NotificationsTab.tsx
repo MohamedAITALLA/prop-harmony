@@ -43,7 +43,7 @@ export function NotificationsTab({
           ) : notificationsData?.notifications?.length ? (
             <NotificationsList
               notifications={notificationsData.notifications.map((n: any) => ({
-                id: n._id,
+                _id: n._id,
                 title: n.title,
                 message: n.message,
                 type: n.type,
@@ -53,6 +53,7 @@ export function NotificationsTab({
                 property_id: n.property_id,
                 user_id: n.user_id
               }))}
+              isLoading={false}
               showHeader={false}
               maxHeight="500px"
             />

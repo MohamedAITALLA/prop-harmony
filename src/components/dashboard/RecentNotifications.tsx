@@ -42,7 +42,7 @@ export function RecentNotifications({ limit = 5, action = "View all notification
           property_id: notification.property_id
         }))} 
         isLoading={isLoading}
-        onMarkRead={markAsRead}
+        onMarkAsRead={markAsRead}
         onMarkAllRead={markAllAsRead}
         onDelete={deleteNotification}
         maxHeight="400px"

@@ -181,8 +181,8 @@ export function useNotifications(filters?: NotificationFilters) {
   });
 
   const markAllAsReadMutation = useMutation({
-    mutationFn: async (ids?: string[]) => {
-      return notificationService.markAsRead(ids);
+    mutationFn: async () => {
+      return notificationService.markAsRead();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
@@ -226,10 +226,16 @@ export function useNotifications(filters?: NotificationFilters) {
   const totalPages = data?.pagination?.pages || 1;
   const totalNotifications = data?.pagination?.total || 0;
 
-  const notificationSettings = typeof settingsResponse === 'object' && 
-    'settings' in settingsResponse ? 
-    settingsResponse.settings : 
-    settingsResponse || defaultSettings();
+  let notificationSettings: NotificationSettings;
+  if (settingsResponse) {
+    if ('settings' in settingsResponse) {
+      notificationSettings = settingsResponse.settings;
+    } else {
+      notificationSettings = settingsResponse as NotificationSettings;
+    }
+  } else {
+    notificationSettings = defaultSettings();
+  }
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -245,7 +251,7 @@ export function useNotifications(filters?: NotificationFilters) {
     totalNotifications,
     onPageChange: handlePageChange,
     markAsRead: (id: string) => markAsReadMutation.mutate(id),
-    markAllAsRead: (ids?: string[]) => markAllAsReadMutation.mutate(ids),
+    markAllAsRead: () => markAllAsReadMutation.mutate(),
     deleteNotification: (id: string) => deleteNotificationMutation.mutate(id),
     settings: notificationSettings,
     updateSettings: (newSettings: NotificationSettings) => updateSettingsMutation.mutate(newSettings),

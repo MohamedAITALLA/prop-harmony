@@ -32,7 +32,9 @@ export default function Notifications() {
     onPageChange,
     markAsRead, 
     markAllAsRead, 
-    deleteNotification 
+    deleteNotification,
+    settings,
+    updateSettings
   } = useNotifications(filters);
 
   return (
@@ -125,6 +127,7 @@ export default function Notifications() {
             onPageChange={onPageChange}
             isLoading={isLoading}
             onMarkAsRead={markAsRead}
+            onMarkAllRead={markAllAsRead}
             onDelete={deleteNotification}
           />
         </TabsContent>
@@ -137,6 +140,7 @@ export default function Notifications() {
             onPageChange={onPageChange}
             isLoading={isLoading}
             onMarkAsRead={markAsRead}
+            onMarkAllRead={markAllAsRead}
             onDelete={deleteNotification}
           />
         </TabsContent>
@@ -148,6 +152,8 @@ export default function Notifications() {
             currentPage={currentPage}
             onPageChange={onPageChange}
             isLoading={isLoading}
+            onMarkAsRead={markAsRead}
+            onMarkAllRead={markAllAsRead}
             onDelete={deleteNotification}
           />
         </TabsContent>
