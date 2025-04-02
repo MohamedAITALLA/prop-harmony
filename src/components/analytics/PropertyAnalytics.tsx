@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
@@ -35,14 +34,13 @@ import {
   Pie,
   Cell
 } from "recharts";
-import { CalendarEvent, ApiResponse } from "@/types/api-responses";
+import { CalendarEvent, ApiResponse, EventsResponse } from "@/types/api-responses";
 
 export function PropertyAnalytics() {
   const { id: propertyId } = useParams<{ id: string }>();
   const [syncDialogOpen, setSyncDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   
-  // Fetch property sync status
   const { 
     data: syncStatus, 
     isLoading: isLoadingSyncStatus,
@@ -58,7 +56,6 @@ export function PropertyAnalytics() {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  // Fetch property sync logs
   const {
     data: syncLogs,
     isLoading: isLoadingSyncLogs
@@ -73,7 +70,6 @@ export function PropertyAnalytics() {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  // Fetch property-specific notifications
   const {
     data: notificationsData,
     isLoading: isLoadingNotifications
@@ -91,7 +87,6 @@ export function PropertyAnalytics() {
     staleTime: 1000 * 60, // 1 minute
   });
   
-  // Fetch property events
   const {
     data: eventsData,
     isLoading: isLoadingEvents
@@ -106,7 +101,6 @@ export function PropertyAnalytics() {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  // Prepare data for sync performance chart
   const syncPerformanceData = React.useMemo(() => {
     if (!syncLogs?.logs) return [];
     
@@ -119,11 +113,9 @@ export function PropertyAnalytics() {
     })).reverse();
   }, [syncLogs]);
 
-  // Prepare data for events distribution chart
   const eventsDistributionData = React.useMemo(() => {
     if (!eventsData?.data?.length) return [];
     
-    // Group events by platform
     const platforms: Record<string, number> = {};
     eventsData.data.forEach(event => {
       const platform = event.platform || 'unknown';
@@ -136,7 +128,6 @@ export function PropertyAnalytics() {
     }));
   }, [eventsData]);
 
-  // Prepare notification type distribution data
   const notificationTypeData = React.useMemo(() => {
     if (!notificationsData?.summary?.by_type) return [];
     
@@ -146,22 +137,18 @@ export function PropertyAnalytics() {
     }));
   }, [notificationsData]);
 
-  // Function to format notification type for display
   const formatNotificationType = (type: string): string => {
     return type.split('_').map(word => 
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
   };
 
-  // Colors for the pie charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
-  // Handle sync button click
   const handleSyncClick = () => {
     setSyncDialogOpen(true);
   };
 
-  // Handle sync completion
   const handleSyncComplete = () => {
     refetchSyncStatus();
   };
@@ -186,7 +173,6 @@ export function PropertyAnalytics() {
         
         <TabsContent value="overview" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {/* Total Events */}
             <StatsCard
               title="Total Events"
               value={eventsData?.data?.length || 0}
@@ -194,7 +180,6 @@ export function PropertyAnalytics() {
               isLoading={isLoadingEvents}
             />
             
-            {/* Platform Connections */}
             <StatsCard
               title="Connected Platforms"
               value={eventsDistributionData.length || 0}
@@ -202,7 +187,6 @@ export function PropertyAnalytics() {
               isLoading={isLoadingEvents}
             />
             
-            {/* Sync Success Rate */}
             <StatsCard
               title="Sync Success Rate"
               value={`${syncLogs?.summary?.by_status?.success 
@@ -213,7 +197,6 @@ export function PropertyAnalytics() {
               isLoading={isLoadingSyncLogs}
             />
             
-            {/* Unresolved Notifications */}
             <StatsCard
               title="Unread Notifications"
               value={notificationsData?.summary?.unread_count || 0}
@@ -224,7 +207,6 @@ export function PropertyAnalytics() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
-            {/* Events by Platform */}
             <Card>
               <CardHeader>
                 <CardTitle>Events by Platform</CardTitle>
@@ -277,7 +259,6 @@ export function PropertyAnalytics() {
               </CardContent>
             </Card>
             
-            {/* Notification Types */}
             <Card>
               <CardHeader>
                 <CardTitle>Notification Types</CardTitle>
@@ -481,7 +462,8 @@ export function PropertyAnalytics() {
                       <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
                         {Object.entries(
                           eventsData.data.reduce((acc: Record<string, number>, event) => {
-                            acc[event.status] = (acc[event.status] || 0) + 1;
+                            const status = event.status || "unknown";
+                            acc[status] = (acc[status] || 0) + 1;
                             return acc;
                           }, {})
                         ).map(([status, count]) => (
@@ -502,7 +484,8 @@ export function PropertyAnalytics() {
                       <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
                         {Object.entries(
                           eventsData.data.reduce((acc: Record<string, number>, event) => {
-                            acc[event.event_type] = (acc[event.event_type] || 0) + 1;
+                            const eventType = event.event_type || "unknown";
+                            acc[eventType] = (acc[eventType] || 0) + 1;
                             return acc;
                           }, {})
                         ).map(([type, count]) => (
@@ -651,7 +634,6 @@ export function PropertyAnalytics() {
   );
 }
 
-// Add missing Lucide icon component
 function RefreshCw(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
