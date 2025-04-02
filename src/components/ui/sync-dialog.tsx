@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -8,7 +9,7 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
-import { RefreshCw, CheckCircle, AlertCircle, Info } from "lucide-react";
+import { RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { syncService } from "@/services/api-service";
 import { toast } from "sonner";

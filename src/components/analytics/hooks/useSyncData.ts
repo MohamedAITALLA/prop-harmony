@@ -5,7 +5,7 @@ import { syncService } from "@/services/api-service";
 import React from "react";
 
 // Define types for the API response based on the provided endpoint documentation
-interface PropertySyncStatus {
+export interface PropertySyncStatus {
   property_id: string;
   connections: Array<{
     _id: string;
@@ -45,11 +45,10 @@ export function useSyncData(propertyId?: string) {
       if (!propertyId) return null;
       try {
         const response = await syncService.getPropertySyncStatus(propertyId);
-        // Access the syncStatus from the correct path in the response
         return response.data || null;
       } catch (error) {
         console.error("Error fetching sync status:", error);
-        return null; // Return null instead of undefined on error
+        return null;
       }
     },
     enabled: !!propertyId,
@@ -68,7 +67,7 @@ export function useSyncData(propertyId?: string) {
         return response.data || null;
       } catch (error) {
         console.error("Error fetching sync logs:", error);
-        return null; // Return null instead of undefined on error
+        return null;
       }
     },
     enabled: !!propertyId,
