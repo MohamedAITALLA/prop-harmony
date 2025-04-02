@@ -1,12 +1,12 @@
 
-import api from "@/lib/api";
+import api from "@/lib/base-api";
 import { NotificationsResponse, ApiResponse, NotificationSettings } from "@/types/api-responses";
 
 export const notificationService = {
   getNotifications: async (params?: {
     page?: number;
     limit?: number;
-    property_id?: string; // Add property_id to support components using it
+    property_id?: string;
     type?: string;
     severity?: string;
     read?: boolean;
@@ -42,3 +42,5 @@ export const notificationService = {
     return response.data;
   }
 };
+
+export default notificationService;

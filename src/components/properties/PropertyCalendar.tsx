@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import FullCalendar from '@fullcalendar/react';
@@ -14,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { PropertyAvailabilityChecker } from './PropertyAvailabilityChecker';
 import { CalendarEvent, EventResponse } from "@/types/api-responses";
 import { format, parseISO } from "date-fns";
-import { eventService } from "@/services/api-event-service";
+import { eventService } from "@/services/api-service";
 import { PropertyEventDialog } from "./PropertyEventDialog";
 import { Badge } from "@/components/ui/badge";
 import { ConflictResolver } from "@/components/ui/conflict-resolver";
@@ -76,7 +75,6 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
     }
   }, [propertyId]);
 
-  // Navigation methods for the calendar
   const handleCalendarNavigation = (action: 'prev' | 'next' | 'today') => {
     const calendarApi = calendarRef.current?.getApi();
     if (calendarApi) {
@@ -84,17 +82,14 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
       if (action === 'next') calendarApi.next();
       if (action === 'today') calendarApi.today();
       
-      // Update current date based on calendar view
       setCurrentDate(calendarApi.getDate());
     }
   };
-  
-  // Get color based on platform and event type
+
   const getEventColor = (platform?: Platform, eventType?: EventType): string => {
-    if (eventType === EventType.BLOCKED) return "#ef4444"; // Red for blocks
-    if (eventType === EventType.MAINTENANCE) return "#f97316"; // Orange for maintenance
+    if (eventType === EventType.BLOCKED) return "#ef4444";
+    if (eventType === EventType.MAINTENANCE) return "#f97316";
     
-    // Different colors based on platform
     switch (platform) {
       case Platform.AIRBNB:
         return "#ff5a5f";
@@ -109,7 +104,6 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
     }
   };
 
-  // Copy the iCal feed URL to clipboard
   const copyICalFeedUrl = () => {
     if (propertyId) {
       const baseUrl = window.location.origin;
@@ -118,7 +112,7 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
       toast.success("iCal feed URL copied to clipboard");
     }
   };
-  
+
   const handleInputChange = (field: string, value: string) => {
     setNewEvent(prev => ({ ...prev, [field]: value }));
   };
@@ -141,7 +135,6 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
     const clickedEvent = events.find((e: any) => e.id === eventId);
     
     if (clickedEvent) {
-      // Format the event data for viewing
       const formattedEvent = {
         _id: clickedEvent.id,
         property_id: clickedEvent.extendedProps.property_id || propertyId,
@@ -186,7 +179,6 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
         description: newEvent.description
       });
       
-      // Check if there are conflicts
       if (response.meta?.conflicts_detected && response.meta.conflicts_detected > 0) {
         setHasSubmitConflict(true);
         setConflictDetails(response.meta);
@@ -217,7 +209,7 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
       toast.error("Failed to delete event");
     }
   };
-  
+
   const resetEventForm = () => {
     setNewEvent({
       property_id: propertyId,
@@ -230,19 +222,17 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
       description: ""
     });
   };
-  
+
   const handleResolveConflicts = async () => {
     setIsConflictResolverOpen(true);
     setIsConflictDialogOpen(false);
   };
 
   const handleConflictResolution = async () => {
-    // Close the resolver and refresh events
     setIsConflictResolverOpen(false);
     refetchEvents();
   };
 
-  // Pre-process events to add color properties directly
   const eventsWithColors = events.map(event => {
     const platform = event.extendedProps?.platform;
     const eventType = event.extendedProps?.event_type;
@@ -255,8 +245,6 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
     };
   });
 
-  // Get conflicting events for demo purposes
-  // In a real app, you'd fetch these from your API
   const conflictingEvents = events
     .filter(event => event.extendedProps?.status === 'conflict' || 
            (hasSubmitConflict && conflictDetails?.conflict_events))
@@ -270,7 +258,6 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Main calendar panel - takes up 2/3 of the space on large screens */}
       <div className="lg:col-span-2 space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Property Calendar</h2>
@@ -340,7 +327,6 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
               </Button>
             </div>
             <div id="calendar-title" className="text-lg font-medium">
-              {/* FullCalendar will update this with current month/year */}
               {format(currentDate, 'MMMM yyyy')}
             </div>
           </div>
@@ -385,7 +371,6 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
                 dateClick={handleDateClick}
                 eventClick={handleEventClick}
                 datesSet={(dateInfo) => {
-                  // Update the calendar title and current date
                   setCurrentDate(dateInfo.view.currentStart);
                   const titleEl = document.getElementById('calendar-title');
                   if (titleEl) {
@@ -398,11 +383,9 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
         </div>
       </div>
       
-      {/* Availability checker panel - takes 1/3 of the space on large screens */}
       <div className="lg:col-span-1 space-y-4">
         {propertyId && <PropertyAvailabilityChecker propertyId={propertyId} />}
         
-        {/* Event Legend */}
         <div className="border rounded-lg p-4 bg-background">
           <h3 className="font-medium mb-3">Event Legend</h3>
           <div className="space-y-2">
@@ -439,7 +422,6 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
         </div>
       </div>
 
-      {/* Add Event Dialog */}
       <PropertyEventDialog
         isOpen={isAddEventOpen}
         onOpenChange={setIsAddEventOpen}
@@ -451,7 +433,6 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
         submitLabel="Create Event"
       />
       
-      {/* View/Delete Event Dialog */}
       {viewedEvent && (
         <Dialog open={isViewEventOpen} onOpenChange={setIsViewEventOpen}>
           <DialogContent className="sm:max-w-[525px]">
@@ -523,7 +504,6 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
         </Dialog>
       )}
       
-      {/* Conflict Dialog */}
       <Dialog open={isConflictDialogOpen} onOpenChange={setIsConflictDialogOpen}>
         <DialogContent className="sm:max-w-[525px]">
           <DialogHeader>
@@ -578,7 +558,6 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
         </DialogContent>
       </Dialog>
       
-      {/* Conflict Resolver Dialog */}
       <Dialog open={isConflictResolverOpen} onOpenChange={setIsConflictResolverOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
