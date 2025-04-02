@@ -1,5 +1,5 @@
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -17,6 +17,7 @@ import { format, parseISO } from "date-fns";
 import { eventService } from "@/services/api-event-service";
 import { PropertyEventDialog } from "./PropertyEventDialog";
 import { Badge } from "@/components/ui/badge";
+import { ConflictResolver } from "@/components/ui/conflict-resolver";
 import {
   Dialog,
   DialogContent,
@@ -55,6 +56,8 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
   const [hasSubmitConflict, setHasSubmitConflict] = useState(false);
   const [conflictDetails, setConflictDetails] = useState<any>(null);
   const [isConflictDialogOpen, setIsConflictDialogOpen] = useState(false);
+  const [isConflictResolverOpen, setIsConflictResolverOpen] = useState(false);
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   
   const [newEvent, setNewEvent] = useState({
     property_id: propertyId,
@@ -66,6 +69,12 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
     status: "confirmed",
     description: ""
   });
+  
+  useEffect(() => {
+    if (propertyId) {
+      resetEventForm();
+    }
+  }, [propertyId]);
 
   // Navigation methods for the calendar
   const handleCalendarNavigation = (action: 'prev' | 'next' | 'today') => {
@@ -74,6 +83,9 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
       if (action === 'prev') calendarApi.prev();
       if (action === 'next') calendarApi.next();
       if (action === 'today') calendarApi.today();
+      
+      // Update current date based on calendar view
+      setCurrentDate(calendarApi.getDate());
     }
   };
   
@@ -113,11 +125,13 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
 
   const handleDateClick = (info: any) => {
     const clickedDate = info.dateStr;
+    const nextDay = new Date(new Date(clickedDate).getTime() + 24 * 60 * 60 * 1000);
+    
     setNewEvent(prev => ({
       ...prev,
       property_id: propertyId,
       start_date: `${clickedDate}T14:00`,
-      end_date: `${clickedDate}T11:00`
+      end_date: `${format(nextDay, 'yyyy-MM-dd')}T11:00`
     }));
     setIsAddEventOpen(true);
   };
@@ -216,6 +230,17 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
       description: ""
     });
   };
+  
+  const handleResolveConflicts = async () => {
+    setIsConflictResolverOpen(true);
+    setIsConflictDialogOpen(false);
+  };
+
+  const handleConflictResolution = async () => {
+    // Close the resolver and refresh events
+    setIsConflictResolverOpen(false);
+    refetchEvents();
+  };
 
   // Pre-process events to add color properties directly
   const eventsWithColors = events.map(event => {
@@ -229,6 +254,19 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
       borderColor: color
     };
   });
+
+  // Get conflicting events for demo purposes
+  // In a real app, you'd fetch these from your API
+  const conflictingEvents = events
+    .filter(event => event.extendedProps?.status === 'conflict' || 
+           (hasSubmitConflict && conflictDetails?.conflict_events))
+    .map(event => ({
+      id: event.id,
+      platform: event.extendedProps?.platform || 'Unknown',
+      summary: event.title,
+      startDate: event.start,
+      endDate: event.end
+    }));
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -274,7 +312,7 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
                   Export as PDF
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onExport && onExport("iCal")}>
-                  <Download className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-2 h-4 w-4" />
                   Export as iCal
                 </DropdownMenuItem>
                 {propertyId && (
@@ -303,6 +341,7 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
             </div>
             <div id="calendar-title" className="text-lg font-medium">
               {/* FullCalendar will update this with current month/year */}
+              {format(currentDate, 'MMMM yyyy')}
             </div>
           </div>
           
@@ -326,10 +365,13 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
                   meridiem: 'short'
                 }}
                 eventContent={(info) => {
+                  const hasConflict = info.event.extendedProps.status === 'conflict';
+                  
                   return (
-                    <div className="fc-event-main-frame p-1">
+                    <div className={`fc-event-main-frame p-1 ${hasConflict ? 'border-l-4 border-red-500' : ''}`}>
                       <div className="fc-event-title-container">
-                        <div className="fc-event-title font-medium text-xs">
+                        <div className="fc-event-title font-medium text-xs flex items-center gap-1">
+                          {hasConflict && <AlertTriangle className="h-3 w-3" />}
                           {info.event.title}
                         </div>
                         <div className="text-[10px] opacity-70">
@@ -343,7 +385,8 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
                 dateClick={handleDateClick}
                 eventClick={handleEventClick}
                 datesSet={(dateInfo) => {
-                  // Update the calendar title
+                  // Update the calendar title and current date
+                  setCurrentDate(dateInfo.view.currentStart);
                   const titleEl = document.getElementById('calendar-title');
                   if (titleEl) {
                     titleEl.textContent = dateInfo.view.title;
@@ -358,6 +401,42 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
       {/* Availability checker panel - takes 1/3 of the space on large screens */}
       <div className="lg:col-span-1 space-y-4">
         {propertyId && <PropertyAvailabilityChecker propertyId={propertyId} />}
+        
+        {/* Event Legend */}
+        <div className="border rounded-lg p-4 bg-background">
+          <h3 className="font-medium mb-3">Event Legend</h3>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full" style={{backgroundColor: getEventColor(undefined, EventType.BOOKING)}}></div>
+              <span>Booking</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full" style={{backgroundColor: getEventColor(undefined, EventType.BLOCKED)}}></div>
+              <span>Blocked</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full" style={{backgroundColor: getEventColor(undefined, EventType.MAINTENANCE)}}></div>
+              <span>Maintenance</span>
+            </div>
+            <hr className="my-2" />
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full" style={{backgroundColor: getEventColor(Platform.AIRBNB)}}></div>
+              <span>Airbnb</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full" style={{backgroundColor: getEventColor(Platform.BOOKING)}}></div>
+              <span>Booking.com</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full" style={{backgroundColor: getEventColor(Platform.VRBO)}}></div>
+              <span>VRBO</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-full" style={{backgroundColor: getEventColor(Platform.MANUAL)}}></div>
+              <span>Manual</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Add Event Dialog */}
@@ -367,6 +446,9 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
         formData={newEvent}
         onInputChange={handleInputChange}
         onSubmit={handleSubmitEvent}
+        title="Add New Event"
+        description="Create a new event for this property"
+        submitLabel="Create Event"
       />
       
       {/* View/Delete Event Dialog */}
@@ -415,6 +497,13 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
                     <p className="mt-1">{viewedEvent.description}</p>
                   </div>
                 )}
+                
+                {viewedEvent.ical_uid && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">iCal UID</p>
+                    <p className="mt-1 text-xs text-muted-foreground break-all">{viewedEvent.ical_uid}</p>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -453,7 +542,7 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
               <ul className="mt-2 space-y-2 list-disc pl-4">
                 <li>Proceed anyway (may cause double bookings)</li>
                 <li>Cancel and edit the event dates</li>
-                <li>View the conflicts in the property calendar</li>
+                <li>View the conflicts and resolve them</li>
               </ul>
             </div>
           </div>
@@ -481,14 +570,32 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
             </Button>
             <Button
               variant="destructive"
-              onClick={() => {
-                setIsConflictDialogOpen(false);
-                if (onViewConflicts) onViewConflicts();
-              }}
+              onClick={handleResolveConflicts}
             >
-              View Conflicts
+              Resolve Conflicts
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Conflict Resolver Dialog */}
+      <Dialog open={isConflictResolverOpen} onOpenChange={setIsConflictResolverOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Resolve Booking Conflict</DialogTitle>
+            <DialogDescription>
+              Please choose how to resolve this booking conflict
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-2">
+            <ConflictResolver
+              conflictId="current-conflict"
+              propertyId={propertyId}
+              events={conflictingEvents}
+              onResolve={handleConflictResolution}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -1,9 +1,9 @@
+
 import React, { useState, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "@/services/api-service";
 import { eventService } from "@/services/api-event-service";
-import { syncService } from "@/services/api-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Edit, RefreshCw, Trash, Info, Calendar, Link, AlertTriangle, Settings } from "lucide-react";
@@ -24,17 +24,10 @@ import { PropertyType } from "@/types/enums";
 export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([]);
-  const [selectedEventTypes, setSelectedEventTypes] = useState<EventType[]>([]);
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
-    from: undefined,
-    to: undefined
-  });
-  const [activeTab, setActiveTab] = useState("overview");
+  const initialTab = searchParams.get("tab") || "overview";
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["property", id],
@@ -53,26 +46,11 @@ export default function PropertyDetails() {
   });
 
   const { data: eventsData, isLoading: eventsLoading, refetch: refetchEvents } = useQuery({
-    queryKey: ["property-events", id, selectedPlatforms, selectedEventTypes, dateRange],
+    queryKey: ["property-events", id],
     queryFn: async () => {
       if (!id) return [];
       try {
-        const params: any = {};
-        
-        if (dateRange.from && dateRange.to) {
-          params.start_date = format(dateRange.from, "yyyy-MM-dd");
-          params.end_date = format(dateRange.to, "yyyy-MM-dd");
-        }
-        
-        if (selectedPlatforms.length > 0) {
-          params.platforms = selectedPlatforms;
-        }
-        
-        if (selectedEventTypes.length > 0) {
-          params.event_types = selectedEventTypes;
-        }
-        
-        const response = await eventService.getEvents(id, params);
+        const response = await eventService.getEvents(id);
         return response.data || [];
       } catch (error) {
         console.error("Error fetching property events:", error);
@@ -80,6 +58,26 @@ export default function PropertyDetails() {
       }
     },
   });
+
+  const { data: conflictsData } = useQuery({
+    queryKey: ["property-conflicts", id],
+    queryFn: async () => {
+      if (!id) return { conflicts: [] };
+      try {
+        // This endpoint would need to be implemented on your backend
+        const response = await api.get(`/properties/${id}/conflicts`);
+        return response.data;
+      } catch (error) {
+        console.error("Error fetching conflicts:", error);
+        return { conflicts: [] };
+      }
+    },
+    enabled: !!id,
+  });
+
+  const hasConflicts = useMemo(() => {
+    return conflictsData && conflictsData.conflicts && conflictsData.conflicts.length > 0;
+  }, [conflictsData]);
 
   const formattedEvents = useMemo(() => {
     if (!eventsData) return [];
@@ -95,10 +93,18 @@ export default function PropertyDetails() {
           event_type: event.event_type,
           status: event.status,
           description: event.description,
-          property_id: id
+          property_id: id,
+          created_at: event.created_at,
+          updated_at: event.updated_at,
+          ical_uid: event.ical_uid
         }
       }));
   }, [eventsData, id]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setSearchParams({ tab: value });
+  };
 
   const handleSync = () => {
     setIsSyncDialogOpen(true);
@@ -124,7 +130,7 @@ export default function PropertyDetails() {
   };
   
   const handleViewConflicts = () => {
-    setActiveTab("conflicts");
+    handleTabChange("conflicts");
   };
 
   if (isLoading) {
@@ -175,19 +181,27 @@ export default function PropertyDetails() {
         </div>
       </div>
       
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-6">
         <TabsList className="mb-4">
           <TabsTrigger value="overview">
             <Info className="mr-2 h-4 w-4" /> Overview
           </TabsTrigger>
           <TabsTrigger value="calendar">
-            <Calendar className="mr-2 h-4 w-4" /> Calendar
+            <Calendar className="mr-2 h-4 w-4" /> Calendar {hasConflicts && (
+              <span className="ml-1 rounded-full bg-destructive w-4 h-4 text-xs flex items-center justify-center text-white">
+                !
+              </span>
+            )}
           </TabsTrigger>
           <TabsTrigger value="ical">
             <Link className="mr-2 h-4 w-4" /> iCal Connections
           </TabsTrigger>
           <TabsTrigger value="conflicts">
-            <AlertTriangle className="mr-2 h-4 w-4" /> Conflicts
+            <AlertTriangle className="mr-2 h-4 w-4" /> Conflicts {hasConflicts && (
+              <span className="ml-1 rounded-full bg-destructive w-4 h-4 text-xs flex items-center justify-center text-white">
+                !
+              </span>
+            )}
           </TabsTrigger>
           <TabsTrigger value="settings">
             <Settings className="mr-2 h-4 w-4" /> Settings
@@ -204,7 +218,7 @@ export default function PropertyDetails() {
             eventsLoading={eventsLoading}
             propertyId={id || ""}
             onExport={handleExport}
-            hasConflicts={false}
+            hasConflicts={hasConflicts}
             onViewConflicts={handleViewConflicts}
             refetchEvents={refetchEvents}
           />

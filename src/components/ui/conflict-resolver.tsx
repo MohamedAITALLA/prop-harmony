@@ -9,11 +9,12 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { eventService } from "@/services/api-event-service";
 
 export interface ConflictResolverProps extends React.HTMLAttributes<HTMLDivElement> {
   conflictId: string;
   propertyId: string;
-  onResolve?: (action: string, selectedEventId?: string) => Promise<void>;
+  onResolve?: () => Promise<void>;
   events?: Array<{
     id: string;
     platform: string;
@@ -48,11 +49,21 @@ export function ConflictResolver({
 
     setLoading(true);
     try {
-      if (onResolve) {
-        await onResolve(selectedAction, selectedEvent);
-      }
+      await eventService.resolveConflict(
+        propertyId,
+        conflictId,
+        selectedAction,
+        selectedAction === "keep_one" ? selectedEvent : undefined
+      );
+      
       toast.success("Conflict has been resolved");
+      
+      if (onResolve) {
+        await onResolve();
+      }
+      
     } catch (error) {
+      console.error("Error resolving conflict:", error);
       toast.error("Failed to resolve conflict");
     } finally {
       setLoading(false);
@@ -61,6 +72,11 @@ export function ConflictResolver({
 
   const handleViewCalendar = () => {
     navigate(`/properties/${propertyId}?tab=calendar`);
+  };
+
+  const handleCancel = () => {
+    // In a real app, you might want to navigate away or close a modal
+    toast.info("Conflict resolution canceled");
   };
 
   return (
@@ -134,7 +150,7 @@ export function ConflictResolver({
           <Calendar className="mr-1 h-4 w-4" /> View in Calendar
         </Button>
         <div className="space-x-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleCancel}>
             <X className="mr-1 h-4 w-4" /> Cancel
           </Button>
           <Button 
