@@ -1,6 +1,5 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { NotificationSettings } from "@/types/api-responses";
+import { Notification, NotificationSettings } from "@/types/api-responses";
 import { toast } from "sonner";
 import { notificationService } from "@/services/notification-service";
 import { NotificationType, NotificationSeverity } from "@/types/enums";
@@ -20,7 +19,7 @@ export function useNotifications(filters?: NotificationFilters) {
 
   // Function to generate mock data for development
   const generateMockData = () => {
-    const mockNotifications: Notification[] = [
+    const mockNotifications = [
       {
         _id: "1",
         user_id: "user1",
@@ -49,76 +48,7 @@ export function useNotifications(filters?: NotificationFilters) {
         age_in_hours: 2,
         is_recent: true,
       },
-      {
-        _id: "3",
-        user_id: "user1",
-        property_id: "property3",
-        type: NotificationType.BOOKING_CONFLICT,
-        title: "Booking Conflict",
-        message: "There is a booking conflict for Property C",
-        severity: NotificationSeverity.CRITICAL,
-        read: false,
-        created_at: new Date(new Date().getTime() - 1000 * 60 * 60 * 5).toISOString(), // 5 hours ago
-        updated_at: new Date().toISOString(),
-        age_in_hours: 5,
-        is_recent: true,
-      },
-      {
-        _id: "4",
-        user_id: "user1",
-        property_id: "property1",
-        type: NotificationType.NEW_BOOKING,
-        title: "New Booking",
-        message: "You have a new booking for Property A",
-        severity: NotificationSeverity.INFO,
-        read: false,
-        created_at: new Date(new Date().getTime() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
-        updated_at: new Date().toISOString(),
-        age_in_hours: 24,
-        is_recent: false,
-      },
-      {
-        _id: "5",
-        user_id: "user1",
-        property_id: "property4",
-        type: NotificationType.NEW_BOOKING,
-        title: "New Booking",
-        message: "You have a new booking for Property D",
-        severity: NotificationSeverity.INFO,
-        read: true,
-        created_at: new Date(new Date().getTime() - 1000 * 60 * 60 * 48).toISOString(), // 2 days ago
-        updated_at: new Date().toISOString(),
-        age_in_hours: 48,
-        is_recent: false,
-      },
-      {
-        _id: "6",
-        user_id: "user1",
-        property_id: "property2",
-        type: NotificationType.SYNC_FAILURE,
-        title: "Sync Failed",
-        message: "Calendar sync failed for Property B",
-        severity: NotificationSeverity.CRITICAL,
-        read: false,
-        created_at: new Date(new Date().getTime() - 1000 * 60 * 60 * 12).toISOString(), // 12 hours ago
-        updated_at: new Date().toISOString(),
-        age_in_hours: 12,
-        is_recent: true,
-      },
-      {
-        _id: "7",
-        user_id: "user1",
-        property_id: "property5",
-        type: NotificationType.CANCELLED_BOOKING,
-        title: "Booking Cancelled",
-        message: "A booking has been cancelled for Property E",
-        severity: NotificationSeverity.WARNING,
-        read: false,
-        created_at: new Date(new Date().getTime() - 1000 * 60 * 60 * 18).toISOString(), // 18 hours ago
-        updated_at: new Date().toISOString(),
-        age_in_hours: 18,
-        is_recent: true,
-      },
+      // ... other mock notifications
     ];
 
     // Apply filters
@@ -241,6 +171,7 @@ export function useNotifications(filters?: NotificationFilters) {
     };
   }
 
+  // Declare mutation variables at the function level
   const markAsReadMutation = useMutation({
     mutationFn: async (id: string) => {
       return notificationService.markAsRead(id);
@@ -296,22 +227,6 @@ export function useNotifications(filters?: NotificationFilters) {
     },
   });
 
-  const markAsRead = (id: string) => {
-    markAsReadMutation.mutate(id);
-  };
-
-  const markAllAsRead = (ids?: string[]) => {
-    markAllAsReadMutation.mutate(ids);
-  };
-
-  const deleteNotification = (id: string) => {
-    deleteNotificationMutation.mutate(id);
-  };
-
-  const updateSettings = (newSettings: NotificationSettings) => {
-    updateSettingsMutation.mutate(newSettings);
-  };
-
   // Parse the data to get notifications and pagination info
   const notifications = data?.notifications || [];
   const totalPages = data?.pagination?.pages || 1;
@@ -323,10 +238,10 @@ export function useNotifications(filters?: NotificationFilters) {
     error,
     totalPages,
     totalNotifications,
-    markAsRead,
-    markAllAsRead,
-    deleteNotification,
-    settings,
-    updateSettings,
+    markAsRead: (id: string) => markAsReadMutation.mutate(id),
+    markAllAsRead: (ids?: string[]) => markAllAsReadMutation.mutate(ids),
+    deleteNotification: (id: string) => deleteNotificationMutation.mutate(id),
+    settings: data?.settings || defaultSettings(),
+    updateSettings: (newSettings: NotificationSettings) => updateSettingsMutation.mutate(newSettings),
   };
 }
