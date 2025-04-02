@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { icalConnectionService } from '@/services/api-service';
+import { icalConnectionService } from '@/services/ical-connection-service';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ICalConnection } from "@/types/api-responses";
@@ -48,10 +48,12 @@ export function TestConnectionDialog({
   const [testResult, setTestResult] = useState<{
     data: TestResponse | null;
     meta: TestResponseMeta | null;
+    message: string | null;
     timestamp: string | null;
   }>({
     data: null,
     meta: null,
+    message: null,
     timestamp: null
   });
 
@@ -61,10 +63,11 @@ export function TestConnectionDialog({
       return icalConnectionService.testConnection(propertyId, connectionId);
     },
     onSuccess: (response) => {
-      // Store the test results
+      // Store the test results using the actual API response format
       setTestResult({
         data: response.data.data,
         meta: response.data.meta,
+        message: response.data.message,
         timestamp: response.data.timestamp
       });
 
@@ -83,7 +86,7 @@ export function TestConnectionDialog({
 
   const handleTestConnection = () => {
     if (!connection) return;
-    setTestResult({ data: null, meta: null, timestamp: null });
+    setTestResult({ data: null, meta: null, message: null, timestamp: null });
     testMutation.mutate(connection._id);
   };
   
@@ -215,6 +218,23 @@ export function TestConnectionDialog({
                   </div>
                 </div>
               )}
+              
+              {/* API Response Info */}
+              <div className="border rounded-md p-3 bg-muted/20">
+                <h4 className="font-medium text-sm mb-2 text-muted-foreground">Response Info</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Message</span>
+                    <span className="text-sm font-mono">{testResult.message || "N/A"}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Timestamp</span>
+                    <span className="text-sm font-mono">
+                      {testResult.timestamp ? new Date(testResult.timestamp).toLocaleString() : "N/A"}
+                    </span>
+                  </div>
+                </div>
+              </div>
               
               {/* Connection Details */}
               <div>

@@ -78,7 +78,7 @@ export function ConnectionsTable({
                           variant="secondary" 
                           size="icon" 
                           onClick={() => onTest(connection)}
-                          className="bg-primary/10 hover:bg-primary/20 text-primary"
+                          className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20"
                         >
                           <CheckCircle2 className="h-4 w-4" />
                         </Button>
