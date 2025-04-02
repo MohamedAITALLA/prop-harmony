@@ -7,8 +7,6 @@ import { eventService } from "@/services/api-service";
 import { PropertyEventDialog } from '@/components/properties/PropertyEventDialog';
 import { ViewEventDialog } from '@/components/properties/calendar/ViewEventDialog';
 import { ConflictDialogs } from '@/components/properties/calendar/ConflictDialogs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ConflictResolver } from "@/components/ui/conflict-resolver";
 
 interface EventDialogManagerProps {
   propertyId: string;
@@ -187,26 +185,6 @@ export const EventDialogManager = forwardRef<EventDialogManagerRef, EventDialogM
           resetEventForm={resetEventForm}
           setIsAddEventOpen={setIsAddEventOpen}
         />
-        
-        <Dialog open={isConflictResolverOpen} onOpenChange={setIsConflictResolverOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Resolve Booking Conflict</DialogTitle>
-              <DialogDescription>
-                Please choose how to resolve this booking conflict
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="py-2">
-              <ConflictResolver
-                conflictId="current-conflict"
-                propertyId={propertyId}
-                events={conflictingEvents}
-                onResolve={handleConflictResolution}
-              />
-            </div>
-          </DialogContent>
-        </Dialog>
       </>
     );
   }

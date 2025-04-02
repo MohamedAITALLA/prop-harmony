@@ -1,16 +1,17 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { CalendarEvent } from "@/types/api-responses";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { EventFormFields } from "@/components/properties/calendar/EventFormFields";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
+  DialogFooter,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 
 interface ViewEventDialogProps {
@@ -27,6 +28,17 @@ export const ViewEventDialog: React.FC<ViewEventDialogProps> = ({
   handleDeleteEvent
 }) => {
   if (!viewedEvent) return null;
+
+  // Format the event data for the form fields
+  const formattedEventData = useMemo(() => ({
+    platform: viewedEvent.platform,
+    summary: viewedEvent.summary,
+    start_date: viewedEvent.start_date,
+    end_date: viewedEvent.end_date,
+    event_type: viewedEvent.event_type,
+    status: viewedEvent.status || "confirmed",
+    description: viewedEvent.description || "",
+  }), [viewedEvent]);
   
   return (
     <Dialog open={isViewEventOpen} onOpenChange={setIsViewEventOpen}>
@@ -38,52 +50,25 @@ export const ViewEventDialog: React.FC<ViewEventDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 py-4">
-          <div className="grid grid-cols-1 gap-4">
-            <div className="flex justify-between">
-              <h3 className="text-lg font-semibold">{viewedEvent.summary}</h3>
-              <Badge>{viewedEvent.platform}</Badge>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Start Date</p>
-                <p>{format(new Date(viewedEvent.start_date), 'MMM dd, yyyy HH:mm')}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">End Date</p>
-                <p>{format(new Date(viewedEvent.end_date), 'MMM dd, yyyy HH:mm')}</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Type</p>
-                <Badge variant="outline">{viewedEvent.event_type}</Badge>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Status</p>
-                <Badge variant="outline">{viewedEvent.status}</Badge>
-              </div>
-            </div>
-            
-            {viewedEvent.description && (
-              <div>
-                <p className="text-sm text-muted-foreground">Description</p>
-                <p className="mt-1">{viewedEvent.description}</p>
-              </div>
-            )}
-            
-            {viewedEvent.ical_uid && (
-              <div>
-                <p className="text-sm text-muted-foreground">iCal UID</p>
-                <p className="mt-1 text-xs text-muted-foreground break-all">{viewedEvent.ical_uid}</p>
-              </div>
-            )}
-          </div>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">{viewedEvent.summary}</h3>
+          <Badge>{viewedEvent.platform}</Badge>
         </div>
         
-        <DialogFooter>
+        {/* Use the shared form fields component in read-only mode */}
+        <EventFormFields 
+          formData={formattedEventData}
+          readOnly={true}
+        />
+        
+        {viewedEvent.ical_uid && (
+          <div className="mt-4">
+            <p className="text-sm text-muted-foreground">iCal UID</p>
+            <p className="mt-1 text-xs text-muted-foreground break-all">{viewedEvent.ical_uid}</p>
+          </div>
+        )}
+        
+        <DialogFooter className="mt-6">
           <Button 
             type="button" 
             variant="destructive" 
