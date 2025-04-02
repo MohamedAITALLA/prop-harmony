@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Download, ChevronDown, Plus, AlertTriangle } from "lucide-react";
+import { Download, ChevronDown, Plus, AlertTriangle, Calendar as CalendarIcon } from "lucide-react";
 import { 
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { FileText, Calendar as CalendarIcon, Copy } from "lucide-react";
+import { FileText, Copy } from "lucide-react";
 import { createICalFeedUrl } from './CalendarUtils';
 import { toast } from 'sonner';
 
@@ -28,9 +28,12 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   propertyId
 }) => {
   return (
-    <div className="flex items-center justify-between">
-      <h2 className="text-xl font-semibold">Property Calendar</h2>
-      <div className="flex space-x-2">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <h2 className="text-2xl font-semibold text-foreground flex items-center">
+        <CalendarIcon className="mr-2 h-6 w-6 text-primary" />
+        Property Calendar
+      </h2>
+      <div className="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
         {hasConflicts && (
           <TooltipProvider>
             <Tooltip>
@@ -38,7 +41,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
                 <Button 
                   variant="destructive" 
                   onClick={onViewConflicts}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 shadow-sm"
                 >
                   <AlertTriangle className="mr-1 h-4 w-4" />
                   View Conflicts
@@ -50,19 +53,19 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             </Tooltip>
           </TooltipProvider>
         )}
-        <Button onClick={onAddEvent}>
+        <Button onClick={onAddEvent} className="shadow-sm">
           <Plus className="mr-2 h-4 w-4" />
           Add Event
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline">
+            <Button variant="outline" className="shadow-sm">
               <Download className="mr-2 h-4 w-4" />
               Export
               <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
+          <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuItem onClick={() => onExport && onExport("PDF")}>
               <FileText className="mr-2 h-4 w-4" />
               Export as PDF

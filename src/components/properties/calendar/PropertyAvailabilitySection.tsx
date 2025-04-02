@@ -14,7 +14,7 @@ export const PropertyAvailabilitySection: React.FC<PropertyAvailabilitySectionPr
   getEventColor 
 }) => {
   return (
-    <div className="lg:col-span-1 space-y-4">
+    <div className="lg:col-span-1 space-y-6">
       {propertyId && <PropertyAvailabilityChecker propertyId={propertyId} />}
       <EventLegend getEventColor={getEventColor} />
     </div>

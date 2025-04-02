@@ -48,7 +48,7 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
         propertyId={propertyId}
       />
       
-      <div className="border rounded-lg p-6 bg-background">
+      <div className="border rounded-lg p-5 bg-card shadow-sm">
         <CalendarNavigation 
           currentDate={currentDate}
           handleCalendarNavigation={handleCalendarNavigation}
@@ -57,7 +57,7 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
         {eventsLoading ? (
           <div className="flex items-center justify-center h-80">
             <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-            <p className="ml-3">Loading events...</p>
+            <p className="ml-3 text-muted-foreground">Loading events...</p>
           </div>
         ) : (
           <FullCalendarWrapper

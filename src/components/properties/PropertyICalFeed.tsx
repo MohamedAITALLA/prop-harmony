@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Check, Copy, RefreshCw, Download, Calendar } from "lucide-react";
+import { Check, Copy, RefreshCw, Download, Calendar, Link } from "lucide-react";
 import { Platform } from "@/types/enums";
 import { calendarService } from "@/services/api-service";
 import api from "@/lib/api";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { format } from 'date-fns';
 import { createICalFeedUrl } from '@/components/properties/calendar/CalendarUtils';
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 
 interface PropertyICalFeedProps {
   propertyId: string;
@@ -76,80 +77,89 @@ export function PropertyICalFeed({ propertyId, platform = Platform.MANUAL }: Pro
   };
   
   return (
-    <div className="space-y-4 w-full border rounded-md p-4 bg-card">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-lg font-semibold">iCal Feed</h3>
-        <SyncStatusBadge status="success" lastSync={new Date().toISOString()} />
-      </div>
+    <Card className="shadow-sm">
+      <CardHeader className="bg-muted/20 pb-3 border-b">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Link className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold">iCal Feed</h3>
+          </div>
+          <SyncStatusBadge status="success" lastSync={new Date().toISOString()} />
+        </div>
+      </CardHeader>
       
-      <div className="space-y-2">
-        <Label htmlFor={`ical-${platform}`}>
-          iCal Feed URL
-        </Label>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Input 
-              id={`ical-${platform}`}
-              value={icalUrl}
-              readOnly
-              className="pr-10"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-0 h-full"
-              onClick={handleCopyToClipboard}
-            >
-              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+      <CardContent className="pt-6 space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor={`ical-${platform}`} className="text-sm font-medium">
+            iCal Feed URL
+          </Label>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Input 
+                id={`ical-${platform}`}
+                value={icalUrl}
+                readOnly
+                className="pr-10 bg-muted/20 border-muted-foreground/20 focus:border-primary"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-full hover:bg-transparent"
+                onClick={handleCopyToClipboard}
+              >
+                {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+            <Button variant="outline" size="icon" onClick={handleRefresh} className="shadow-sm">
+              <RefreshCw className="h-4 w-4" />
             </Button>
           </div>
-          <Button variant="outline" size="icon" onClick={handleRefresh}>
-            <RefreshCw className="h-4 w-4" />
+        </div>
+        
+        <div className="flex items-center gap-2 pt-2">
+          <Button 
+            variant="secondary" 
+            size="sm"
+            className="flex items-center gap-1 shadow-sm"
+            onClick={handleDownloadICalFile}
+            disabled={downloading}
+          >
+            {downloading ? (
+              <span className="flex items-center gap-1">
+                <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                Downloading...
+              </span>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-1" />
+                Download iCal File
+              </>
+            )}
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1 shadow-sm"
+            onClick={() => {
+              if (icalUrl) {
+                window.open(icalUrl, '_blank');
+              }
+            }}
+          >
+            <Calendar className="h-4 w-4 mr-1" />
+            Open in Calendar
           </Button>
         </div>
-      </div>
+      </CardContent>
       
-      <div className="flex items-center gap-2 pt-2">
-        <Button 
-          variant="secondary" 
-          size="sm"
-          className="flex items-center gap-1"
-          onClick={handleDownloadICalFile}
-          disabled={downloading}
-        >
-          {downloading ? (
-            <span className="flex items-center gap-1">
-              <span className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
-              Downloading...
-            </span>
-          ) : (
-            <>
-              <Download className="h-4 w-4 mr-1" />
-              Download iCal File
-            </>
-          )}
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-1"
-          onClick={() => {
-            if (icalUrl) {
-              window.open(icalUrl, '_blank');
-            }
-          }}
-        >
-          <Calendar className="h-4 w-4 mr-1" />
-          Open in Calendar
-        </Button>
-      </div>
-      
-      <p className="text-sm text-muted-foreground">
-        Use this iCal feed URL to sync this property's calendar with external calendars.
-        You can add this URL to Google Calendar, Apple Calendar, or any other calendar that supports iCal.
-      </p>
-    </div>
+      <CardFooter className="text-sm text-muted-foreground bg-muted/10 border-t">
+        <p>
+          Use this iCal feed URL to sync this property's calendar with external calendars.
+          You can add this URL to Google Calendar, Apple Calendar, or any other calendar that supports iCal.
+        </p>
+      </CardFooter>
+    </Card>
   );
 }

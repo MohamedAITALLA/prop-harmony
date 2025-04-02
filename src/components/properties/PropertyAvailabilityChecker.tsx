@@ -18,7 +18,9 @@ import {
   Check,
   X, 
   CalendarRange, 
-  Loader2 
+  Loader2,
+  Calendar as CalendarIcon, 
+  ArrowRight
 } from "lucide-react";
 
 interface PropertyAvailabilityCheckerProps {
@@ -73,15 +75,18 @@ export function PropertyAvailabilityChecker({ propertyId }: PropertyAvailability
       : 0);
   
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Check Availability</CardTitle>
+    <Card className="w-full shadow-sm">
+      <CardHeader className="bg-muted/20 pb-4">
+        <div className="flex items-center gap-2">
+          <CalendarIcon className="h-5 w-5 text-primary" />
+          <CardTitle>Check Availability</CardTitle>
+        </div>
         <CardDescription>
           Select date range to check if the property is available
         </CardDescription>
       </CardHeader>
       
-      <CardContent>
+      <CardContent className="pt-6">
         <div className="space-y-4">
           <Calendar
             mode="range"
@@ -91,40 +96,51 @@ export function PropertyAvailabilityChecker({ propertyId }: PropertyAvailability
             disabled={[
               { before: new Date() }  // Disable past dates
             ]}
-            className="rounded-md border"
+            className="rounded-md border mx-auto"
           />
           
           {dateRange?.from && dateRange?.to && (
-            <div className="pt-2">
-              <p className="text-sm font-medium">
-                Selected period: {format(dateRange.from, 'MMM dd, yyyy')} - {format(dateRange.to, 'MMM dd, yyyy')}
-                {" "}({durationDays} {durationDays === 1 ? 'day' : 'days'})
-              </p>
+            <div className="mt-4 bg-muted/20 p-3 rounded-md border flex items-center justify-center gap-3 text-sm">
+              <div className="font-medium">{format(dateRange.from, 'MMM dd, yyyy')}</div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+              <div className="font-medium">{format(dateRange.to, 'MMM dd, yyyy')}</div>
+              <div className="text-muted-foreground ml-1">
+                ({durationDays} {durationDays === 1 ? 'day' : 'days'})
+              </div>
             </div>
           )}
           
           {availabilityData && (
             <div className="mt-4 p-4 rounded-md border">
               {isAvailable ? (
-                <div className="flex items-center text-green-600">
-                  <Check className="h-5 w-5 mr-2" />
-                  <span className="font-medium">Property is available for these dates!</span>
+                <div className="flex flex-col items-center text-green-600 py-2">
+                  <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mb-2">
+                    <Check className="h-6 w-6" />
+                  </div>
+                  <span className="font-medium text-center">Property is available for these dates!</span>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <div className="flex items-center text-red-600">
-                    <X className="h-5 w-5 mr-2" />
-                    <span className="font-medium">Property is not available for these dates</span>
+                <div className="space-y-3">
+                  <div className="flex flex-col items-center text-red-600">
+                    <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center mb-2">
+                      <X className="h-6 w-6" />
+                    </div>
+                    <span className="font-medium text-center">Property is not available</span>
                   </div>
                   
                   {conflictingEvents.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-sm font-medium">Conflicting events:</p>
-                      <ul className="mt-1 text-sm space-y-1">
+                    <div className="mt-4">
+                      <p className="text-sm font-medium mb-2 text-center">Conflicting events:</p>
+                      <ul className="space-y-2 max-h-32 overflow-y-auto bg-muted/10 rounded-md p-2">
                         {conflictingEvents.map((event: any, index: number) => (
-                          <li key={index} className="flex items-center">
-                            <span className="text-muted-foreground mr-2">•</span>
-                            <span>{event.summary}: {format(new Date(event.start_date), 'MMM dd')} - {format(new Date(event.end_date), 'MMM dd')}</span>
+                          <li key={index} className="flex items-center text-sm bg-background p-2 rounded-md shadow-sm">
+                            <span className="w-3 h-3 rounded-full bg-red-500 mr-2 flex-shrink-0"></span>
+                            <div>
+                              <span className="font-semibold">{event.summary}</span>
+                              <div className="text-muted-foreground text-xs">
+                                {format(new Date(event.start_date), 'MMM dd')} - {format(new Date(event.end_date), 'MMM dd')}
+                              </div>
+                            </div>
                           </li>
                         ))}
                       </ul>
