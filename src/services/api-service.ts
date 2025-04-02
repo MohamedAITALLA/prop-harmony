@@ -6,7 +6,6 @@ export const propertyService = {
   getProperties: (params?: { page?: number; limit?: number }) => {
     return api.get("/properties", { params });
   },
-  // Adding getAllProperties as an alias to getProperties for backward compatibility
   getAllProperties: (params?: { page?: number; limit?: number }) => {
     return api.get("/properties", { params });
   },
@@ -23,8 +22,6 @@ export const propertyService = {
     return api.delete(`/properties/${id}`);
   },
 };
-
-// Event Service is now in api-event-service.ts
 
 // iCal Connection Service
 export const icalConnectionService = {
@@ -143,7 +140,7 @@ export const adminProfileService = {
   }
 };
 
-// Calendar Service - Renamed from calendarService to align with other naming
+// Calendar Service
 export const calendarService = {
   getCalendar: (propertyId: string) => {
     return api.get(`/properties/${propertyId}/calendar`);

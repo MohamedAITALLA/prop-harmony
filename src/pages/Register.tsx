@@ -1,6 +1,6 @@
 
 import RegisterForm from "@/components/auth/RegisterForm";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider } from "@/hooks/auth/useAuth";
 
 export default function Register() {
   return (

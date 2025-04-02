@@ -1,6 +1,6 @@
 
 import LoginForm from "@/components/auth/LoginForm";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider } from "@/hooks/auth/useAuth";
 
 export default function Login() {
   return (
