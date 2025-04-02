@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { syncService } from "@/services/api-service";
@@ -18,6 +17,7 @@ interface PropertySyncProps {
 
 export function PropertySync({ propertyId }: PropertySyncProps) {
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   const { 
     data: syncData, 
@@ -37,6 +37,8 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
       throw new Error("Invalid sync status data format");
     },
     refetchInterval: 60000, // Refetch every minute
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
   });
 
   // Extract the sync status from the API response
@@ -46,6 +48,8 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
     if (isSyncing) return;
 
     setIsSyncing(true);
+    setSyncError(null);
+    
     try {
       await syncService.syncProperty(propertyId);
       toast.success("Synchronization initiated");
@@ -55,7 +59,22 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
       }, 2000);
     } catch (error) {
       console.error("Sync error:", error);
-      toast.error("Failed to synchronize property");
+      
+      // Extract meaningful error message
+      let errorMessage = "Failed to synchronize property";
+      if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+        
+        // Handle network errors specially
+        if (errorMessage.includes("Network Error") || 
+            errorMessage.includes("timeout") ||
+            errorMessage.includes("ERR_CONNECTION")) {
+          errorMessage = "Network connection issue. Please check your internet connection and try again.";
+        }
+      }
+      
+      setSyncError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSyncing(false);
     }
@@ -87,7 +106,7 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
     
     return <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">{platform}</Badge>;
   };
-  
+
   if (syncStatusError) {
     return (
       <Card>
@@ -96,6 +115,9 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
             <AlertCircle className="h-5 w-5" />
             <p>Failed to load synchronization status</p>
           </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            {syncStatusError instanceof Error ? syncStatusError.message : "Unknown error occurred"}
+          </p>
           <Button onClick={() => refetchSyncStatus()} variant="outline" className="mt-4">
             <RefreshCw className="mr-2 h-4 w-4" /> Retry
           </Button>
@@ -118,6 +140,16 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
           </div>
         </CardHeader>
         <CardContent>
+          {syncError && (
+            <div className="mb-4 p-3 border border-red-200 bg-red-50 rounded-md">
+              <div className="flex items-center gap-2 text-red-700">
+                <AlertCircle className="h-4 w-4" />
+                <p className="font-medium">Sync Error</p>
+              </div>
+              <p className="text-sm text-red-600 mt-1">{syncError}</p>
+            </div>
+          )}
+          
           {isLoadingSyncStatus ? (
             <div className="space-y-4">
               <Skeleton className="h-20 w-full rounded-md" />

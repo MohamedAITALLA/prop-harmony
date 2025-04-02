@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -9,7 +8,7 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
-import { RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
+import { RefreshCw, CheckCircle, AlertCircle, Wifi, WifiOff } from "lucide-react";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { syncService } from "@/services/api-service";
 import { toast } from "sonner";
@@ -66,6 +65,7 @@ export function SyncDialog({
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   
   const queryClient = useQueryClient();
 
@@ -137,9 +137,22 @@ export function SyncDialog({
       }
     } catch (error) {
       console.error("Sync error:", error);
-      setError(error instanceof Error ? error.message : "Failed to sync. Please try again.");
+      let errorMessage = "Failed to sync. Please try again.";
+      
+      if (error instanceof Error) {
+        // Check for common network errors
+        if (error.message.includes("Network Error") || 
+            error.message.includes("ERR_CONNECTION") || 
+            error.message.includes("timeout")) {
+          errorMessage = "Network connection issue. Please check your internet connection and try again.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setError(errorMessage);
       setStatus("error");
-      toast.error("Sync failed. Please try again.");
+      toast.error(errorMessage);
     } finally {
       setSyncing(false);
     }
@@ -150,6 +163,7 @@ export function SyncDialog({
     setError(null);
     setStatus("idle");
     setSyncResult(null);
+    setRetryCount(0);
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -157,6 +171,11 @@ export function SyncDialog({
       resetDialog();
     }
     onOpenChange(open);
+  };
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    handleSync();
   };
 
   const formatTime = (dateString: string) => {
@@ -301,10 +320,17 @@ export function SyncDialog({
           
           {status === "error" && (
             <div className="flex flex-col items-center justify-center gap-3">
-              <AlertCircle className="h-8 w-8 text-red-500" />
+              {error?.includes("Network") || error?.includes("internet") ? (
+                <WifiOff className="h-8 w-8 text-red-500" />
+              ) : (
+                <AlertCircle className="h-8 w-8 text-red-500" />
+              )}
               <div className="text-center">
                 <p className="font-medium text-red-500">Sync failed</p>
                 <p className="text-sm text-muted-foreground mt-1">{error}</p>
+                {retryCount > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">Retry attempt: {retryCount}</p>
+                )}
               </div>
             </div>
           )}
@@ -334,11 +360,11 @@ export function SyncDialog({
                 Close
               </Button>
               <Button 
-                onClick={handleSync} 
+                onClick={status === "error" ? handleRetry : handleSync} 
                 disabled={syncing}
               >
                 <RefreshCw className="mr-2 h-4 w-4" />
-                Sync Again
+                {status === "error" ? "Retry" : "Sync Again"}
               </Button>
             </>
           )}

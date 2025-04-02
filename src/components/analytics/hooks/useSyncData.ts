@@ -1,10 +1,8 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { syncService } from "@/services/api-service";
 import React from "react";
 
-// Define types for the API response based on the provided endpoint documentation
 export interface PropertySyncStatus {
   property_id: string;
   connections: Array<{
@@ -38,7 +36,8 @@ export function useSyncData(propertyId?: string) {
   const { 
     data: syncStatus, 
     isLoading: isLoadingSyncStatus,
-    refetch: refetchSyncStatus
+    refetch: refetchSyncStatus,
+    error: syncError
   } = useQuery({
     queryKey: ["property-sync-status", propertyId],
     queryFn: async () => {
@@ -56,14 +55,15 @@ export function useSyncData(propertyId?: string) {
         return null;
       } catch (error) {
         console.error("Error fetching sync status:", error);
-        return null;
+        throw error;
       }
     },
     enabled: !!propertyId,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000), // Exponential backoff
   });
 
-  // Create mock data for sync logs since the actual endpoint might not exist in the API
   const {
     data: syncLogs,
     isLoading: isLoadingSyncLogs
@@ -115,6 +115,7 @@ export function useSyncData(propertyId?: string) {
     isLoadingSyncStatus,
     isLoadingSyncLogs,
     syncPerformanceData,
-    refetchSyncStatus
+    refetchSyncStatus,
+    syncError
   };
 }

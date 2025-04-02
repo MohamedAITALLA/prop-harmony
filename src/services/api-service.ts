@@ -1,3 +1,4 @@
+
 import api from "@/lib/api";
 import { ApiResponse } from "@/types/api-responses";
 
@@ -87,7 +88,9 @@ export const syncService = {
   syncAll: async () => {
     try {
       console.log("Syncing all properties");
-      const response = await api.post("/sync");
+      const response = await api.post("/sync", {}, {
+        timeout: 60000 // 60 second timeout for sync operations
+      });
       console.log("Sync all response:", response.data);
       return response;
     } catch (error) {
@@ -98,7 +101,9 @@ export const syncService = {
   syncProperty: async (propertyId: string) => {
     try {
       console.log(`Syncing property ID: ${propertyId}`);
-      const response = await api.post(`/properties/${propertyId}/sync`);
+      const response = await api.post(`/properties/${propertyId}/sync`, {}, {
+        timeout: 60000 // 60 second timeout for sync operations
+      });
       console.log("Sync property response:", response.data);
       
       // Handle different response formats
