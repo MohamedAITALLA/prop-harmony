@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -100,6 +99,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         
         setUser(mockUser);
+        // Store a fake token so the API interceptor doesn't immediately logout
+        localStorage.setItem("token", "dev-mode-token");
         navigate("/dashboard");
         toast.success("Development mode: Authentication bypassed");
         return;
@@ -130,7 +131,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
           
           if (token) {
+            // First store the token before making any authenticated requests
             localStorage.setItem("token", token);
+            console.log("Token stored successfully");
             
             try {
               // Get user data from the response or fetch profile
@@ -150,6 +153,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } catch (profileError) {
               console.error("Error fetching user profile:", profileError);
               // If we can't get the profile, but have a token, still proceed
+              // In dev mode, create a basic user so the app can function
+              if (DEV_MODE) {
+                setUser({
+                  _id: "fallback-user-id",
+                  email: email,
+                  first_name: "User",
+                  last_name: "",
+                  full_name: "User",
+                  is_admin: false,
+                  is_active: true,
+                  role: "user",
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                });
+              }
               navigate("/dashboard");
               toast.success("Login successful!");
             }

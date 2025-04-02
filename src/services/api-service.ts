@@ -1,4 +1,3 @@
-
 import api from "@/lib/api";
 import { ApiResponse } from "@/types/api-responses";
 
@@ -76,7 +75,9 @@ export const conflictService = {
 export const authService = {
   login: async (email: string, password: string) => {
     try {
+      console.log("Auth service login attempt for:", email);
       const response = await api.post("/auth/login", { email, password });
+      console.log("Auth service login response:", response);
       return response;
     } catch (error) {
       console.error("Authentication service error:", error);

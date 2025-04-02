@@ -57,11 +57,14 @@ api.interceptors.response.use(
     
     // Handle login page specifically
     const isLoginPage = window.location.pathname.includes('/login');
+    const isRegisterPage = window.location.pathname.includes('/register');
+    const isAuthEndpoint = error.config?.url?.includes('/auth/');
     
     if (response?.status === 401) {
-      if (isLoginPage) {
-        // On login page, show invalid credentials message without redirecting
-        toast.error("Invalid email or password. Please try again.");
+      // Don't redirect during auth operations
+      if (isLoginPage || isRegisterPage || isAuthEndpoint) {
+        // On login/register page or during auth requests, show error message without redirecting
+        toast.error("Authentication failed. Please check your credentials.");
       } else {
         // On other pages, clear token and redirect to login
         localStorage.removeItem("token");
