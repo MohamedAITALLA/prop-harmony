@@ -1,11 +1,9 @@
+
 import api from "@/lib/api";
 
 // Property Service
 export const propertyService = {
-  getProperties: () => {
-    return api.get("/properties");
-  },
-  getAllProperties: (params?: { page?: number; limit?: number }) => {
+  getProperties: (params?: { page?: number; limit?: number }) => {
     return api.get("/properties", { params });
   },
   getProperty: (id: string) => {
@@ -24,14 +22,11 @@ export const propertyService = {
 
 // Event Service
 export const eventService = {
-  getEvents: (propertyId: string) => {
-    return api.get(`/properties/${propertyId}/events`);
+  getEvents: (propertyId: string, params?: any) => {
+    return api.get(`/properties/${propertyId}/events`, { params });
   },
   createEvent: (propertyId: string, data: any) => {
     return api.post(`/properties/${propertyId}/events`, data);
-  },
-  updateEvent: (propertyId: string, eventId: string, data: any) => {
-    return api.put(`/properties/${propertyId}/events/${eventId}`, data);
   },
   deleteEvent: (propertyId: string, eventId: string) => {
     return api.delete(`/properties/${propertyId}/events/${eventId}`);
@@ -59,11 +54,11 @@ export const icalConnectionService = {
 
 // Sync Service
 export const syncService = {
-  syncAll: (data = {}) => {
-    return api.post("/sync", data);
+  syncAll: () => {
+    return api.post("/sync");
   },
-  syncProperty: (propertyId: string, data = {}) => {
-    return api.post(`/properties/${propertyId}/sync`, data);
+  syncProperty: (propertyId: string) => {
+    return api.post(`/properties/${propertyId}/sync`);
   },
   getPropertySyncStatus: (propertyId: string) => {
     return api.get(`/properties/${propertyId}/sync`);
@@ -73,32 +68,16 @@ export const syncService = {
   }
 };
 
-// Notification Service
-export const notificationService = {
-  getNotifications: () => {
-    return api.get("/notifications");
+// Conflict Service
+export const conflictService = {
+  getPropertyConflicts: (propertyId: string, params?: { status?: string; page?: number; limit?: number }) => {
+    return api.get(`/properties/${propertyId}/conflicts`, { params });
   },
-  markAsRead: (id: string) => {
-    return api.put(`/notifications/${id}/read`, {});
+  deleteConflict: (propertyId: string, conflictId: string) => {
+    return api.delete(`/properties/${propertyId}/conflicts/${conflictId}`);
   },
-  markAllAsRead: () => {
-    return api.put("/notifications/read", {});
-  },
-  deleteNotification: (id: string) => {
-    return api.delete(`/notifications/${id}`);
-  }
-};
-
-// Calendar Service
-export const calendarService = {
-  getICalFeed: (propertyId: string) => {
-    return api.get(`/properties/${propertyId}/ical-feed`);
-  },
-  checkAvailability: (propertyId: string, startDate: string, endDate: string) => {
-    return api.get(`/properties/${propertyId}/calendar/availability`, {
-      params: { start_date: startDate, end_date: endDate }
-    });
-  }
+  // Removed getConflicts and getAllConflicts and kept only the valid getPropertyConflicts 
+  // according to the spec endpoint: GET /properties/{propertyId}/conflicts
 };
 
 // Auth Service
@@ -109,15 +88,7 @@ export const authService = {
   register: (userData: any) => {
     return api.post("/auth/register", userData);
   },
-  forgotPassword: (email: string) => {
-    return api.post("/auth/forgot-password", { email });
-  },
-  resetPassword: (token: string, password: string) => {
-    return api.post("/auth/reset-password", { token, password });
-  },
-  verifyEmail: (token: string) => {
-    return api.post("/auth/verify-email", { token });
-  }
+  // Removed forgotPassword, resetPassword, and verifyEmail as they're not in the spec
 };
 
 // Profile Service
@@ -174,22 +145,19 @@ export const adminProfileService = {
   }
 };
 
-// Conflict Service
-export const conflictService = {
-  getAllConflicts: (params?: { status?: string; page?: number; limit?: number }) => {
-    return api.get("/conflicts", { params });
+// Calendar Service - Renamed from calendarService to align with other naming
+export const calendarService = {
+  getCalendar: (propertyId: string) => {
+    return api.get(`/properties/${propertyId}/calendar`);
   },
-  getPropertyConflicts: (propertyId: string, params?: { status?: string; page?: number; limit?: number }) => {
-    return api.get(`/properties/${propertyId}/conflicts`, { params });
+  getICalFeed: (propertyId: string) => {
+    return api.get(`/properties/${propertyId}/ical-feed`);
   },
-  getConflict: (conflictId: string) => {
-    return api.get(`/conflicts/${conflictId}`);
-  },
-  resolveConflict: (conflictId: string, resolution: { resolution: string; event_id?: string }) => {
-    return api.post(`/conflicts/${conflictId}/resolve`, resolution);
-  },
-  // Adding the missing getConflicts method for backward compatibility
-  getConflicts: (propertyId: string, params?: { status?: string; page?: number; limit?: number }) => {
-    return api.get(`/properties/${propertyId}/conflicts`, { params });
+  checkAvailability: (propertyId: string, startDate: string, endDate: string) => {
+    return api.get(`/properties/${propertyId}/calendar/availability`, {
+      params: { start_date: startDate, end_date: endDate }
+    });
   }
 };
+
+// Notification Service moved to a separate file

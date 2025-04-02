@@ -6,29 +6,25 @@ export const notificationService = {
   getNotifications: async (params?: {
     page?: number;
     limit?: number;
-    property_id?: string;
-    type?: string;
-    severity?: string;
-    read?: boolean;
   }): Promise<NotificationsResponse> => {
     const response = await api.get<NotificationsResponse>("/notifications", { params });
     return response.data;
   },
 
-  markAsRead: async (notificationIds?: string[]): Promise<ApiResponse<{ success: boolean }>> => {
+  markAllAsRead: async (notificationIds?: string[]): Promise<ApiResponse<{ success: boolean }>> => {
     const payload = notificationIds ? { ids: notificationIds } : {};
     const response = await api.put<ApiResponse<{ success: boolean }>>("/notifications/read", payload);
     return response.data;
   },
 
-  markOneAsRead: async (notificationId: string): Promise<ApiResponse<{ success: boolean }>> => {
+  markAsRead: async (notificationId: string): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await api.put<ApiResponse<{ success: boolean }>>(`/notifications/${notificationId}/read`);
     return response.data;
   },
 
-  deleteNotification: async (notificationId: string, preserveHistory?: boolean): Promise<ApiResponse<{ success: boolean }>> => {
-    const params = preserveHistory !== undefined ? { preserve_history: preserveHistory } : undefined;
-    const response = await api.delete<ApiResponse<{ success: boolean }>>(`/notifications/${notificationId}`, { params });
+  deleteNotification: async (notificationId: string): Promise<ApiResponse<{ success: boolean }>> => {
+    // Removed preserveHistory parameter as it's not in the spec
+    const response = await api.delete<ApiResponse<{ success: boolean }>>(`/notifications/${notificationId}`);
     return response.data;
   },
 

@@ -1,6 +1,6 @@
 
 import api from "@/lib/api";
-import { EventsResponse, ApiResponse, CalendarEvent, Conflict, ConflictsResponse } from "@/types/api-responses";
+import { EventsResponse, ApiResponse, CalendarEvent } from "@/types/api-responses";
 
 export const eventService = {
   getEvents: async (
@@ -40,18 +40,15 @@ export const eventService = {
   
   deleteEvent: async (
     propertyId: string,
-    eventId: string,
-    preserveHistory?: boolean
+    eventId: string
   ): Promise<ApiResponse<{ success: boolean }>> => {
-    const params = preserveHistory !== undefined ? { preserve_history: preserveHistory } : undefined;
+    // Removed preserveHistory parameter as it's not in the spec
     const response = await api.delete<ApiResponse<{ success: boolean }>>(
-      `/properties/${propertyId}/events/${eventId}`,
-      { params }
+      `/properties/${propertyId}/events/${eventId}`
     );
     return response.data;
   },
 
-  // Updated method to include pagination
   getPropertyConflicts: async (
     propertyId: string,
     params?: { 
@@ -59,23 +56,13 @@ export const eventService = {
       page?: number;
       limit?: number;
     }
-  ): Promise<ConflictsResponse> => {
-    const response = await api.get<ConflictsResponse>(
+  ): Promise<any> {
+    const response = await api.get(
       `/properties/${propertyId}/conflicts`,
       { params }
     );
     return response.data;
   },
 
-  resolveConflict: async (
-    propertyId: string,
-    conflictId: string,
-    resolution: { resolution: string; event_id?: string }
-  ): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await api.post<ApiResponse<{ success: boolean }>>(
-      `/properties/${propertyId}/conflicts/${conflictId}/resolve`,
-      resolution
-    );
-    return response.data;
-  }
+  // Removed resolveConflict method as it's not in the spec
 };
