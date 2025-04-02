@@ -1,6 +1,6 @@
 
 import api from "@/lib/api";
-import { EventsResponse, ApiResponse, CalendarEvent } from "@/types/api-responses";
+import { EventsResponse, ApiResponse, CalendarEvent, Conflict } from "@/types/api-responses";
 
 export const eventService = {
   getEvents: async (
@@ -47,6 +47,30 @@ export const eventService = {
     const response = await api.delete<ApiResponse<{ success: boolean }>>(
       `/properties/${propertyId}/events/${eventId}`,
       { params }
+    );
+    return response.data;
+  },
+
+  // Add missing methods for conflicts
+  getPropertyConflicts: async (
+    propertyId: string,
+    params?: { status?: string }
+  ): Promise<ApiResponse<Conflict[]>> => {
+    const response = await api.get<ApiResponse<Conflict[]>>(
+      `/properties/${propertyId}/conflicts`,
+      { params }
+    );
+    return response.data;
+  },
+
+  resolveConflict: async (
+    propertyId: string,
+    conflictId: string,
+    resolution: { resolution: string; event_id?: string }
+  ): Promise<ApiResponse<{ success: boolean }>> => {
+    const response = await api.post<ApiResponse<{ success: boolean }>>(
+      `/properties/${propertyId}/conflicts/${conflictId}/resolve`,
+      resolution
     );
     return response.data;
   }

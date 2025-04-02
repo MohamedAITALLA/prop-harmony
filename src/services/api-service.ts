@@ -1,4 +1,3 @@
-
 import api from "@/lib/api";
 import { 
   AuthResponse, 
@@ -490,6 +489,11 @@ export const syncService = {
   
   syncProperty: async (propertyId: string): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await api.post<ApiResponse<{ success: boolean }>>(`/properties/${propertyId}/sync`);
+    return response.data;
+  },
+
+  getPropertySyncLogs: async (propertyId: string): Promise<ApiResponse<SyncLogsResponse>> => {
+    const response = await api.get<ApiResponse<SyncLogsResponse>>(`/properties/${propertyId}/sync/logs`);
     return response.data;
   }
 };

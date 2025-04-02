@@ -12,6 +12,7 @@ interface NotificationFilters {
   read?: boolean;
   page?: number;
   limit?: number;
+  // Add search property to match usage
   search?: string;
 }
 
@@ -128,15 +129,9 @@ export function useNotifications(filters?: NotificationFilters) {
     queryKey: ["notifications", filters],
     queryFn: async () => {
       try {
-        const response = await notificationService.getNotifications({
-          page: filters?.page,
-          limit: filters?.limit,
-          property_id: filters?.property_id,
-          type: filters?.type,
-          severity: filters?.severity,
-          read: filters?.read,
-          search: filters?.search,
-        });
+        // Remove search from params since it's not supported by the API
+        const { search, ...apiParams } = filters || {};
+        const response = await notificationService.getNotifications(apiParams);
         return response.data;
       } catch (error) {
         console.error("Error fetching notifications:", error);
@@ -175,7 +170,7 @@ export function useNotifications(filters?: NotificationFilters) {
   // Declare mutation variables at the function level
   const markAsReadMutation = useMutation({
     mutationFn: async (id: string) => {
-      return notificationService.markAsRead(id);
+      return notificationService.markOneAsRead(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
@@ -186,9 +181,10 @@ export function useNotifications(filters?: NotificationFilters) {
     },
   });
 
+  // Fix markAllAsRead to use correct API method
   const markAllAsReadMutation = useMutation({
     mutationFn: async (ids?: string[]) => {
-      return notificationService.markAllAsRead(ids);
+      return notificationService.markAsRead(ids);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
@@ -233,6 +229,12 @@ export function useNotifications(filters?: NotificationFilters) {
   const totalPages = data?.pagination?.pages || 1;
   const totalNotifications = data?.pagination?.total || 0;
 
+  // Fix how we get settings from settingsResponse
+  const notificationSettings = typeof settingsResponse === 'object' && 
+    'settings' in settingsResponse ? 
+    settingsResponse.settings : 
+    settingsResponse || defaultSettings();
+
   return {
     notifications,
     isLoading,
@@ -242,7 +244,7 @@ export function useNotifications(filters?: NotificationFilters) {
     markAsRead: (id: string) => markAsReadMutation.mutate(id),
     markAllAsRead: (ids?: string[]) => markAllAsReadMutation.mutate(ids),
     deleteNotification: (id: string) => deleteNotificationMutation.mutate(id),
-    settings: settingsResponse?.settings || defaultSettings(),
+    settings: notificationSettings,
     updateSettings: (newSettings: NotificationSettings) => updateSettingsMutation.mutate(newSettings),
   };
 }
