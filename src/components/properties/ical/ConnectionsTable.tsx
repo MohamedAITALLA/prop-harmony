@@ -75,10 +75,10 @@ export function ConnectionsTable({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button 
-                          variant="outline" 
+                          variant="secondary" 
                           size="icon" 
                           onClick={() => onTest(connection)}
-                          className="border-primary/30 hover:border-primary hover:bg-primary/10 text-primary"
+                          className="bg-primary/10 hover:bg-primary/20 text-primary"
                         >
                           <CheckCircle2 className="h-4 w-4" />
                         </Button>
