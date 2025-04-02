@@ -1,15 +1,20 @@
 
-import axios from "axios";
+import axios, { AxiosInstance } from "axios";
 import { toast } from "sonner";
 
 const API_URL = "/api";
+
+// Extend the AxiosInstance type to include our custom method
+interface ExtendedAxiosInstance extends AxiosInstance {
+  getICalFile: (url: string) => Promise<Blob>;
+}
 
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },
-});
+}) as ExtendedAxiosInstance;
 
 // Request interceptor to add authorization token
 api.interceptors.request.use(
@@ -59,7 +64,7 @@ api.interceptors.response.use(
 );
 
 // Special method for downloading iCal files
-api.getICalFile = async (url) => {
+api.getICalFile = async (url: string): Promise<Blob> => {
   try {
     const response = await api.get(url, { 
       responseType: 'blob',
