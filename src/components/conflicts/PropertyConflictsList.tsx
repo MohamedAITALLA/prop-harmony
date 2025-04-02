@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { conflictService } from "@/services/api-service";
+import { eventService } from "@/services/api-event-service";
 import { toast } from "sonner";
 import {
   Select,
@@ -67,7 +67,7 @@ interface PropertyConflictsListProps {
 
 export function PropertyConflictsList({ propertyId }: PropertyConflictsListProps) {
   const [status, setStatus] = useState<string>("all");
-  const [selectedSeverity, setSelectedSeverity] = useState<ConflictSeverity | "">("");
+  const [selectedSeverity, setSelectedSeverity] = useState<ConflictSeverity | "all">("all");
   const [selectedConflict, setSelectedConflict] = useState<Conflict | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [resolverModalOpen, setResolverModalOpen] = useState(false);
@@ -80,7 +80,7 @@ export function PropertyConflictsList({ propertyId }: PropertyConflictsListProps
     queryFn: async () => {
       try {
         const params = status !== "all" ? { status } : undefined;
-        const response = await conflictService.getConflicts(propertyId, params);
+        const response = await eventService.getPropertyConflicts(propertyId, params);
         return response.data;
       } catch (error) {
         console.error("Error fetching conflicts:", error);
@@ -95,7 +95,7 @@ export function PropertyConflictsList({ propertyId }: PropertyConflictsListProps
     const matchesSearch = 
       conflict.description?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
     
-    const matchesSeverity = selectedSeverity ? conflict.severity === selectedSeverity : true;
+    const matchesSeverity = selectedSeverity === "all" ? true : conflict.severity === selectedSeverity;
     
     return matchesSearch && matchesSeverity;
   });
@@ -142,7 +142,7 @@ export function PropertyConflictsList({ propertyId }: PropertyConflictsListProps
     if (!dismissingConflictId) return;
     
     try {
-      await conflictService.deleteConflict(propertyId, dismissingConflictId);
+      await eventService.resolveConflict(propertyId, dismissingConflictId, 'dismiss');
       toast.success("Conflict dismissed successfully");
       refetch();
     } catch (error) {
@@ -211,13 +211,13 @@ export function PropertyConflictsList({ propertyId }: PropertyConflictsListProps
         <div className="flex flex-wrap gap-2">
           <Select 
             value={selectedSeverity} 
-            onValueChange={(value) => setSelectedSeverity(value as ConflictSeverity | "")}
+            onValueChange={(value) => setSelectedSeverity(value as ConflictSeverity | "all")}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="All Severities" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Severities</SelectItem>
+              <SelectItem value="all">All Severities</SelectItem>
               <SelectItem value={ConflictSeverity.HIGH}>High</SelectItem>
               <SelectItem value={ConflictSeverity.MEDIUM}>Medium</SelectItem>
               <SelectItem value={ConflictSeverity.LOW}>Low</SelectItem>
@@ -228,9 +228,9 @@ export function PropertyConflictsList({ propertyId }: PropertyConflictsListProps
             <RefreshCw className="mr-2 h-4 w-4" /> Refresh
           </Button>
           
-          {(selectedSeverity || searchQuery) && (
+          {(selectedSeverity !== "all" || searchQuery) && (
             <Button variant="ghost" onClick={() => {
-              setSelectedSeverity("");
+              setSelectedSeverity("all");
               setSearchQuery("");
             }}>
               <X className="mr-2 h-4 w-4" /> Clear
