@@ -42,19 +42,19 @@ export const eventService = {
 // iCal Connection Service
 export const icalConnectionService = {
   getConnections: (propertyId: string) => {
-    return api.get(`/properties/${propertyId}/ical`);
+    return api.get(`/properties/${propertyId}/ical-connections`);
   },
   createConnection: (propertyId: string, data: any) => {
-    return api.post(`/properties/${propertyId}/ical`, data);
+    return api.post(`/properties/${propertyId}/ical-connections`, data);
   },
   updateConnection: (propertyId: string, connectionId: string, data: any) => {
-    return api.put(`/properties/${propertyId}/ical/${connectionId}`, data);
+    return api.put(`/properties/${propertyId}/ical-connections/${connectionId}`, data);
   },
   deleteConnection: (propertyId: string, connectionId: string) => {
-    return api.delete(`/properties/${propertyId}/ical/${connectionId}`);
+    return api.delete(`/properties/${propertyId}/ical-connections/${connectionId}`);
   },
   testConnection: (propertyId: string, connectionId: string) => {
-    return api.get(`/properties/${propertyId}/ical/${connectionId}/test`);
+    return api.post(`/properties/${propertyId}/ical-connections/${connectionId}/test`);
   }
 };
 
@@ -67,10 +67,10 @@ export const syncService = {
     return api.post(`/properties/${propertyId}/sync`, data);
   },
   getPropertySyncStatus: (propertyId: string) => {
-    return api.get(`/properties/${propertyId}/sync-status`);
+    return api.get(`/properties/${propertyId}/sync`);
   },
   getSyncStatus: () => {
-    return api.get('/sync-status');
+    return api.get('/sync/status');
   }
 };
 
@@ -83,7 +83,7 @@ export const notificationService = {
     return api.put(`/notifications/${id}/read`, {});
   },
   markAllAsRead: () => {
-    return api.put("/notifications/read-all", {});
+    return api.put("/notifications/read", {});
   },
   deleteNotification: (id: string) => {
     return api.delete(`/notifications/${id}`);
@@ -96,7 +96,7 @@ export const calendarService = {
     return api.get(`/properties/${propertyId}/ical-feed`);
   },
   checkAvailability: (propertyId: string, startDate: string, endDate: string) => {
-    return api.get(`/properties/${propertyId}/availability`, {
+    return api.get(`/properties/${propertyId}/calendar/availability`, {
       params: { start_date: startDate, end_date: endDate }
     });
   }
@@ -111,7 +111,7 @@ export const authService = {
     return api.post("/auth/register", userData);
   },
   getCurrentUser: () => {
-    return api.get("/auth/me");
+    return api.get("/user-profile");
   },
   forgotPassword: (email: string) => {
     return api.post("/auth/forgot-password", { email });
@@ -127,13 +127,13 @@ export const authService = {
 // Profile Service
 export const profileService = {
   getProfile: () => {
-    return api.get("/profile");
+    return api.get("/user-profile");
   },
   updateProfile: (data: any) => {
-    return api.put("/profile", data);
+    return api.put("/user-profile", data);
   },
   resetProfile: () => {
-    return api.post("/profile/reset", {});
+    return api.post("/user-profile/reset", {});
   }
 };
 
@@ -153,22 +153,28 @@ export const adminUserService = {
   },
   deleteUser: (id: string) => {
     return api.delete(`/admin/users/${id}`);
+  },
+  promoteUser: (id: string) => {
+    return api.put(`/admin/users/${id}/promote`, {});
+  },
+  demoteUser: (id: string) => {
+    return api.put(`/admin/users/${id}/demote`, {});
   }
 };
 
 // Admin Profile Service
 export const adminProfileService = {
   getUserProfiles: (params?: { page?: number; limit?: number }) => {
-    return api.get("/admin/profiles", { params });
+    return api.get("/admin/user-profiles", { params });
   },
   getUserProfile: (userId: string) => {
-    return api.get(`/admin/profiles/${userId}`);
+    return api.get(`/admin/user-profiles/${userId}`);
   },
   updateUserProfile: (userId: string, data: any) => {
-    return api.put(`/admin/profiles/${userId}`, data);
+    return api.put(`/admin/user-profiles/${userId}`, data);
   },
   resetUserProfile: (userId: string) => {
-    return api.post(`/admin/profiles/${userId}/reset`, {});
+    return api.post(`/admin/user-profiles/${userId}/reset`, {});
   }
 };
 
@@ -186,7 +192,7 @@ export const conflictService = {
   resolveConflict: (conflictId: string, resolution: { resolution: string; event_id?: string }) => {
     return api.post(`/conflicts/${conflictId}/resolve`, resolution);
   },
-  // Adding the missing getConflicts method
+  // Adding the missing getConflicts method for backward compatibility
   getConflicts: (propertyId: string, params?: { status?: string; page?: number; limit?: number }) => {
     return api.get(`/properties/${propertyId}/conflicts`, { params });
   }
