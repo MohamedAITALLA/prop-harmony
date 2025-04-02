@@ -9,6 +9,7 @@ import { LoadingSkeleton } from './list-view/LoadingSkeleton';
 import { useListSorting } from './list-view/useListSorting';
 import { AdvancedPagination } from '@/components/ui/advanced-pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface PropertyListViewProps {
   events: any[];
@@ -82,25 +83,28 @@ export const PropertyListView: React.FC<PropertyListViewProps> = ({
           <EmptyEventsList searchQuery={searchQuery} />
         ) : (
           <>
-            <div className="space-y-4">
-              {currentEvents.map((event) => (
-                <EventCard 
-                  key={event.id} 
-                  event={event} 
-                  onClick={() => handleEventClick(event)}
-                />
-              ))}
-            </div>
+            {/* Scrollable events area with fixed height */}
+            <ScrollArea className="h-[400px] rounded-md border">
+              <div className="space-y-4 p-4">
+                {currentEvents.map((event) => (
+                  <EventCard 
+                    key={event.id} 
+                    event={event} 
+                    onClick={() => handleEventClick(event)}
+                  />
+                ))}
+              </div>
+            </ScrollArea>
             
-            {/* Pagination controls */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
+            {/* Enhanced pagination controls */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Show</span>
                 <Select
                   value={String(itemsPerPage)}
                   onValueChange={handleItemsPerPageChange}
                 >
-                  <SelectTrigger className="w-[70px]">
+                  <SelectTrigger className="w-[80px] h-9 text-center">
                     <SelectValue placeholder={itemsPerPage} />
                   </SelectTrigger>
                   <SelectContent>
