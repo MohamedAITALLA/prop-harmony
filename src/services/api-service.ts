@@ -1,3 +1,4 @@
+
 import api from "@/lib/api";
 import { 
   AuthResponse, 
@@ -23,6 +24,7 @@ import {
   User,
   ICalConnection,
   CalendarEvent,
+  NotificationSettings,
   UserProfile
 } from "@/types/api-responses";
 import { notificationService } from "./notification-service";

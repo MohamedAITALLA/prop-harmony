@@ -33,7 +33,7 @@ import {
   Pie,
   Cell
 } from "recharts";
-import { EventsResponse } from "@/types/api-responses";
+import { CalendarEvent, EventsResponse } from "@/types/api-responses";
 
 export function PropertyAnalytics() {
   const { id: propertyId } = useParams<{ id: string }>();
@@ -93,7 +93,7 @@ export function PropertyAnalytics() {
   const {
     data: eventsData,
     isLoading: isLoadingEvents
-  } = useQuery<EventsResponse["data"]>({
+  } = useQuery({
     queryKey: ["property-events", propertyId],
     queryFn: async () => {
       if (!propertyId) return null;
@@ -119,7 +119,7 @@ export function PropertyAnalytics() {
 
   // Prepare data for events distribution chart
   const eventsDistributionData = React.useMemo(() => {
-    if (!eventsData || !eventsData.meta || !eventsData.meta.platforms) return [];
+    if (!eventsData || !eventsData.meta?.platforms) return [];
     
     const platforms = eventsData.meta.platforms || {};
     return Object.entries(platforms).map(([platform, count]) => ({
@@ -250,7 +250,7 @@ export function PropertyAnalytics() {
                             if (active && payload && payload.length) {
                               return (
                                 <div className="bg-background border border-border p-2 rounded shadow-md">
-                                  <p className="font-medium">{payload[0].name}</p>
+                                  <p className="font-medium">{String(payload[0].name)}</p>
                                   <p>Events: {payload[0].value}</p>
                                 </div>
                               );
@@ -303,7 +303,7 @@ export function PropertyAnalytics() {
                             if (active && payload && payload.length) {
                               return (
                                 <div className="bg-background border border-border p-2 rounded shadow-md">
-                                  <p className="font-medium">{payload[0].name}</p>
+                                  <p className="font-medium">{String(payload[0].name)}</p>
                                   <p>Count: {payload[0].value}</p>
                                 </div>
                               );
@@ -465,14 +465,14 @@ export function PropertyAnalytics() {
                 <div className="h-[400px] w-full">
                   <Skeleton className="h-full w-full" />
                 </div>
-              ) : eventsData && eventsData.length > 0 ? (
+              ) : eventsData && eventsData.events && eventsData.events.length > 0 ? (
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                     <div className="col-span-2 sm:col-span-4">
                       <h3 className="text-lg font-medium">Event Status</h3>
                       <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
                         {Object.entries(
-                          eventsData.reduce((acc: Record<string, number>, event) => {
+                          eventsData.events.reduce((acc: Record<string, number>, event) => {
                             acc[event.status] = (acc[event.status] || 0) + 1;
                             return acc;
                           }, {})
@@ -493,7 +493,7 @@ export function PropertyAnalytics() {
                       <h3 className="text-lg font-medium">Event Types</h3>
                       <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
                         {Object.entries(
-                          eventsData.reduce((acc: Record<string, number>, event) => {
+                          eventsData.events.reduce((acc: Record<string, number>, event) => {
                             acc[event.event_type] = (acc[event.event_type] || 0) + 1;
                             return acc;
                           }, {})
