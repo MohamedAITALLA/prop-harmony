@@ -152,7 +152,7 @@ export default function Conflicts() {
                 <SelectValue placeholder="All Properties" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Properties</SelectItem>
+                <SelectItem value="all_properties">All Properties</SelectItem>
                 {properties.map((property: Property) => (
                   <SelectItem key={property._id} value={property._id}>
                     {property.name}
@@ -169,7 +169,7 @@ export default function Conflicts() {
                 <SelectValue placeholder="All Severities" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Severities</SelectItem>
+                <SelectItem value="all_severities">All Severities</SelectItem>
                 <SelectItem value={ConflictSeverity.HIGH}>High</SelectItem>
                 <SelectItem value={ConflictSeverity.MEDIUM}>Medium</SelectItem>
                 <SelectItem value={ConflictSeverity.LOW}>Low</SelectItem>
