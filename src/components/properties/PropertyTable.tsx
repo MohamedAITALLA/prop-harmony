@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Table, 
@@ -39,16 +38,29 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { AdvancedPagination } from "@/components/ui/advanced-pagination";
 
 export interface PropertyTableProps {
   properties: Property[];
   isLoading?: boolean;
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
+  };
+  onPageChange?: (page: number) => void;
 }
 
 type SortField = "name" | "property_type" | "address.city" | "created_at" | "bookings_count";
 type SortDirection = "asc" | "desc";
 
-export function PropertyTable({ properties, isLoading = false }: PropertyTableProps) {
+export function PropertyTable({ 
+  properties, 
+  isLoading = false,
+  pagination,
+  onPageChange
+}: PropertyTableProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [propertyType, setPropertyType] = useState<string>("");
@@ -56,7 +68,6 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
-  // Function to handle sorting
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -66,14 +77,12 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
     }
   };
 
-  // Function to get nested property value
   const getNestedPropertyValue = (obj: any, path: string) => {
     return path.split(".").reduce((prev, curr) => {
       return prev && prev[curr] !== undefined ? prev[curr] : null;
     }, obj);
   };
 
-  // Sort function
   const sortProperties = (a: Property, b: Property) => {
     let valueA, valueB;
 
@@ -98,7 +107,6 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
     }
   };
 
-  // Filter function
   const filteredProperties = properties.filter((property) => {
     const matchesSearch = 
       property.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -113,7 +121,6 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
     return matchesSearch && matchesType && matchesCity;
   }).sort(sortProperties);
 
-  // Function to handle action clicks
   const handleAction = (action: string, propertyId: string) => {
     switch (action) {
       case "View":
@@ -133,7 +140,6 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
     }
   };
 
-  // Function to render sort indicator
   const renderSortIndicator = (field: SortField) => {
     if (sortField !== field) return null;
     
@@ -144,7 +150,6 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
 
   return (
     <div className="space-y-4">
-      {/* Search Bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -155,7 +160,6 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
         />
       </div>
       
-      {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Select value={propertyType} onValueChange={setPropertyType}>
           <SelectTrigger>
@@ -200,7 +204,6 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
         </Select>
       </div>
 
-      {/* Table */}
       <div className="border rounded-md overflow-hidden">
         <Table>
           <TableHeader>
@@ -324,7 +327,16 @@ export function PropertyTable({ properties, isLoading = false }: PropertyTablePr
         </Table>
       </div>
       
-      {/* Results count */}
+      {pagination && pagination.pages > 1 && onPageChange && (
+        <div className="flex justify-center mt-4">
+          <AdvancedPagination
+            currentPage={pagination.page}
+            totalPages={pagination.pages}
+            onPageChange={onPageChange}
+          />
+        </div>
+      )}
+      
       {!isLoading && filteredProperties.length > 0 && (
         <div className="text-sm text-muted-foreground text-right">
           Showing {filteredProperties.length} of {properties.length} properties

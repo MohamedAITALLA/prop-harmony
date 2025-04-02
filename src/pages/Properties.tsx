@@ -11,32 +11,60 @@ import { Button } from "@/components/ui/button";
 import { Plus, Grid, List } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { AdvancedPagination } from "@/components/ui/advanced-pagination";
 
 export default function Properties() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Use our propertyService to fetch properties
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["properties"],
+    queryKey: ["properties", currentPage, pageSize],
     queryFn: async () => {
       try {
-        // Call the updated API endpoint
-        const response = await propertyService.getAllProperties();
+        // Call the updated API endpoint with pagination
+        const response = await propertyService.getAllProperties({
+          page: currentPage,
+          limit: pageSize
+        });
         // Ensure we return an array of properties
-        return Array.isArray(response.data.properties) ? response.data.properties : getMockProperties();
+        return response.data || getMockProperties();
       } catch (error) {
         console.error("Error fetching properties:", error);
         toast.error("Failed to load properties");
         
         // For demo purposes, return mock data if the API fails
-        return getMockProperties();
+        return {
+          properties: getMockProperties(),
+          pagination: {
+            total: 5,
+            page: currentPage,
+            limit: pageSize,
+            pages: Math.ceil(5 / pageSize),
+            has_next_page: currentPage < Math.ceil(5 / pageSize),
+            has_previous_page: currentPage > 1
+          }
+        };
       }
     }
   });
 
   // Ensure we always have an array of properties
-  const properties = Array.isArray(data) ? data : [];
+  const properties = data?.properties || [];
+  const pagination = data?.pagination || {
+    total: 0,
+    page: 1,
+    limit: 10,
+    pages: 1,
+    has_next_page: false,
+    has_previous_page: false
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   if (error) {
     return (
@@ -76,9 +104,23 @@ export default function Properties() {
         </TabsList>
         <TabsContent value="grid" className="mt-6">
           <PropertyList properties={properties} isLoading={isLoading} />
+          <div className="flex justify-center mt-4">
+            <AdvancedPagination
+              currentPage={pagination.page}
+              totalPages={pagination.pages}
+              onPageChange={handlePageChange}
+            />
+          </div>
         </TabsContent>
         <TabsContent value="table" className="mt-6">
           <PropertyTable properties={properties} isLoading={isLoading} />
+          <div className="flex justify-center mt-4">
+            <AdvancedPagination
+              currentPage={pagination.page}
+              totalPages={pagination.pages}
+              onPageChange={handlePageChange}
+            />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

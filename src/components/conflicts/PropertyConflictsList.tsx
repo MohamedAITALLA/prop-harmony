@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { eventService } from "@/services/api-event-service";
@@ -60,6 +59,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { ConflictType, ConflictSeverity, ConflictStatus, Platform } from "@/types/enums";
 import { normalizeMongoObject } from "@/lib/mongo-helpers";
+import { AdvancedPagination } from "@/components/ui/advanced-pagination";
 
 interface PropertyConflictsListProps {
   propertyId: string;
@@ -74,24 +74,33 @@ export function PropertyConflictsList({ propertyId }: PropertyConflictsListProps
   const [dismissDialogOpen, setDismissDialogOpen] = useState(false);
   const [dismissingConflictId, setDismissingConflictId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const { data: conflictsData, isLoading, error, refetch } = useQuery({
-    queryKey: ["property-conflicts", propertyId, status],
+    queryKey: ["property-conflicts", propertyId, status, currentPage, pageSize],
     queryFn: async () => {
       try {
-        const params = status !== "all" ? { status } : undefined;
+        const params = { 
+          ...(status !== "all" ? { status } : {}),
+          page: currentPage,
+          limit: pageSize
+        };
         const response = await eventService.getPropertyConflicts(propertyId, params);
-        return response.data;
+        return response;
       } catch (error) {
         console.error("Error fetching conflicts:", error);
         toast.error("Failed to load conflicts");
-        return [];
+        return { data: [], meta: { total: 0, property_id: propertyId, status_breakdown: {}, status_filter: status } };
       }
     }
   });
 
-  // Filter conflicts by severity and search query
-  const filteredConflicts = (conflictsData || []).filter((conflict: Conflict) => {
+  const conflicts = conflictsData?.data || [];
+  const totalConflicts = conflictsData?.meta?.total || 0;
+  const totalPages = Math.ceil(totalConflicts / pageSize);
+
+  const filteredConflicts = conflicts.filter((conflict: Conflict) => {
     const matchesSearch = 
       conflict.description?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
     
@@ -142,7 +151,6 @@ export function PropertyConflictsList({ propertyId }: PropertyConflictsListProps
     if (!dismissingConflictId) return;
     
     try {
-      // Fix: Pass an object with resolution property instead of a string
       await eventService.resolveConflict(propertyId, dismissingConflictId, { resolution: 'dismiss' });
       toast.success("Conflict dismissed successfully");
       refetch();
@@ -194,6 +202,10 @@ export function PropertyConflictsList({ propertyId }: PropertyConflictsListProps
       default:
         return type;
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -353,6 +365,12 @@ export function PropertyConflictsList({ propertyId }: PropertyConflictsListProps
           </TableBody>
         </Table>
       </div>
+
+      <AdvancedPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
 
       <AlertDialog open={dismissDialogOpen} onOpenChange={setDismissDialogOpen}>
         <AlertDialogContent>

@@ -1,181 +1,228 @@
+import React, { useState } from 'react';
+import { Notification } from '@/types/api-responses';
+import { formatDistanceToNow } from 'date-fns';
+import { Check, X, Bell, AlertTriangle, InfoIcon, Calendar, RefreshCw, MessageSquare } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { NotificationSeverity, NotificationType } from '@/types/enums';
+import { AdvancedPagination } from '@/components/ui/advanced-pagination';
 
-import React from "react";
-import { format, formatDistanceToNow, parseISO } from "date-fns";
-import { Bell, CheckCircle, Clock, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
-import { StatusBadge } from "@/components/ui/status-badge";
-
-export interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: string;
-  severity: string;
-  read: boolean;
-  created_at: string;
-  property_id?: string;
-  user_id?: string;
-  [key: string]: any;
-}
-
-export interface NotificationsListProps extends React.HTMLAttributes<HTMLDivElement> {
+interface NotificationsListProps {
   notifications: Notification[];
-  onMarkRead?: (id: string) => void;
-  onMarkAllRead?: () => void;
+  totalPages: number;
+  currentPage: number;
+  onPageChange: (page: number) => void;
+  isLoading: boolean;
+  onMarkAsRead?: (id: string) => void;
+  onMarkAllAsRead?: () => void;
   onDelete?: (id: string) => void;
-  maxHeight?: string | number;
-  isLoading?: boolean;
-  emptyMessage?: string;
-  showActions?: boolean;
-  showHeader?: boolean;
 }
 
 export function NotificationsList({
   notifications,
-  onMarkRead,
-  onMarkAllRead,
-  onDelete,
-  maxHeight = "300px",
-  isLoading = false,
-  emptyMessage = "No notifications",
-  showActions = true,
-  showHeader = true,
-  className,
-  ...props
+  totalPages,
+  currentPage,
+  onPageChange,
+  isLoading,
+  onMarkAsRead,
+  onMarkAllAsRead,
+  onDelete
 }: NotificationsListProps) {
-  const unreadCount = notifications.filter(notification => !notification.read).length;
-  
-  const getNotificationIcon = (type: string, read: boolean) => {
-    const iconClass = read ? "text-muted-foreground" : "text-primary";
-    
-    switch (type.toLowerCase()) {
-      case "sync":
-      case "synced":
-        return <Clock className={`h-5 w-5 ${iconClass}`} />;
-      case "booking":
-      case "reservation":
-      case "new_booking":
-      case "modified_booking":
-        return <Bell className={`h-5 w-5 ${iconClass}`} />;
-      case "error":
-      case "conflict":
-      case "booking_conflict":
-      case "cancelled_booking":
-      case "sync_failure":
-        return <Bell className={`h-5 w-5 text-destructive`} />;
+  const [selectedNotifications, setSelectedNotifications] = useState<string[]>([]);
+
+  const handleNotificationSelect = (id: string) => {
+    setSelectedNotifications((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedNotifications.length === notifications.length) {
+      setSelectedNotifications([]);
+    } else {
+      setSelectedNotifications(notifications.map((n) => n._id));
+    }
+  };
+
+  const isAllSelected = selectedNotifications.length === notifications.length;
+
+  const handleDeleteSelected = () => {
+    selectedNotifications.forEach((id) => {
+      if (onDelete) {
+        onDelete(id);
+      }
+    });
+    setSelectedNotifications([]);
+  };
+
+  const handleMarkSelectedAsRead = () => {
+    if (onMarkAllAsRead) {
+      onMarkAllAsRead(selectedNotifications);
+    }
+    setSelectedNotifications([]);
+  };
+
+  const getNotificationIcon = (type: NotificationType) => {
+    switch (type) {
+      case NotificationType.NEW_BOOKING:
+        return <Calendar className="h-4 w-4 text-green-500" />;
+      case NotificationType.MODIFIED_BOOKING:
+        return <RefreshCw className="h-4 w-4 text-blue-500" />;
+      case NotificationType.CANCELLED_BOOKING:
+        return <X className="h-4 w-4 text-red-500" />;
+      case NotificationType.BOOKING_CONFLICT:
+        return <AlertTriangle className="h-4 w-4 text-orange-500" />;
+      case NotificationType.SYNC_FAILURE:
+        return <AlertTriangle className="h-4 w-4 text-red-500" />;
       default:
-        return <Bell className={`h-5 w-5 ${iconClass}`} />;
+        return <Bell className="h-4 w-4 text-gray-500" />;
     }
   };
-  
-  const formatTimeAgo = (dateString: string) => {
-    try {
-      const date = parseISO(dateString);
-      return formatDistanceToNow(date, { addSuffix: true });
-    } catch (error) {
-      return dateString;
+
+  const getSeverityIcon = (severity: NotificationSeverity) => {
+    switch (severity) {
+      case NotificationSeverity.CRITICAL:
+        return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      case NotificationSeverity.WARNING:
+        return <AlertTriangle className="h-4 w-4 text-orange-500" />;
+      case NotificationSeverity.INFO:
+        return <InfoIcon className="h-4 w-4 text-blue-500" />;
+      default:
+        return <Bell className="h-4 w-4 text-gray-500" />;
     }
   };
-  
-  const formatDate = (dateString: string) => {
-    try {
-      const date = parseISO(dateString);
-      return format(date, "PPp");
-    } catch (error) {
-      return dateString;
-    }
-  };
-  
+
   return (
-    <div className={cn("w-full", className)} {...props}>
-      {showHeader && (
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">Notifications</h3>
-            {unreadCount > 0 && (
-              <StatusBadge status={`${unreadCount} Unread`} variant="info" size="sm" />
-            )}
-          </div>
-          {unreadCount > 0 && onMarkAllRead && showActions && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onMarkAllRead}
-              className="text-xs"
-            >
-              <CheckCircle className="mr-1 h-3 w-3" /> Mark all read
-            </Button>
-          )}
+    <div className="space-y-4">
+      {isLoading ? (
+        <div className="flex items-center justify-center py-4">
+          <RefreshCw className="h-5 w-5 animate-spin mr-2" />
+          <span>Loading notifications...</span>
         </div>
-      )}
-      
-      <ScrollArea className={cn("rounded-md border", typeof maxHeight === 'number' ? `max-h-[${maxHeight}px]` : `max-h-[${maxHeight}]`)}>
-        {isLoading ? (
-          <div className="p-6 flex justify-center items-center">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      ) : notifications.length === 0 ? (
+        <div className="flex items-center justify-center py-4">
+          <span>No notifications found.</span>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Checkbox
+                id="select-all"
+                checked={isAllSelected}
+                onCheckedChange={handleSelectAll}
+              />
+              <label
+                htmlFor="select-all"
+                className="ml-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Select All
+              </label>
+            </div>
+            <div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleMarkSelectedAsRead}
+                disabled={selectedNotifications.length === 0}
+              >
+                Mark as Read
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDeleteSelected}
+                disabled={selectedNotifications.length === 0}
+                className="ml-2"
+              >
+                Delete
+              </Button>
+            </div>
           </div>
-        ) : notifications.length > 0 ? (
-          <div className="divide-y">
+          <div className="divide-y divide-border rounded-md border">
             {notifications.map((notification) => (
               <div
-                key={notification.id}
-                className={cn(
-                  "flex items-start gap-3 p-3",
-                  !notification.read && "bg-accent/50"
-                )}
+                key={notification._id}
+                className="grid grid-cols-[auto_1fr_auto] items-center gap-2 p-4"
               >
-                <div className="mt-1">
-                  {getNotificationIcon(notification.type, notification.read)}
-                </div>
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <p className={cn("font-medium", !notification.read && "font-semibold")}>
+                <Checkbox
+                  checked={selectedNotifications.includes(notification._id)}
+                  onCheckedChange={() => handleNotificationSelect(notification._id)}
+                  id={`notification-${notification._id}`}
+                />
+                <div className="flex items-center gap-2">
+                  {getSeverityIcon(notification.severity)}
+                  <div className="grid gap-0.5">
+                    <p className="line-clamp-1 text-sm font-medium leading-none">
                       {notification.title}
                     </p>
-                    <StatusBadge status={notification.severity} size="sm" />
+                    <p className="line-clamp-1 text-sm text-muted-foreground">
+                      {notification.message}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(notification.created_at), {
+                        addSuffix: true,
+                      })}
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">{notification.message}</p>
-                  <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground">
-                    <span title={formatDate(notification.created_at)}>
-                      {formatTimeAgo(notification.created_at)}
-                    </span>
-                    {showActions && (
-                      <div className="flex gap-2">
-                        {!notification.read && onMarkRead && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 px-2 text-xs"
-                            onClick={() => onMarkRead(notification.id)}
-                          >
-                            Mark read
-                          </Button>
-                        )}
-                        {onDelete && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 px-2 text-xs text-destructive hover:text-destructive"
-                            onClick={() => onDelete(notification.id)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (onMarkAsRead) {
+                        onMarkAsRead(notification._id);
+                      }
+                    }}
+                  >
+                    <Check className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (onDelete) {
+                        onDelete(notification._id);
+                      }
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
-        ) : (
-          <div className="flex items-center justify-center p-6 text-center text-muted-foreground">
-            <p>{emptyMessage}</p>
-          </div>
-        )}
-      </ScrollArea>
+        </>
+      )}
+      
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-4">
+          <AdvancedPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+          />
+        </div>
+      )}
     </div>
   );
+}
+
+export function getNotificationIcon(type: NotificationType) {
+  switch (type) {
+    case NotificationType.NEW_BOOKING:
+      return <Calendar className="h-4 w-4 text-green-500" />;
+    case NotificationType.MODIFIED_BOOKING:
+      return <RefreshCw className="h-4 w-4 text-blue-500" />;
+    case NotificationType.CANCELLED_BOOKING:
+      return <X className="h-4 w-4 text-red-500" />;
+    case NotificationType.BOOKING_CONFLICT:
+      return <AlertTriangle className="h-4 w-4 text-orange-500" />;
+    case NotificationType.SYNC_FAILURE:
+      return <AlertTriangle className="h-4 w-4 text-red-500" />;
+    default:
+      return <Bell className="h-4 w-4 text-gray-500" />;
+  }
 }

@@ -1,9 +1,9 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Notification, NotificationSettings } from "@/types/api-responses";
 import { toast } from "sonner";
 import { notificationService } from "@/services/notification-service";
 import { NotificationType, NotificationSeverity } from "@/types/enums";
+import { useState } from "react";
 
 interface NotificationFilters {
   property_id?: string;
@@ -12,14 +12,20 @@ interface NotificationFilters {
   read?: boolean;
   page?: number;
   limit?: number;
-  // Add search property to match usage
   search?: string;
 }
 
 export function useNotifications(filters?: NotificationFilters) {
   const queryClient = useQueryClient();
+  const [currentPage, setCurrentPage] = useState(filters?.page || 1);
+  const [pageSize, setPageSize] = useState(filters?.limit || 10);
 
-  // Function to generate mock data for development
+  const currentFilters = {
+    ...filters,
+    page: currentPage,
+    limit: pageSize
+  };
+
   const generateMockData = () => {
     const mockNotifications = [
       {
@@ -50,39 +56,37 @@ export function useNotifications(filters?: NotificationFilters) {
         age_in_hours: 2,
         is_recent: true,
       },
-      // ... other mock notifications
     ];
 
-    // Apply filters
     let filteredNotifications = [...mockNotifications];
     
-    if (filters) {
-      if (filters.property_id) {
+    if (currentFilters) {
+      if (currentFilters.property_id) {
         filteredNotifications = filteredNotifications.filter(
-          (n) => n.property_id === filters.property_id
+          (n) => n.property_id === currentFilters.property_id
         );
       }
       
-      if (filters.type) {
+      if (currentFilters.type) {
         filteredNotifications = filteredNotifications.filter(
-          (n) => n.type === filters.type
+          (n) => n.type === currentFilters.type
         );
       }
       
-      if (filters.severity) {
+      if (currentFilters.severity) {
         filteredNotifications = filteredNotifications.filter(
-          (n) => n.severity === filters.severity
+          (n) => n.severity === currentFilters.severity
         );
       }
       
-      if (filters.read !== undefined) {
+      if (currentFilters.read !== undefined) {
         filteredNotifications = filteredNotifications.filter(
-          (n) => n.read === filters.read
+          (n) => n.read === currentFilters.read
         );
       }
       
-      if (filters.search) {
-        const search = filters.search.toLowerCase();
+      if (currentFilters.search) {
+        const search = currentFilters.search.toLowerCase();
         filteredNotifications = filteredNotifications.filter(
           (n) => 
             n.title.toLowerCase().includes(search) || 
@@ -91,14 +95,12 @@ export function useNotifications(filters?: NotificationFilters) {
       }
     }
 
-    // Sort by creation date, most recent first
     filteredNotifications.sort((a, b) => {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
     
-    // Apply pagination
-    const page = filters?.page || 1;
-    const limit = filters?.limit || 10;
+    const page = currentFilters?.page || 1;
+    const limit = currentFilters?.limit || 10;
     const start = (page - 1) * limit;
     const end = start + limit;
     const paginatedNotifications = filteredNotifications.slice(start, end);
@@ -126,20 +128,18 @@ export function useNotifications(filters?: NotificationFilters) {
   };
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["notifications", filters],
+    queryKey: ["notifications", currentFilters],
     queryFn: async () => {
       try {
-        // Remove search from params since it's not supported by the API
-        const { search, ...apiParams } = filters || {};
+        const { search, ...apiParams } = currentFilters || {};
         const response = await notificationService.getNotifications(apiParams);
         return response.data;
       } catch (error) {
         console.error("Error fetching notifications:", error);
-        // Return mock data in case of error for development
         return generateMockData();
       }
     },
-    staleTime: 1000 * 60, // 1 minute
+    staleTime: 1000 * 60,
   });
 
   const { data: settingsResponse } = useQuery({
@@ -153,7 +153,7 @@ export function useNotifications(filters?: NotificationFilters) {
         return { settings: defaultSettings(), user_id: "", last_updated: "" };
       }
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 
   function defaultSettings(): NotificationSettings {
@@ -167,7 +167,6 @@ export function useNotifications(filters?: NotificationFilters) {
     };
   }
 
-  // Declare mutation variables at the function level
   const markAsReadMutation = useMutation({
     mutationFn: async (id: string) => {
       return notificationService.markOneAsRead(id);
@@ -181,7 +180,6 @@ export function useNotifications(filters?: NotificationFilters) {
     },
   });
 
-  // Fix markAllAsRead to use correct API method
   const markAllAsReadMutation = useMutation({
     mutationFn: async (ids?: string[]) => {
       return notificationService.markAsRead(ids);
@@ -224,23 +222,28 @@ export function useNotifications(filters?: NotificationFilters) {
     },
   });
 
-  // Parse the data to get notifications and pagination info
   const notifications = data?.notifications || [];
   const totalPages = data?.pagination?.pages || 1;
   const totalNotifications = data?.pagination?.total || 0;
 
-  // Fix how we get settings from settingsResponse
   const notificationSettings = typeof settingsResponse === 'object' && 
     'settings' in settingsResponse ? 
     settingsResponse.settings : 
     settingsResponse || defaultSettings();
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return {
     notifications,
     isLoading,
     error,
+    currentPage,
+    pageSize,
     totalPages,
     totalNotifications,
+    onPageChange: handlePageChange,
     markAsRead: (id: string) => markAsReadMutation.mutate(id),
     markAllAsRead: (ids?: string[]) => markAllAsReadMutation.mutate(ids),
     deleteNotification: (id: string) => deleteNotificationMutation.mutate(id),
