@@ -1,4 +1,3 @@
-
 import api from "@/lib/api";
 import { ApiResponse } from "@/types/api-responses";
 
@@ -30,7 +29,24 @@ export const propertyService = {
       console.log("Fetching property with ID:", id);
       const response = await api.get(`/properties/${id}`);
       console.log("Property API response:", response.data);
-      return response.data;
+      
+      // Check if the response has the expected structure
+      if (response?.data?.success && response?.data?.data?.property) {
+        console.log("Property data found:", response.data.data.property);
+        return response.data;
+      } else if (response?.data?.property) {
+        // Alternative response structure
+        console.log("Property data found in alternative format:", response.data.property);
+        return {
+          success: true,
+          data: {
+            property: response.data.property
+          }
+        };
+      } else {
+        console.error("Unexpected API response structure:", response.data);
+        throw new Error("Property data not found in the API response");
+      }
     } catch (error) {
       console.error(`Error fetching property ${id}:`, error);
       throw error;
@@ -70,7 +86,9 @@ export const icalConnectionService = {
 export const syncService = {
   syncAll: async () => {
     try {
+      console.log("Syncing all properties");
       const response = await api.post("/sync");
+      console.log("Sync all response:", response.data);
       return response;
     } catch (error) {
       console.error("Error syncing all properties:", error);
@@ -82,7 +100,13 @@ export const syncService = {
       console.log(`Syncing property ID: ${propertyId}`);
       const response = await api.post(`/properties/${propertyId}/sync`);
       console.log("Sync property response:", response.data);
-      return response;
+      
+      // Handle different response formats
+      if (response.data && typeof response.data === 'object') {
+        return response;
+      } else {
+        throw new Error("Invalid response format from sync API");
+      }
     } catch (error) {
       console.error(`Error syncing property ${propertyId}:`, error);
       throw error;

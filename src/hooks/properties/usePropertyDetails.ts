@@ -4,7 +4,7 @@ import { propertyService } from "@/services/api-service";
 
 export function usePropertyDetails(id: string | undefined) {
   const { 
-    data: property, 
+    data: propertyResponse, 
     isLoading: propertyLoading, 
     error: propertyError, 
     refetch: refetchProperty,
@@ -16,29 +16,24 @@ export function usePropertyDetails(id: string | undefined) {
       
       try {
         console.log("Fetching property details for ID:", id);
-        const responseData = await propertyService.getProperty(id);
-        
-        console.log("API response:", responseData);
-        
-        // Check if the response has the expected structure
-        if (responseData?.success && responseData?.data?.property) {
-          console.log("Property data found:", responseData.data.property);
-          return responseData.data.property;
-        } else {
-          console.error("Unexpected API response structure:", responseData);
-          throw new Error("Property data not found in the API response");
-        }
+        return await propertyService.getProperty(id);
       } catch (error) {
         console.error("Error fetching property:", error);
         throw error;
       }
     },
-    retry: 2, // Retry failed requests up to 2 times
+    retry: 3, // Retry failed requests up to 3 times
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   });
 
+  // Extract property from response with proper fallbacks
+  const property = propertyResponse?.data?.property || 
+                   propertyResponse?.property || 
+                   (propertyResponse?.success ? propertyResponse.data : null);
+
   return {
     property,
+    propertyResponse,
     propertyLoading,
     propertyError,
     refetchProperty,

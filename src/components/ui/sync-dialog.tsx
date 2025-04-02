@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -77,7 +78,9 @@ export function SyncDialog({
     try {
       let response;
       if (propertyId) {
+        console.log("Starting property sync for:", propertyId);
         response = await syncService.syncProperty(propertyId);
+        console.log("Sync response received:", response);
         
         if (response?.data?.success && response?.data?.data) {
           console.log("Sync completed successfully with data:", response.data.data);
@@ -109,6 +112,7 @@ export function SyncDialog({
       setSyncComplete(true);
       setStatus("success");
       
+      // Invalidate related queries
       queryClient.invalidateQueries({
         queryKey: ["notifications"],
       });
@@ -117,6 +121,15 @@ export function SyncDialog({
         queryClient.invalidateQueries({
           queryKey: ["property-sync-status", propertyId],
         });
+        queryClient.invalidateQueries({
+          queryKey: ["property", propertyId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["property-events", propertyId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["property-conflicts", propertyId],
+        });
       }
       
       if (onSyncComplete) {
@@ -124,7 +137,7 @@ export function SyncDialog({
       }
     } catch (error) {
       console.error("Sync error:", error);
-      setError("Failed to sync. Please try again.");
+      setError(error instanceof Error ? error.message : "Failed to sync. Please try again.");
       setStatus("error");
       toast.error("Sync failed. Please try again.");
     } finally {
