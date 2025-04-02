@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/card";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { syncService, notificationService, eventService } from "@/services/api-service";
+import { syncService, notificationService } from "@/services/api-service";
+import { eventService } from "@/services/api-event-service";
 import { NotificationsList } from "@/components/ui/notifications-list";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -93,12 +94,12 @@ export function PropertyAnalytics() {
   const {
     data: eventsData,
     isLoading: isLoadingEvents
-  } = useQuery({
+  } = useQuery<EventsResponse>({
     queryKey: ["property-events", propertyId],
     queryFn: async () => {
       if (!propertyId) return null;
       const response = await eventService.getEvents(propertyId);
-      return response.data;
+      return response;
     },
     enabled: !!propertyId,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -119,9 +120,9 @@ export function PropertyAnalytics() {
 
   // Prepare data for events distribution chart
   const eventsDistributionData = React.useMemo(() => {
-    if (!eventsData || !eventsData.meta?.platforms) return [];
+    if (!eventsData?.data?.meta?.platforms) return [];
     
-    const platforms = eventsData.meta.platforms || {};
+    const platforms = eventsData.data.meta.platforms || {};
     return Object.entries(platforms).map(([platform, count]) => ({
       name: platform,
       value: count,
@@ -181,7 +182,7 @@ export function PropertyAnalytics() {
             {/* Total Events */}
             <StatsCard
               title="Total Events"
-              value={eventsData?.meta?.total || 0}
+              value={eventsData?.data?.meta?.total || 0}
               icon="calendar-check"
               isLoading={isLoadingEvents}
             />
@@ -189,7 +190,7 @@ export function PropertyAnalytics() {
             {/* Platform Connections */}
             <StatsCard
               title="Connected Platforms"
-              value={eventsData && eventsData.meta ? Object.keys(eventsData.meta.platforms || {}).length : 0}
+              value={eventsData?.data?.meta ? Object.keys(eventsData.data.meta.platforms || {}).length : 0}
               icon="home"
               isLoading={isLoadingEvents}
             />
@@ -465,14 +466,14 @@ export function PropertyAnalytics() {
                 <div className="h-[400px] w-full">
                   <Skeleton className="h-full w-full" />
                 </div>
-              ) : eventsData && eventsData.events && eventsData.events.length > 0 ? (
+              ) : eventsData?.data?.events && eventsData.data.events.length > 0 ? (
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                     <div className="col-span-2 sm:col-span-4">
                       <h3 className="text-lg font-medium">Event Status</h3>
                       <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
                         {Object.entries(
-                          eventsData.events.reduce((acc: Record<string, number>, event) => {
+                          eventsData.data.events.reduce((acc: Record<string, number>, event) => {
                             acc[event.status] = (acc[event.status] || 0) + 1;
                             return acc;
                           }, {})
@@ -481,7 +482,7 @@ export function PropertyAnalytics() {
                             <div className="text-xs font-medium text-muted-foreground">
                               {status.charAt(0).toUpperCase() + status.slice(1)}
                             </div>
-                            <div className="mt-1 text-2xl font-bold">{count}</div>
+                            <div className="mt-1 text-2xl font-bold">{String(count)}</div>
                           </div>
                         ))}
                       </div>
@@ -493,7 +494,7 @@ export function PropertyAnalytics() {
                       <h3 className="text-lg font-medium">Event Types</h3>
                       <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
                         {Object.entries(
-                          eventsData.events.reduce((acc: Record<string, number>, event) => {
+                          eventsData.data.events.reduce((acc: Record<string, number>, event) => {
                             acc[event.event_type] = (acc[event.event_type] || 0) + 1;
                             return acc;
                           }, {})
@@ -502,7 +503,7 @@ export function PropertyAnalytics() {
                             <div className="text-xs font-medium text-muted-foreground">
                               {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                             </div>
-                            <div className="mt-1 text-2xl font-bold">{count}</div>
+                            <div className="mt-1 text-2xl font-bold">{String(count)}</div>
                           </div>
                         ))}
                       </div>
