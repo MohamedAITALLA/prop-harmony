@@ -3,24 +3,17 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "@/services/api-service";
 import { eventService } from "@/services/api-event-service";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Edit, RefreshCw, Trash, Info, Calendar, Link, AlertTriangle, Settings, Cloud } from "lucide-react";
-import { PropertyOverview } from "@/components/properties/PropertyOverview";
-import { PropertyICalFeed } from "@/components/properties/PropertyICalFeed";
-import { ICalConnectionsManager } from "@/components/properties/ICalConnectionsManager";
+import { Tabs } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Platform, EventType } from "@/types/enums";
-import { PropertyConflictsList } from "@/components/conflicts/PropertyConflictsList";
-import { PropertyCalendar } from "@/components/properties/PropertyCalendar";
-import { PropertySync } from "@/components/properties/PropertySync";
-import { SyncDialog } from "@/components/ui/sync-dialog";
-import { CalendarEvent, Property } from "@/types/api-responses";
 import { normalizeMongoObject } from "@/lib/mongo-helpers";
-import { format } from "date-fns";
 import { PropertyType } from "@/types/enums";
 import api from "@/lib/api";
+import { SyncDialog } from "@/components/ui/sync-dialog";
+import { PropertyDetailsHeader } from "@/components/properties/PropertyDetailsHeader";
+import { PropertyDetailsTabs } from "@/components/properties/PropertyDetailsTabs";
+import { PropertyDetailsContent } from "@/components/properties/PropertyDetailsContent";
+import { PropertyDetailsLoading } from "@/components/properties/PropertyDetailsLoading";
+import { PropertyDetailsError } from "@/components/properties/PropertyDetailsError";
 
 export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>();
@@ -30,7 +23,12 @@ export default function PropertyDetails() {
   const initialTab = searchParams.get("tab") || "overview";
   const [activeTab, setActiveTab] = useState(initialTab);
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { 
+    data: property, 
+    isLoading: propertyLoading, 
+    error: propertyError, 
+    refetch: refetchProperty 
+  } = useQuery({
     queryKey: ["property", id],
     queryFn: async () => {
       if (!id) throw new Error("Property ID is required");
@@ -46,7 +44,11 @@ export default function PropertyDetails() {
     },
   });
 
-  const { data: eventsData, isLoading: eventsLoading, refetch: refetchEvents } = useQuery({
+  const { 
+    data: eventsData, 
+    isLoading: eventsLoading, 
+    refetch: refetchEvents 
+  } = useQuery({
     queryKey: ["property-events", id],
     queryFn: async () => {
       if (!id) return [];
@@ -82,26 +84,25 @@ export default function PropertyDetails() {
   const formattedEvents = useMemo(() => {
     if (!eventsData) return [];
     
-    return eventsData
-      .map((event: CalendarEvent) => ({
-        id: event._id,
-        title: event.summary,
-        start: event.start_date,
-        end: event.end_date,
-        extendedProps: {
-          platform: event.platform,
-          event_type: event.event_type,
-          status: event.status,
-          description: event.description,
-          property_id: id,
-          created_at: event.created_at,
-          updated_at: event.updated_at,
-          ical_uid: event.ical_uid
-        }
-      }));
+    return eventsData.map((event) => ({
+      id: event._id,
+      title: event.summary,
+      start: event.start_date,
+      end: event.end_date,
+      extendedProps: {
+        platform: event.platform,
+        event_type: event.event_type,
+        status: event.status,
+        description: event.description,
+        property_id: id,
+        created_at: event.created_at,
+        updated_at: event.updated_at,
+        ical_uid: event.ical_uid
+      }
+    }));
   }, [eventsData, id]);
 
-  const handleTabChange = (value: string) => {
+  const handleTabChange = (value) => {
     setActiveTab(value);
     setSearchParams({ tab: value });
   };
@@ -121,7 +122,7 @@ export default function PropertyDetails() {
     }
   };
 
-  const handleExport = (format: string) => {
+  const handleExport = (format) => {
     toast(`Exporting calendar as ${format}...`);
   };
 
@@ -133,125 +134,40 @@ export default function PropertyDetails() {
     handleTabChange("conflicts");
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading property details...</p>
-        </div>
-      </div>
-    );
+  if (propertyLoading) {
+    return <PropertyDetailsLoading />;
   }
 
-  if (error || !data) {
-    return (
-      <Alert variant="destructive" className="my-8">
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>
-          Failed to load property details. Please try again later.
-        </AlertDescription>
-        <Button variant="outline" onClick={() => refetch()} className="mt-4">
-          Retry
-        </Button>
-      </Alert>
-    );
+  if (propertyError || !property) {
+    return <PropertyDetailsError onRetry={refetchProperty} />;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{data.name}</h1>
-          <p className="text-muted-foreground">
-            {data.address.city}, {data.address.country}
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => navigate(`/properties/${id}/edit`)}>
-            <Edit className="mr-2 h-4 w-4" /> Edit Property
-          </Button>
-          <Button variant="outline" onClick={handleSync}>
-            <RefreshCw className="mr-2 h-4 w-4" /> Sync Now
-          </Button>
-          <Button variant="destructive" onClick={handleDelete}>
-            <Trash className="mr-2 h-4 w-4" /> Delete
-          </Button>
-        </div>
-      </div>
+      <PropertyDetailsHeader 
+        property={property} 
+        onSync={handleSync} 
+        onDelete={handleDelete} 
+      />
       
       <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-6">
-        <TabsList className="mb-4">
-          <TabsTrigger value="overview">
-            <Info className="mr-2 h-4 w-4" /> Overview
-          </TabsTrigger>
-          <TabsTrigger value="calendar">
-            <Calendar className="mr-2 h-4 w-4" /> Calendar {hasConflicts && (
-              <span className="ml-1 rounded-full bg-destructive w-4 h-4 text-xs flex items-center justify-center text-white">
-                !
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="ical">
-            <Link className="mr-2 h-4 w-4" /> iCal Connections
-          </TabsTrigger>
-          <TabsTrigger value="sync">
-            <Cloud className="mr-2 h-4 w-4" /> Sync
-          </TabsTrigger>
-          <TabsTrigger value="conflicts">
-            <AlertTriangle className="mr-2 h-4 w-4" /> Conflicts {hasConflicts && (
-              <span className="ml-1 rounded-full bg-destructive w-4 h-4 text-xs flex items-center justify-center text-white">
-                !
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="settings">
-            <Settings className="mr-2 h-4 w-4" /> Settings
-          </TabsTrigger>
-        </TabsList>
+        <PropertyDetailsTabs 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange} 
+          hasConflicts={hasConflicts} 
+        />
         
-        <TabsContent value="overview" className="space-y-4">
-          <PropertyOverview property={data} />
-        </TabsContent>
-        
-        <TabsContent value="calendar" className="space-y-4">
-          <PropertyCalendar
-            events={formattedEvents}
-            eventsLoading={eventsLoading}
-            propertyId={id || ""}
-            onExport={handleExport}
-            hasConflicts={hasConflicts}
-            onViewConflicts={handleViewConflicts}
-            refetchEvents={refetchEvents}
-          />
-        </TabsContent>
-        
-        <TabsContent value="ical" className="space-y-4">
-          <PropertyICalFeed propertyId={id || ""} platform={Platform.MANUAL} />
-          {id && <ICalConnectionsManager propertyId={id} />}
-        </TabsContent>
-        
-        <TabsContent value="sync" className="space-y-4">
-          {id && <PropertySync propertyId={id} />}
-        </TabsContent>
-        
-        <TabsContent value="conflicts" className="space-y-4">
-          <div className="border rounded-md">
-            <div className="p-4 border-b">
-              <h2 className="text-xl font-semibold">Calendar Conflicts</h2>
-              <p className="text-muted-foreground">Review and resolve calendar conflicts for this property</p>
-            </div>
-            {id && <PropertyConflictsList propertyId={id} />}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="settings" className="space-y-4">
-          <div className="p-4 border rounded-md">
-            <h2 className="text-xl font-semibold mb-2">Property Settings</h2>
-            <p className="text-muted-foreground">Settings functionality will be implemented soon.</p>
-          </div>
-        </TabsContent>
+        <PropertyDetailsContent 
+          property={property}
+          activeTab={activeTab}
+          propertyId={id || ""}
+          formattedEvents={formattedEvents}
+          eventsLoading={eventsLoading}
+          hasConflicts={hasConflicts}
+          onExport={handleExport}
+          onViewConflicts={handleViewConflicts}
+          refetchEvents={refetchEvents}
+        />
       </Tabs>
 
       <SyncDialog
@@ -264,7 +180,7 @@ export default function PropertyDetails() {
   );
 }
 
-function getMockPropertyData(id: string): Property {
+function getMockPropertyData(id) {
   return {
     _id: id,
     name: "Oceanfront Villa",
