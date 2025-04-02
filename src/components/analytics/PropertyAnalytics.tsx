@@ -12,8 +12,9 @@ import {
 } from "@/components/ui/card";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { syncService, notificationService } from "@/services/api-service";
+import { syncService } from "@/services/api-service";
 import { eventService } from "@/services/api-event-service";
+import { notificationService } from "@/services/notification-service";
 import { NotificationsList } from "@/components/ui/notifications-list";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ import {
   Pie,
   Cell
 } from "recharts";
-import { CalendarEvent, EventsResponse } from "@/types/api-responses";
+import { CalendarEvent, ApiResponse } from "@/types/api-responses";
 
 export function PropertyAnalytics() {
   const { id: propertyId } = useParams<{ id: string }>();
@@ -94,10 +95,10 @@ export function PropertyAnalytics() {
   const {
     data: eventsData,
     isLoading: isLoadingEvents
-  } = useQuery<EventsResponse>({
+  } = useQuery({
     queryKey: ["property-events", propertyId],
     queryFn: async () => {
-      if (!propertyId) return null;
+      if (!propertyId) return { data: [], meta: { total: 0, property_id: propertyId, platforms: {} } };
       const response = await eventService.getEvents(propertyId);
       return response;
     },
@@ -120,9 +121,15 @@ export function PropertyAnalytics() {
 
   // Prepare data for events distribution chart
   const eventsDistributionData = React.useMemo(() => {
-    if (!eventsData?.data?.meta?.platforms) return [];
+    if (!eventsData?.data?.length) return [];
     
-    const platforms = eventsData.data.meta.platforms || {};
+    // Group events by platform
+    const platforms: Record<string, number> = {};
+    eventsData.data.forEach(event => {
+      const platform = event.platform || 'unknown';
+      platforms[platform] = (platforms[platform] || 0) + 1;
+    });
+    
     return Object.entries(platforms).map(([platform, count]) => ({
       name: platform,
       value: count,
@@ -182,7 +189,7 @@ export function PropertyAnalytics() {
             {/* Total Events */}
             <StatsCard
               title="Total Events"
-              value={eventsData?.data?.meta?.total || 0}
+              value={eventsData?.data?.length || 0}
               icon="calendar-check"
               isLoading={isLoadingEvents}
             />
@@ -190,7 +197,7 @@ export function PropertyAnalytics() {
             {/* Platform Connections */}
             <StatsCard
               title="Connected Platforms"
-              value={eventsData?.data?.meta ? Object.keys(eventsData.data.meta.platforms || {}).length : 0}
+              value={eventsDistributionData.length || 0}
               icon="home"
               isLoading={isLoadingEvents}
             />
@@ -466,14 +473,14 @@ export function PropertyAnalytics() {
                 <div className="h-[400px] w-full">
                   <Skeleton className="h-full w-full" />
                 </div>
-              ) : eventsData?.data?.events && eventsData.data.events.length > 0 ? (
+              ) : eventsData?.data && eventsData.data.length > 0 ? (
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                     <div className="col-span-2 sm:col-span-4">
                       <h3 className="text-lg font-medium">Event Status</h3>
                       <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
                         {Object.entries(
-                          eventsData.data.events.reduce((acc: Record<string, number>, event) => {
+                          eventsData.data.reduce((acc: Record<string, number>, event) => {
                             acc[event.status] = (acc[event.status] || 0) + 1;
                             return acc;
                           }, {})
@@ -494,7 +501,7 @@ export function PropertyAnalytics() {
                       <h3 className="text-lg font-medium">Event Types</h3>
                       <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
                         {Object.entries(
-                          eventsData.data.events.reduce((acc: Record<string, number>, event) => {
+                          eventsData.data.reduce((acc: Record<string, number>, event) => {
                             acc[event.event_type] = (acc[event.event_type] || 0) + 1;
                             return acc;
                           }, {})

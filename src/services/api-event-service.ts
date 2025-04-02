@@ -1,3 +1,4 @@
+
 import api from "@/lib/api";
 import { ApiResponse, CalendarEvent, Conflict } from "@/types/api-responses";
 
@@ -21,7 +22,12 @@ export const eventService = {
         success: false, 
         data: [], 
         message: "Failed to fetch events",
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        meta: {
+          total: 0,
+          property_id: propertyId,
+          platforms: {}
+        }
       };
     }
   },
@@ -97,7 +103,8 @@ export const eventService = {
         success: false, 
         data: [], 
         message: "Failed to fetch conflicts",
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        meta: {}
       };
     }
   },
