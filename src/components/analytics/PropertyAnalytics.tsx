@@ -153,20 +153,20 @@ export function PropertyAnalytics() {
     refetchSyncStatus();
   };
 
-  const getEventStatusCounts = React.useMemo(() => {
-    if (!eventsData?.data?.length) return {};
+  const eventStatusCounts = React.useMemo(() => {
+    if (!eventsData?.data?.length) return {} as Record<string, number>;
     
-    return eventsData.data.reduce((acc, event) => {
+    return eventsData.data.reduce((acc: Record<string, number>, event) => {
       const status = event.status || "unknown";
       acc[status] = (acc[status] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
   }, [eventsData]);
 
-  const getEventTypeCounts = React.useMemo(() => {
-    if (!eventsData?.data?.length) return {};
+  const eventTypeCounts = React.useMemo(() => {
+    if (!eventsData?.data?.length) return {} as Record<string, number>;
     
-    return eventsData.data.reduce((acc, event) => {
+    return eventsData.data.reduce((acc: Record<string, number>, event) => {
       const eventType = event.event_type || "unknown";
       acc[eventType] = (acc[eventType] || 0) + 1;
       return acc;
@@ -480,7 +480,7 @@ export function PropertyAnalytics() {
                     <div className="col-span-2 sm:col-span-4">
                       <h3 className="text-lg font-medium">Event Status</h3>
                       <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                        {Object.entries(getEventStatusCounts).map(([status, count]) => (
+                        {Object.entries(eventStatusCounts).map(([status, count]) => (
                           <div key={status} className="rounded-lg border p-3">
                             <div className="text-xs font-medium text-muted-foreground">
                               {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -496,7 +496,7 @@ export function PropertyAnalytics() {
                     <div className="col-span-2 sm:col-span-4">
                       <h3 className="text-lg font-medium">Event Types</h3>
                       <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                        {Object.entries(getEventTypeCounts).map(([type, count]) => (
+                        {Object.entries(eventTypeCounts).map(([type, count]) => (
                           <div key={type} className="rounded-lg border p-3">
                             <div className="text-xs font-medium text-muted-foreground">
                               {type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
