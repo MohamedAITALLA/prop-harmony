@@ -7,7 +7,8 @@ export function usePropertyDetails(id: string | undefined) {
     data: property, 
     isLoading: propertyLoading, 
     error: propertyError, 
-    refetch: refetchProperty 
+    refetch: refetchProperty,
+    isError
   } = useQuery({
     queryKey: ["property", id],
     queryFn: async () => {
@@ -32,12 +33,15 @@ export function usePropertyDetails(id: string | undefined) {
         throw error;
       }
     },
+    retry: 2, // Retry failed requests up to 2 times
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   });
 
   return {
     property,
     propertyLoading,
     propertyError,
-    refetchProperty
+    refetchProperty,
+    isError
   };
 }

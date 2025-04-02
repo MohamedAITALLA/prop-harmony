@@ -7,7 +7,9 @@ export function usePropertyEvents(id: string | undefined) {
   const { 
     data: eventsData, 
     isLoading: eventsLoading, 
-    refetch: refetchEvents 
+    refetch: refetchEvents,
+    error: eventsError,
+    isError: isEventsError
   } = useQuery({
     queryKey: ["property-events", id],
     queryFn: async () => {
@@ -20,6 +22,8 @@ export function usePropertyEvents(id: string | undefined) {
         return [];
       }
     },
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   const formattedEvents = useMemo(() => {
@@ -47,6 +51,8 @@ export function usePropertyEvents(id: string | undefined) {
     eventsData,
     formattedEvents,
     eventsLoading,
-    refetchEvents
+    refetchEvents,
+    eventsError,
+    isEventsError
   };
 }

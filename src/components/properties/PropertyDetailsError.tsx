@@ -2,7 +2,8 @@
 import React from "react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, Home, RefreshCw } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface PropertyDetailsErrorProps {
   onRetry: () => void;
@@ -19,16 +20,28 @@ export function PropertyDetailsError({ onRetry, error }: PropertyDetailsErrorPro
         {error && (
           <div className="bg-red-50 p-3 rounded-md border border-red-200 mt-2">
             <p className="text-sm text-red-700 font-medium">Error details:</p>
-            <p className="text-xs text-red-600">{error.message}</p>
+            <p className="text-xs text-red-600">{error.message || "Unknown error"}</p>
+            {error.stack && (
+              <pre className="text-xs text-red-500 mt-2 overflow-auto max-h-32 p-2 bg-red-50">
+                {error.stack}
+              </pre>
+            )}
           </div>
         )}
-        <Button 
-          variant="outline" 
-          onClick={onRetry} 
-          className="mt-4 gap-2 self-start"
-        >
-          <RefreshCw className="h-4 w-4" /> Try Again
-        </Button>
+        <div className="flex gap-2 mt-4">
+          <Button 
+            variant="outline" 
+            onClick={onRetry} 
+            className="gap-2 self-start"
+          >
+            <RefreshCw className="h-4 w-4" /> Try Again
+          </Button>
+          <Link to="/properties">
+            <Button variant="secondary" className="gap-2">
+              <Home className="h-4 w-4" /> Back to Properties
+            </Button>
+          </Link>
+        </div>
       </AlertDescription>
     </Alert>
   );
