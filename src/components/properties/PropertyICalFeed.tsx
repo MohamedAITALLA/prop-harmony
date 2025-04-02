@@ -10,10 +10,10 @@ import { Platform } from "@/types/enums";
 
 interface PropertyICalFeedProps {
   propertyId: string;
-  platform: Platform;
+  platform?: Platform;
 }
 
-export function PropertyICalFeed({ propertyId, platform }: PropertyICalFeedProps) {
+export function PropertyICalFeed({ propertyId, platform = Platform.MANUAL }: PropertyICalFeedProps) {
   const [copied, setCopied] = useState(false);
   
   // Fetch iCal feed URL from API

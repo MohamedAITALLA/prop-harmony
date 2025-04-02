@@ -6,20 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ConflictSeverity, ConflictType, Platform } from "@/types/enums";
-
-// Simple interface for the conflict type if not exported in enums.ts
-interface Conflict {
-  _id: string;
-  property_id: string;
-  booking_ids: string[];
-  conflict_type: ConflictType;
-  severity: ConflictSeverity;
-  platforms: Platform[];
-  description: string;
-  status: 'open' | 'resolved' | 'ignored';
-  created_at: string;
-  updated_at: string;
-}
+import { Conflict } from "@/types/api-responses";
 
 interface ConflictResolutionDialogProps {
   conflict: Conflict;

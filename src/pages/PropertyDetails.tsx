@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -464,7 +463,7 @@ export default function PropertyDetails() {
         </TabsContent>
         
         <TabsContent value="ical" className="space-y-4">
-          <PropertyICalFeed propertyId={id || ""} />
+          <PropertyICalFeed propertyId={id || ""} platform={Platform.MANUAL} />
         </TabsContent>
         
         <TabsContent value="conflicts" className="space-y-4">

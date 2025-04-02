@@ -9,19 +9,13 @@ import { Calendar as CalendarIcon, X } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
 interface DateRangeSelectProps {
-  dateRange: {
-    from: Date | undefined;
-    to: Date | undefined;
-  };
-  onDateRangeChange: (range: { from: Date | undefined; to: Date | undefined }) => void;
+  dateRange: DateRange | undefined;
+  onDateRangeChange: (range: DateRange | undefined) => void;
 }
 
 export function DateRangeSelect({ dateRange, onDateRangeChange }: DateRangeSelectProps) {
   const clearDateRange = () => {
-    onDateRangeChange({
-      from: undefined,
-      to: undefined
-    });
+    onDateRangeChange(undefined);
   };
 
   return (
@@ -32,11 +26,11 @@ export function DateRangeSelect({ dateRange, onDateRangeChange }: DateRangeSelec
             variant="outline"
             className={cn(
               "w-full justify-start text-left font-normal",
-              !dateRange.from && "text-muted-foreground"
+              !dateRange?.from && "text-muted-foreground"
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {dateRange.from ? (
+            {dateRange?.from ? (
               dateRange.to ? (
                 <>
                   {format(dateRange.from, "LLL dd, y")} -{" "}
@@ -53,20 +47,15 @@ export function DateRangeSelect({ dateRange, onDateRangeChange }: DateRangeSelec
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="range"
-            selected={{
-              from: dateRange.from,
-              to: dateRange.to,
-            }}
-            onSelect={(range: DateRange | undefined) => 
-              onDateRangeChange(range || { from: undefined, to: undefined })
-            }
+            selected={dateRange}
+            onSelect={onDateRangeChange}
             initialFocus
             className="pointer-events-auto"
           />
         </PopoverContent>
       </Popover>
       
-      {dateRange.from && (
+      {dateRange?.from && (
         <Button
           variant="ghost"
           size="icon"
