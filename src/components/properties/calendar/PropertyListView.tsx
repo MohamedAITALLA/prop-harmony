@@ -83,21 +83,8 @@ export const PropertyListView: React.FC<PropertyListViewProps> = ({
           <EmptyEventsList searchQuery={searchQuery} />
         ) : (
           <>
-            {/* Scrollable events area with fixed height */}
-            <ScrollArea className="h-[400px] rounded-md border">
-              <div className="space-y-4 p-4">
-                {currentEvents.map((event) => (
-                  <EventCard 
-                    key={event.id} 
-                    event={event} 
-                    onClick={() => handleEventClick(event)}
-                  />
-                ))}
-              </div>
-            </ScrollArea>
-            
-            {/* Enhanced pagination controls */}
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t">
+            {/* Pagination controls moved above the scrollable area */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Show</span>
                 <Select
@@ -123,6 +110,19 @@ export const PropertyListView: React.FC<PropertyListViewProps> = ({
                 onPageChange={handlePageChange}
               />
             </div>
+            
+            {/* Scrollable events area with fixed height */}
+            <ScrollArea className="h-[400px] rounded-md border">
+              <div className="space-y-4 p-4">
+                {currentEvents.map((event) => (
+                  <EventCard 
+                    key={event.id} 
+                    event={event} 
+                    onClick={() => handleEventClick(event)}
+                  />
+                ))}
+              </div>
+            </ScrollArea>
           </>
         )}
       </CardContent>
