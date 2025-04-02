@@ -2,9 +2,9 @@
 import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import { toast } from "sonner";
 import { CalendarEvent } from "@/types/api-responses";
-import { Platform, EventType } from "@/types/enums";
 import { eventService } from "@/services/api-service";
-import { PropertyEventDialog } from '@/components/properties/PropertyEventDialog';
+import { useEventDialog } from '@/hooks/properties/useEventDialog';
+import { AddEventDialog } from '@/components/properties/calendar/AddEventDialog';
 import { ViewEventDialog } from '@/components/properties/calendar/ViewEventDialog';
 import { ConflictDialogs } from '@/components/properties/calendar/ConflictDialogs';
 
@@ -23,21 +23,20 @@ export const EventDialogManager = forwardRef<EventDialogManagerRef, EventDialogM
     const [isAddEventOpen, setIsAddEventOpen] = useState(false);
     const [isViewEventOpen, setIsViewEventOpen] = useState(false);
     const [viewedEvent, setViewedEvent] = useState<CalendarEvent | null>(null);
-    const [hasSubmitConflict, setHasSubmitConflict] = useState(false);
-    const [conflictDetails, setConflictDetails] = useState<any>(null);
-    const [isConflictDialogOpen, setIsConflictDialogOpen] = useState(false);
-    const [isConflictResolverOpen, setIsConflictResolverOpen] = useState(false);
-
-    const [newEvent, setNewEvent] = useState({
-      property_id: propertyId,
-      platform: Platform.MANUAL,
-      summary: "",
-      start_date: "",
-      end_date: "",
-      event_type: EventType.BOOKING,
-      status: "confirmed",
-      description: ""
-    });
+    
+    const {
+      newEvent,
+      setNewEvent,
+      isConflictDialogOpen,
+      setIsConflictDialogOpen,
+      isConflictResolverOpen,
+      setIsConflictResolverOpen,
+      resetEventForm,
+      handleInputChange,
+      handleSubmitEvent,
+      conflictDetails,
+      conflictingEvents
+    } = useEventDialog(propertyId, refetchEvents);
 
     useImperativeHandle(ref, () => ({
       openAddEventDialog: (startDate?: string, endDate?: string) => {
@@ -56,64 +55,6 @@ export const EventDialogManager = forwardRef<EventDialogManagerRef, EventDialogM
       }
     }));
 
-    const resetEventForm = () => {
-      setNewEvent({
-        property_id: propertyId,
-        platform: Platform.MANUAL,
-        summary: "",
-        start_date: "",
-        end_date: "",
-        event_type: EventType.BOOKING,
-        status: "confirmed",
-        description: ""
-      });
-    };
-
-    const handleInputChange = (field: string, value: string) => {
-      setNewEvent(prev => ({ ...prev, [field]: value }));
-    };
-
-    const handleSubmitEvent = async (e: React.FormEvent) => {
-      e.preventDefault();
-      
-      if (!newEvent.summary) {
-        toast.error("Please enter a title for the event");
-        return;
-      }
-      
-      if (!newEvent.start_date || !newEvent.end_date) {
-        toast.error("Please set both start and end dates");
-        return;
-      }
-      
-      try {
-        const response = await eventService.createEvent(propertyId, {
-          platform: newEvent.platform,
-          summary: newEvent.summary,
-          start_date: newEvent.start_date,
-          end_date: newEvent.end_date,
-          event_type: newEvent.event_type,
-          status: newEvent.status,
-          description: newEvent.description
-        });
-        
-        if (response.meta?.conflicts_detected && response.meta.conflicts_detected > 0) {
-          setHasSubmitConflict(true);
-          setConflictDetails(response.meta);
-          setIsConflictDialogOpen(true);
-        } else {
-          toast.success("Event created successfully");
-          setIsAddEventOpen(false);
-          refetchEvents();
-          
-          resetEventForm();
-        }
-      } catch (error) {
-        console.error("Error creating event:", error);
-        toast.error("Failed to create event");
-      }
-    };
-
     const handleDeleteEvent = async () => {
       if (!viewedEvent) return;
       
@@ -128,6 +69,15 @@ export const EventDialogManager = forwardRef<EventDialogManagerRef, EventDialogM
       }
     };
 
+    const handleSubmit = async (e: React.FormEvent) => {
+      const result = await handleSubmitEvent(e);
+      if (result?.success) {
+        setIsAddEventOpen(false);
+        refetchEvents();
+        resetEventForm();
+      }
+    };
+
     const handleResolveConflicts = () => {
       setIsConflictResolverOpen(true);
       setIsConflictDialogOpen(false);
@@ -138,28 +88,14 @@ export const EventDialogManager = forwardRef<EventDialogManagerRef, EventDialogM
       refetchEvents();
     };
 
-    // Calculate conflicting events
-    const conflictingEvents = hasSubmitConflict && conflictDetails?.conflict_events
-      ? conflictDetails.conflict_events.map((event: any) => ({
-          id: event.id,
-          platform: event.platform || 'Unknown',
-          summary: event.summary,
-          startDate: event.start_date,
-          endDate: event.end_date
-        }))
-      : [];
-
     return (
       <>
-        <PropertyEventDialog
+        <AddEventDialog
           isOpen={isAddEventOpen}
           onOpenChange={setIsAddEventOpen}
           formData={newEvent}
           onInputChange={handleInputChange}
-          onSubmit={handleSubmitEvent}
-          title="Add New Event"
-          description="Create a new event for this property"
-          submitLabel="Create Event"
+          onSubmit={handleSubmit}
         />
         
         {viewedEvent && (
