@@ -13,13 +13,11 @@ import {
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { syncService, notificationService, eventService } from "@/services/api-service";
-import { 
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent
-} from "@/components/ui/chart";
+import { NotificationsList } from "@/components/ui/notifications-list";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { SyncDialog } from "@/components/ui/sync-dialog";
+import { Badge } from "@/components/ui/badge";
 import { 
   BarChart, 
   Bar, 
@@ -35,18 +33,7 @@ import {
   Pie,
   Cell
 } from "recharts";
-import { Badge } from "@/components/ui/badge";
-import { NotificationsList } from "@/components/ui/notifications-list";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { SyncDialog } from "@/components/ui/sync-dialog";
-import { 
-  Calendar, 
-  BarChart3, 
-  Bell, 
-  RefreshCw,
-  AlertTriangle
-} from "lucide-react";
+import { EventsResponse } from "@/types/api-responses";
 
 export function PropertyAnalytics() {
   const { id: propertyId } = useParams<{ id: string }>();
@@ -106,7 +93,7 @@ export function PropertyAnalytics() {
   const {
     data: eventsData,
     isLoading: isLoadingEvents
-  } = useQuery({
+  } = useQuery<EventsResponse["data"]>({
     queryKey: ["property-events", propertyId],
     queryFn: async () => {
       if (!propertyId) return null;
@@ -132,7 +119,7 @@ export function PropertyAnalytics() {
 
   // Prepare data for events distribution chart
   const eventsDistributionData = React.useMemo(() => {
-    if (!eventsData?.meta) return [];
+    if (!eventsData || !eventsData.meta || !eventsData.meta.platforms) return [];
     
     const platforms = eventsData.meta.platforms || {};
     return Object.entries(platforms).map(([platform, count]) => ({
@@ -202,7 +189,7 @@ export function PropertyAnalytics() {
             {/* Platform Connections */}
             <StatsCard
               title="Connected Platforms"
-              value={Object.keys(eventsData?.meta?.platforms || {}).length}
+              value={eventsData && eventsData.meta ? Object.keys(eventsData.meta.platforms || {}).length : 0}
               icon="home"
               isLoading={isLoadingEvents}
             />
@@ -478,14 +465,14 @@ export function PropertyAnalytics() {
                 <div className="h-[400px] w-full">
                   <Skeleton className="h-full w-full" />
                 </div>
-              ) : eventsData?.data?.length > 0 ? (
+              ) : eventsData && eventsData.length > 0 ? (
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                     <div className="col-span-2 sm:col-span-4">
                       <h3 className="text-lg font-medium">Event Status</h3>
                       <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
                         {Object.entries(
-                          eventsData.data.reduce((acc: Record<string, number>, event) => {
+                          eventsData.reduce((acc: Record<string, number>, event) => {
                             acc[event.status] = (acc[event.status] || 0) + 1;
                             return acc;
                           }, {})
@@ -506,7 +493,7 @@ export function PropertyAnalytics() {
                       <h3 className="text-lg font-medium">Event Types</h3>
                       <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
                         {Object.entries(
-                          eventsData.data.reduce((acc: Record<string, number>, event) => {
+                          eventsData.reduce((acc: Record<string, number>, event) => {
                             acc[event.event_type] = (acc[event.event_type] || 0) + 1;
                             return acc;
                           }, {})
@@ -625,7 +612,7 @@ export function PropertyAnalytics() {
                           if (active && payload && payload.length) {
                             return (
                               <div className="bg-background border border-border p-2 rounded shadow-md">
-                                <p className="font-medium">{payload[0].name}</p>
+                                <p className="font-medium">{String(payload[0].name)}</p>
                                 <p>Count: {payload[0].value}</p>
                               </div>
                             );
@@ -653,5 +640,28 @@ export function PropertyAnalytics() {
         onSyncComplete={handleSyncComplete}
       />
     </div>
+  );
+}
+
+// Add missing Lucide icon component
+function RefreshCw(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+      <path d="M21 3v5h-5" />
+      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+      <path d="M3 21v-5h5" />
+    </svg>
   );
 }

@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Notification, NotificationSettings } from "@/types/api-responses";
 import { toast } from "sonner";
@@ -146,15 +147,15 @@ export function useNotifications(filters?: NotificationFilters) {
     staleTime: 1000 * 60, // 1 minute
   });
 
-  const { data: settings = defaultSettings() } = useQuery({
+  const { data: settingsResponse } = useQuery({
     queryKey: ["notification-settings"],
     queryFn: async () => {
       try {
         const response = await notificationService.getSettings();
-        return response.data.settings;
+        return response.data;
       } catch (error) {
         console.error("Error fetching notification settings:", error);
-        return defaultSettings();
+        return { settings: defaultSettings(), user_id: "", last_updated: "" };
       }
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -241,7 +242,7 @@ export function useNotifications(filters?: NotificationFilters) {
     markAsRead: (id: string) => markAsReadMutation.mutate(id),
     markAllAsRead: (ids?: string[]) => markAllAsReadMutation.mutate(ids),
     deleteNotification: (id: string) => deleteNotificationMutation.mutate(id),
-    settings: data?.settings || defaultSettings(),
+    settings: settingsResponse?.settings || defaultSettings(),
     updateSettings: (newSettings: NotificationSettings) => updateSettingsMutation.mutate(newSettings),
   };
 }

@@ -1,6 +1,10 @@
 
 import api from "@/lib/api";
-import { ApiResponse, NotificationsResponse, NotificationSettings } from "@/types/api-responses";
+import { 
+  NotificationsResponse, 
+  ApiResponse, 
+  NotificationSettings 
+} from "@/types/api-responses";
 
 export const notificationService = {
   getNotifications: async (

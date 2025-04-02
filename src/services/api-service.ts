@@ -1,4 +1,3 @@
-
 import api from "@/lib/api";
 import { 
   AuthResponse, 
@@ -14,7 +13,6 @@ import {
   ICalConnectionsResponse,
   EventsResponse,
   ConflictsResponse,
-  NotificationsResponse,
   ApiResponse,
   UsersResponse,
   UserProfilesResponse,
@@ -25,7 +23,6 @@ import {
   User,
   ICalConnection,
   CalendarEvent,
-  NotificationSettings,
   UserProfile
 } from "@/types/api-responses";
 import { notificationService } from "./notification-service";
@@ -379,53 +376,6 @@ export const conflictService = {
   
   deleteConflict: async (propertyId: string, conflictId: string): Promise<ApiResponse<{}>> => {
     const response = await api.delete<ApiResponse<{}>>(`/properties/${propertyId}/conflicts/${conflictId}`);
-    return response.data;
-  }
-};
-
-// Notification Services
-export const notificationService = {
-  getNotifications: async (
-    params?: { 
-      page?: number; 
-      limit?: number; 
-      property_id?: string;
-      type?: string; 
-      severity?: string;
-      read?: boolean;
-      search?: string;
-    }
-  ): Promise<NotificationsResponse> => {
-    const response = await api.get<NotificationsResponse>("/notifications", { params });
-    return response.data;
-  },
-  
-  markAsRead: async (notificationId: string): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await api.put<ApiResponse<{ success: boolean }>>(`/notifications/${notificationId}/read`);
-    return response.data;
-  },
-  
-  markAllAsRead: async (ids?: string[]): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await api.put<ApiResponse<{ success: boolean }>>("/notifications/read", ids ? { ids } : undefined);
-    return response.data;
-  },
-  
-  deleteNotification: async (
-    notificationId: string, 
-    preserveHistory?: boolean
-  ): Promise<ApiResponse<{ success: boolean }>> => {
-    const params = preserveHistory !== undefined ? { preserve_history: preserveHistory } : undefined;
-    const response = await api.delete<ApiResponse<{ success: boolean }>>(`/notifications/${notificationId}`, { params });
-    return response.data;
-  },
-  
-  getSettings: async (): Promise<ApiResponse<NotificationSettings>> => {
-    const response = await api.get<ApiResponse<NotificationSettings>>("/notifications/settings");
-    return response.data;
-  },
-  
-  updateSettings: async (settings: NotificationSettings): Promise<ApiResponse<{ success: boolean }>> => {
-    const response = await api.put<ApiResponse<{ success: boolean }>>("/notifications/settings", settings);
     return response.data;
   }
 };
