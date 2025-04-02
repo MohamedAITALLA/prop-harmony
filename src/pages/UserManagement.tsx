@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   Table, 
@@ -24,6 +25,14 @@ import { toast } from "sonner";
 import { User } from "@/types/api-responses";
 import { ensureMongoIds } from '@/lib/mongo-helpers';
 import { convertToMongoIdFormat } from '@/lib/id-conversion';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function UserManagement() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -137,7 +146,9 @@ export default function UserManagement() {
   };
   
   const handlePageChange = (page: number) => {
-    if (page > 0 && page <= (data?.data.total_pages || 1)) {
+    // Make sure we have valid data and the page is within range
+    const totalPages = data?.data?.total_pages || 1;
+    if (page > 0 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
@@ -185,7 +196,56 @@ export default function UserManagement() {
     }),
   ];
   
+  // Use mock users if no data is available
   const users = data?.data?.users || mockUsers;
+  const totalPages = data?.data?.total_pages || 1;
+  
+  // Create array of page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      // Show all pages if total pages is less than or equal to maxPagesToShow
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Always include first page
+      pages.push(1);
+      
+      // Calculate start and end of current window
+      let startPage = Math.max(2, currentPage - Math.floor(maxPagesToShow / 2) + 1);
+      let endPage = Math.min(totalPages - 1, startPage + maxPagesToShow - 3);
+      
+      // Adjust window if we're near the end
+      if (endPage - startPage < maxPagesToShow - 3) {
+        startPage = Math.max(2, totalPages - maxPagesToShow + 2);
+      }
+      
+      // Add ellipsis after first page if needed
+      if (startPage > 2) {
+        pages.push(-1); // -1 represents ellipsis
+      }
+      
+      // Add pages in the current window
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+      
+      // Add ellipsis before last page if needed
+      if (endPage < totalPages - 1) {
+        pages.push(-2); // -2 represents ellipsis
+      }
+      
+      // Always include last page if there's more than one page
+      if (totalPages > 1) {
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
+  };
   
   return (
     <div className="container py-10">
@@ -234,7 +294,7 @@ export default function UserManagement() {
                   {users.length === 0 ? (
                     "No users found matching your criteria."
                   ) : (
-                    `A list of users - Page ${currentPage} of ${data?.data.total_pages || 1}`
+                    `A list of users - Page ${currentPage} of ${totalPages}`
                   )}
                 </TableCaption>
                 <TableHeader>
@@ -282,26 +342,42 @@ export default function UserManagement() {
             </div>
           )}
           
-          {data && data.data.total_pages > 1 && (
-            <div className="flex justify-center mt-8">
-              <Button 
-                variant="outline" 
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-              <div className="flex items-center mx-4">
-                Page {currentPage} of {data.data.total_pages}
-              </div>
-              <Button 
-                variant="outline" 
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === data.data.total_pages}
-              >
-                Next
-              </Button>
-            </div>
+          {totalPages > 1 && (
+            <Pagination className="mt-4">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    aria-disabled={currentPage === 1}
+                  />
+                </PaginationItem>
+                
+                {getPageNumbers().map((pageNum, index) => (
+                  <PaginationItem key={`page-${pageNum}-${index}`}>
+                    {pageNum === -1 || pageNum === -2 ? (
+                      <div className="flex h-9 w-9 items-center justify-center">...</div>
+                    ) : (
+                      <PaginationLink
+                        onClick={() => handlePageChange(pageNum)}
+                        isActive={pageNum === currentPage}
+                        className="cursor-pointer"
+                      >
+                        {pageNum}
+                      </PaginationLink>
+                    )}
+                  </PaginationItem>
+                ))}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    aria-disabled={currentPage === totalPages}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           )}
         </TabsContent>
       </Tabs>
