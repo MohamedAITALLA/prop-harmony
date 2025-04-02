@@ -156,6 +156,8 @@ export interface Property {
   description?: string;
   bookings_count?: number;
   sync_status?: string;
+  rating?: number | string;
+  price_per_night?: number;
 }
 
 export interface PropertiesResponse {

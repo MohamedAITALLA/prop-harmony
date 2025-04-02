@@ -1,4 +1,3 @@
-
 import React from "react";
 import { 
   Home, Users, Bed, Bath, LogIn, LogOut, Calendar, Ban, AlertCircle, 
@@ -68,7 +67,7 @@ export function PropertyOverview({ property }: PropertyOverviewProps) {
             <div className="grid grid-cols-1 gap-4">
               {renderIconItem("Type", property.property_type, <Home className="h-4 w-4" />)}
               {renderIconItem("Accommodates", `${property.accommodates} guests`, <Users className="h-4 w-4" />)}
-              {property.price_per_night && renderIconItem("Price", `$${property.price_per_night}/night`, <DollarSign className="h-4 w-4" />)}
+              {property.price_per_night !== undefined && renderIconItem("Price", `$${property.price_per_night}/night`, <DollarSign className="h-4 w-4" />)}
             </div>
           </CardContent>
         </Card>
