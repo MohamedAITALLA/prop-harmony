@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,6 +22,7 @@ import Conflicts from "./pages/Conflicts";
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/layout/MainLayout";
 import ComponentsDemo from "./pages/ComponentsDemo";
+import UserProfileDetails from "./pages/UserProfileDetails";
 import { ensureMongoId } from "./lib/mongo-helpers";
 
 const queryClient = new QueryClient();
@@ -111,6 +111,11 @@ const App = () => (
             <Route path="/admin/users" element={<AdminRoute><UserManagement /></AdminRoute>} />
             <Route path="/admin/user-profiles" element={<AdminRoute><UserProfiles /></AdminRoute>} />
             <Route path="/admin" element={<AdminRoute><PlaceholderPage title="Admin" /></AdminRoute>} />
+            <Route path="/user-profiles/:userId" element={
+              <MainLayout>
+                <UserProfileDetails />
+              </MainLayout>
+            } />
             
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
