@@ -68,14 +68,36 @@ export const icalConnectionService = {
 
 // Sync Service
 export const syncService = {
-  syncAll: () => {
-    return api.post("/sync");
+  syncAll: async () => {
+    try {
+      const response = await api.post("/sync");
+      return response;
+    } catch (error) {
+      console.error("Error syncing all properties:", error);
+      throw error;
+    }
   },
-  syncProperty: (propertyId: string) => {
-    return api.post(`/properties/${propertyId}/sync`);
+  syncProperty: async (propertyId: string) => {
+    try {
+      console.log(`Syncing property ID: ${propertyId}`);
+      const response = await api.post(`/properties/${propertyId}/sync`);
+      console.log("Sync property response:", response.data);
+      return response;
+    } catch (error) {
+      console.error(`Error syncing property ${propertyId}:`, error);
+      throw error;
+    }
   },
-  getPropertySyncStatus: (propertyId: string) => {
-    return api.get(`/properties/${propertyId}/sync`);
+  getPropertySyncStatus: async (propertyId: string) => {
+    try {
+      console.log(`Fetching sync status for property ID: ${propertyId}`);
+      const response = await api.get(`/properties/${propertyId}/sync`);
+      console.log("Sync status response:", response.data);
+      return response;
+    } catch (error) {
+      console.error(`Error fetching sync status for property ${propertyId}:`, error);
+      throw error;
+    }
   },
   getSyncStatus: () => {
     return api.get('/sync/status');

@@ -45,7 +45,15 @@ export function useSyncData(propertyId?: string) {
       if (!propertyId) return null;
       try {
         const response = await syncService.getPropertySyncStatus(propertyId);
-        return response.data || null;
+        console.log("Sync data response in hook:", response);
+        
+        // Check both response formats and extract the data properly
+        if (response.data?.success && response.data?.data) {
+          return response.data.data;
+        } else if (response.data) {
+          return response.data;
+        }
+        return null;
       } catch (error) {
         console.error("Error fetching sync status:", error);
         return null;

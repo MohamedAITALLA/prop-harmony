@@ -20,7 +20,7 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
   const [isSyncing, setIsSyncing] = useState(false);
 
   const { 
-    data: syncStatus, 
+    data: syncData, 
     isLoading: isLoadingSyncStatus, 
     error: syncStatusError,
     refetch: refetchSyncStatus 
@@ -28,10 +28,19 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
     queryKey: ['property-sync-status', propertyId],
     queryFn: async () => {
       const response = await syncService.getPropertySyncStatus(propertyId);
-      return response.data.syncStatus;
+      console.log('Raw sync status response:', response);
+      if (response.data?.success && response.data?.data) {
+        return response.data.data; // Return the actual sync status data
+      } else if (response.data) {
+        return response.data; // Return whatever data structure we have
+      }
+      throw new Error("Invalid sync status data format");
     },
     refetchInterval: 60000, // Refetch every minute
   });
+
+  // Extract the sync status from the API response
+  const syncStatus = syncData?.summary ? syncData : null;
 
   const handleSync = async () => {
     if (isSyncing) return;
@@ -123,14 +132,14 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
                       <p className="text-sm text-muted-foreground">Status</p>
                       <div className="mt-1">
                         <SyncStatusBadge 
-                          status={syncStatus.health_status || 'unknown'} 
-                          lastSync={syncStatus.last_synced} 
+                          status={syncStatus.summary.overall_status || 'unknown'} 
+                          lastSync={syncStatus.summary.last_sync} 
                         />
                       </div>
                     </div>
-                    {syncStatus.health_percentage !== undefined && (
+                    {syncStatus.summary.health_percentage !== undefined && (
                       <div className="text-2xl font-bold">
-                        {syncStatus.health_percentage}%
+                        {syncStatus.summary.health_percentage}%
                       </div>
                     )}
                   </div>
@@ -142,7 +151,7 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
                     <span className="text-sm text-muted-foreground">Last Synced</span>
                   </div>
                   <p className="font-medium">
-                    {formatDate(syncStatus.last_synced)}
+                    {formatDate(syncStatus.summary.last_sync)}
                   </p>
                 </div>
                 
@@ -152,18 +161,36 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
                     <span className="text-sm text-muted-foreground">Next Scheduled Sync</span>
                   </div>
                   <p className="font-medium">
-                    {syncStatus.next_sync ? formatDate(syncStatus.next_sync) : "Not scheduled"}
+                    {syncStatus.summary.next_sync ? formatDate(syncStatus.summary.next_sync) : "Not scheduled"}
                   </p>
                 </div>
               </div>
               
-              {syncStatus.active_connections > 0 && (
+              {syncStatus.connections && syncStatus.connections.length > 0 && (
                 <div className="p-4 border rounded-md">
                   <h3 className="font-medium mb-2">Connected Platforms</h3>
                   <div className="flex flex-wrap gap-2">
-                    {syncStatus.platforms && Object.keys(syncStatus.platforms).map(platform => (
-                      <div key={platform} className="flex items-center">
-                        {renderPlatformIcon(platform)}
+                    {syncStatus.connections.map(connection => (
+                      <div key={connection._id} className="flex items-center">
+                        {renderPlatformIcon(connection.platform)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {syncStatus.event_counts && syncStatus.event_counts.length > 0 && (
+                <div className="p-4 border rounded-md">
+                  <h3 className="font-medium mb-2">Event Counts</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {syncStatus.event_counts.map((count, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {renderPlatformIcon(count.platform)}
+                        </div>
+                        <span className="text-sm font-medium">
+                          {count.active_events} active / {count.total_events} total
+                        </span>
                       </div>
                     ))}
                   </div>

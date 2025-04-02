@@ -78,18 +78,36 @@ export function SyncDialog({
       let response;
       if (propertyId) {
         response = await syncService.syncProperty(propertyId);
-        toast.success(`Property synced successfully`);
+        
+        if (response?.data?.success && response?.data?.data) {
+          console.log("Sync completed successfully with data:", response.data.data);
+          setSyncResult(response.data.data);
+          toast.success(`Property synced successfully`);
+        } else if (response?.data) {
+          console.log("Sync completed with response:", response.data);
+          setSyncResult(response.data);
+          toast.success(`Property synced successfully`);
+        } else {
+          console.error("Unexpected sync response format:", response);
+          throw new Error("Invalid sync response format");
+        }
       } else {
         response = await syncService.syncAll();
-        toast.success(`All properties synced successfully`);
+        
+        if (response?.data?.success && response?.data?.data) {
+          setSyncResult(response.data.data);
+          toast.success(`All properties synced successfully`);
+        } else if (response?.data) {
+          setSyncResult(response.data);
+          toast.success(`All properties synced successfully`);
+        } else {
+          console.error("Unexpected sync all response format:", response);
+          throw new Error("Invalid sync response format");
+        }
       }
       
       setSyncComplete(true);
       setStatus("success");
-      
-      if (response.data && response.data.sync_results) {
-        setSyncResult(response.data);
-      }
       
       queryClient.invalidateQueries({
         queryKey: ["notifications"],
