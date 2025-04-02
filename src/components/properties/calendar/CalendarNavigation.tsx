@@ -32,15 +32,6 @@ export const CalendarNavigation: React.FC<CalendarNavigationProps> = ({
         
         <Button 
           size="sm" 
-          variant="secondary" 
-          onClick={() => handleCalendarNavigation('today')}
-          className="shadow-sm"
-        >
-          Today
-        </Button>
-        
-        <Button 
-          size="sm" 
           variant="outline" 
           onClick={() => handleCalendarNavigation('next')}
           className="shadow-sm"

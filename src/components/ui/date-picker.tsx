@@ -49,12 +49,13 @@ export function DatePicker({
           {date ? format(date, "PPP") : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
         <Calendar
           mode="single"
           selected={date}
           onSelect={onSelect}
           initialFocus
+          className="pointer-events-auto"
           disabled={(date) => {
             if (fromDate && date < fromDate) {
               return true;

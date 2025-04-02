@@ -1,6 +1,6 @@
 
-import React, { useState, useRef } from 'react';
-import { format } from "date-fns";
+import React, { useState, useRef, useEffect } from 'react';
+import { format, addMonths } from "date-fns";
 import { toast } from "sonner";
 import { CalendarEvent } from "@/types/api-responses";
 import { Platform, EventType } from "@/types/enums";
@@ -12,10 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { 
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
-} from "@/components/ui/select";
-import { CalendarView } from "@/components/calendar/CalendarView";
-import {
   AlertCircle, CalendarDays, List, BedDouble, Home, Filter, Plus, Download, X, Search,
   Check, CheckCircle2, Calendar, Clock
 } from "lucide-react";
@@ -29,6 +25,7 @@ import { Separator } from "@/components/ui/separator";
 import calendarService from "@/services/calendar-service";
 import { PropertyListView } from "@/components/properties/calendar/PropertyListView";
 import { PropertyValidityCheck } from "@/components/properties/calendar/PropertyValidityCheck";
+import { CalendarContainer } from '@/components/properties/calendar/CalendarContainer';
 
 interface PropertyCalendarProps {
   events: any[];
@@ -53,12 +50,23 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
   refetchEvents
 }) => {
   const eventDialogRef = useRef<EventDialogManagerRef>(null);
-  const [view, setView] = useState("month");
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<EventType[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [activeTab, setActiveTab] = useState("calendar");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [view, setView] = useState("month");
+  
+  const handleCalendarNavigation = (action: 'prev' | 'next' | 'today') => {
+    if (action === 'prev') {
+      setCurrentDate(prev => addMonths(prev, -1));
+    } else if (action === 'next') {
+      setCurrentDate(prev => addMonths(prev, 1));
+    } else if (action === 'today') {
+      setCurrentDate(new Date());
+    }
+  };
   
   const filteredEvents = events.filter(event => {
     // Filter by search query
@@ -66,7 +74,34 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
       return false;
     }
     
-    // Return true if no filters are applied
+    // Filter by platforms
+    if (selectedPlatforms.length > 0 && 
+        !selectedPlatforms.includes(event.extendedProps?.platform as Platform)) {
+      return false;
+    }
+    
+    // Filter by event types
+    if (selectedEventTypes.length > 0 && 
+        !selectedEventTypes.includes(event.extendedProps?.event_type as EventType)) {
+      return false;
+    }
+    
+    // Filter by date range
+    if (dateRange?.from) {
+      const eventStart = new Date(event.start);
+      if (eventStart < dateRange.from) {
+        return false;
+      }
+    }
+    
+    if (dateRange?.to) {
+      const eventEnd = new Date(event.end);
+      if (eventEnd > dateRange.to) {
+        return false;
+      }
+    }
+    
+    // If all filters pass, include the event
     return true;
   });
   
@@ -148,9 +183,8 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
   };
   
   const applyFilters = () => {
-    // In a real implementation, we would use the filters when fetching events
-    refetchEvents();
-    toast.info("Filters applied");
+    // Apply filters directly to the UI (already done via the filteredEvents)
+    toast.success("Filters applied");
   };
 
   return (
@@ -204,6 +238,7 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
                   onClick={applyFilters}
                   className="w-full"
                 >
+                  <Check className="mr-2 h-4 w-4" />
                   Apply Filters
                 </Button>
                 
@@ -284,29 +319,47 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
               <h2 className="text-2xl font-semibold">Property Calendar</h2>
               <p className="text-muted-foreground">Manage bookings and availability</p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button onClick={() => eventDialogRef.current?.openAddEventDialog()}>
-                <Plus className="mr-2 h-4 w-4" /> Add Event
-              </Button>
-              
-              <Select value={view} onValueChange={setView}>
-                <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="Select view" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="month">Month</SelectItem>
-                  <SelectItem value="week">Week</SelectItem>
-                  <SelectItem value="day">Day</SelectItem>
-                  <SelectItem value="list">List</SelectItem>
-                </SelectContent>
-              </Select>
-              
+            <div className="flex items-center gap-2">
               {hasConflicts && (
-                <Button variant="destructive" onClick={onViewConflicts} className="sm:ml-2">
+                <Button variant="destructive" onClick={onViewConflicts}>
                   <AlertCircle className="mr-2 h-4 w-4" /> View Conflicts
                 </Button>
               )}
             </div>
+          </div>
+          
+          <div className="mb-4 flex flex-wrap gap-2">
+            <Button 
+              variant={view === "month" ? "secondary" : "outline"}
+              onClick={() => setView("month")}
+            >
+              Month
+            </Button>
+            <Button 
+              variant={view === "week" ? "secondary" : "outline"}
+              onClick={() => setView("week")}
+            >
+              Week
+            </Button>
+            <Button 
+              variant={view === "day" ? "secondary" : "outline"}
+              onClick={() => setView("day")}
+            >
+              Day
+            </Button>
+            <Button 
+              variant={view === "list" ? "secondary" : "outline"}
+              onClick={() => setView("list")}
+            >
+              List
+            </Button>
+            <Button 
+              variant="default"
+              onClick={() => handleCalendarNavigation('today')}
+              size="sm"
+            >
+              Today
+            </Button>
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -325,13 +378,20 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
             <TabsContent value="calendar" className="mt-4">
               <Card>
                 <CardContent className="p-0 sm:p-6">
-                  <CalendarView 
+                  <CalendarContainer
                     events={formattedEvents}
-                    isLoading={eventsLoading}
-                    view={view}
-                    onViewChange={setView}
-                    onEventClick={handleEventClick}
+                    eventsLoading={eventsLoading}
+                    propertyId={propertyId}
                     onDateClick={handleDateClick}
+                    onEventClick={handleEventClick}
+                    onDateChange={setCurrentDate}
+                    hasConflicts={hasConflicts}
+                    onViewConflicts={onViewConflicts}
+                    onAddEvent={() => eventDialogRef.current?.openAddEventDialog()}
+                    onExport={handleExport}
+                    copyICalFeedUrl={copyICalFeedUrl}
+                    currentDate={currentDate}
+                    handleCalendarNavigation={handleCalendarNavigation}
                   />
                 </CardContent>
               </Card>
