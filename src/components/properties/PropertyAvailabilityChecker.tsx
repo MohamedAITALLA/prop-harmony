@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,20 @@ import {
 
 interface PropertyAvailabilityCheckerProps {
   propertyId: string;
+}
+
+interface AvailabilityResponse {
+  success: boolean;
+  data: {
+    property_id: string;
+    start_date: string;
+    end_date: string;
+    is_available: boolean;
+    conflicting_events: Array<any>;
+    duration_days: number;
+  };
+  message: string;
+  timestamp: string;
 }
 
 export function PropertyAvailabilityChecker({ propertyId }: PropertyAvailabilityCheckerProps) {
@@ -49,12 +64,13 @@ export function PropertyAvailabilityChecker({ propertyId }: PropertyAvailability
     setIsChecking(false);
   };
   
-  const isAvailable = availabilityData?.data?.available;
-  const conflictingEvents = availabilityData?.data?.conflicts || [];
-  
-  const durationDays = dateRange?.from && dateRange?.to 
-    ? differenceInDays(dateRange.to, dateRange.from) + 1 
-    : 0;
+  // Extract availability information using the correct data structure
+  const isAvailable = availabilityData?.data?.is_available;
+  const conflictingEvents = availabilityData?.data?.conflicting_events || [];
+  const durationDays = availabilityData?.data?.duration_days || 
+    (dateRange?.from && dateRange?.to 
+      ? differenceInDays(dateRange.to, dateRange.from) + 1 
+      : 0);
   
   return (
     <Card className="w-full">

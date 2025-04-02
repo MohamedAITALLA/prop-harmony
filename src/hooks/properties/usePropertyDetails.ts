@@ -23,10 +23,18 @@ export function usePropertyDetails(id: string | undefined) {
       try {
         console.log("Fetching property details for ID:", id);
         
-        // Try to validate or convert the ID format if needed
-        const validId = id; // We'll use the ID as-is and let the API handle validation
+        // Use ID as-is and let the API handle validation
+        const validId = id;
         
-        return await propertyService.getProperty(validId);
+        const response = await propertyService.getProperty(validId);
+        
+        // Enhanced validation to ensure we have property data
+        if (!response?.data?.property && !response?.property && !(response?.success && response?.data)) {
+          console.error("Invalid property data structure in response:", response);
+          throw new Error("Property data not found in the API response");
+        }
+        
+        return response;
       } catch (error) {
         console.error("Error fetching property:", error);
         
