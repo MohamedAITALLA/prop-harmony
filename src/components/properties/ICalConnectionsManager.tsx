@@ -118,10 +118,11 @@ export function ICalConnectionsManager({ propertyId }: ICalConnectionsManagerPro
       return icalConnectionService.testConnection(propertyId, connectionId);
     },
     onSuccess: (data) => {
-      if (data.data.valid) {
+      // Fix: Check data.data (the actual response data) for the connection test result
+      if (data.data.success) {
         toast.success("Connection test passed successfully");
       } else {
-        toast.error(`Connection test failed: ${data.data.error}`);
+        toast.error(`Connection test failed: ${data.data.results?.error || 'Unknown error'}`);
       }
       setIsTestDialogOpen(false);
     },
@@ -256,8 +257,9 @@ export function ICalConnectionsManager({ propertyId }: ICalConnectionsManagerPro
                   <TableCell className="max-w-xs truncate">{connection.ical_url}</TableCell>
                   <TableCell>
                     <Badge
-                      variant={connection.status === ConnectionStatus.ACTIVE ? "success" : 
+                      variant={connection.status === ConnectionStatus.ACTIVE ? "outline" : 
                         connection.status === ConnectionStatus.ERROR ? "destructive" : "default"}
+                      className={connection.status === ConnectionStatus.ACTIVE ? "border-green-500 text-green-500" : ""}
                     >
                       {connection.status}
                     </Badge>
@@ -433,7 +435,7 @@ export function ICalConnectionsManager({ propertyId }: ICalConnectionsManagerPro
                     <SelectContent>
                       <SelectItem value={ConnectionStatus.ACTIVE}>Active</SelectItem>
                       <SelectItem value={ConnectionStatus.INACTIVE}>Inactive</SelectItem>
-                      <SelectItem value={ConnectionStatus.PENDING}>Pending</SelectItem>
+                      <SelectItem value={ConnectionStatus.ERROR}>Error</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
