@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Edit, RefreshCw, Trash, Info, Calendar, Link, AlertTriangle, Settings, Filter } from "lucide-react";
 import { PropertyOverview } from "@/components/properties/PropertyOverview";
 import { PropertyICalFeed } from "@/components/properties/PropertyICalFeed";
+import { ICalConnectionsManager } from "@/components/properties/ICalConnectionsManager";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Platform, EventType } from "@/types/enums";
@@ -464,6 +466,8 @@ export default function PropertyDetails() {
         
         <TabsContent value="ical" className="space-y-4">
           <PropertyICalFeed propertyId={id || ""} platform={Platform.MANUAL} />
+          {/* Add the ICalConnectionsManager component here */}
+          {id && <ICalConnectionsManager propertyId={id} />}
         </TabsContent>
         
         <TabsContent value="conflicts" className="space-y-4">
