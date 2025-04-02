@@ -154,12 +154,16 @@ export const PropertyCalendar: React.FC<PropertyCalendarProps> = ({
           <CalendarPageHeader 
             hasConflicts={hasConflicts}
             onViewConflicts={onViewConflicts}
+            onExport={handleExport}
+            propertyId={propertyId}
+            onAddEvent={() => eventDialogRef.current?.openAddEventDialog()}
           />
           
           <ViewControls 
             view={view}
             setView={setView}
             handleCalendarNavigation={handleCalendarNavigation}
+            currentDate={currentDate}
           />
           
           <CalendarTabsContent
