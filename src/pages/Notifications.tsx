@@ -1,15 +1,13 @@
-
 import React, { useState } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { NotificationsList } from '@/components/ui/notifications-list';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { NotificationSettings } from '@/components/settings/NotificationSettings';
+import { NotificationSettings } from '@/components/notifications/NotificationSettings';
 import { Search, BellOff, Bell, BellRing, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { NotificationSeverity, NotificationType } from '@/types/enums';
-import { AdvancedPagination } from '@/components/ui/advanced-pagination';
 
 export default function Notifications() {
   const [activeTab, setActiveTab] = useState('all');
