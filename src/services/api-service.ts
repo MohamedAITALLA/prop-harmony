@@ -1,3 +1,4 @@
+
 import api from "@/lib/api";
 import { ApiResponse } from "@/types/api-responses";
 
@@ -126,7 +127,7 @@ export const adminUserService = {
 
 // Admin Profile Service
 export const adminProfileService = {
-  getUserProfiles: (params?: { page?: number; limit?: number }) => {
+  getUserProfiles: (params?: { page?: number; limit?: number; sort?: string; status?: string }) => {
     return api.get("/admin/user-profiles", { params });
   },
   getUserProfile: (userId: string) => {

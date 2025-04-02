@@ -63,7 +63,7 @@ export function useAdminProfiles() {
 
   // User management related functions
   const getUsersMutation = useMutation({
-    mutationFn: async ({ page = 1, limit = 10 }) => {
+    mutationFn: async ({ page = 1, limit = 10 }: { page: number; limit: number }) => {
       return adminUserService.getUsers({ page, limit });
     }
   });
@@ -87,7 +87,7 @@ export function useAdminProfiles() {
     resetProfile: (userId: string) => resetProfileMutation.mutate(userId),
     isUpdating: updateProfileMutation.isPending,
     isResetting: resetProfileMutation.isPending,
-    getUsers: (page = 1, limit = 10) => getUsersMutation.mutate({ page, limit }),
+    getUsers: ({ page = 1, limit = 10 }: { page: number; limit: number }) => getUsersMutation.mutate({ page, limit }),
     getUserDetails,
   };
 }
