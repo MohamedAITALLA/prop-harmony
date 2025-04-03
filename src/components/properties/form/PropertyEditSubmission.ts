@@ -54,7 +54,9 @@ export const handleEditFormSubmission = async (
       images: values.images.map(img => img.value),
     };
 
+    console.log("Submitting update with data:", propertyData);
     const response = await propertyService.updateProperty(propertyId, propertyData);
+    console.log("Update response:", response);
     
     // Get updated fields from response if available
     const updatedFields = response?.data?.meta?.updated_fields || [];

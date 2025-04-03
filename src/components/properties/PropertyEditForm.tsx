@@ -63,6 +63,8 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
       petsAllowed: false,
       smokingAllowed: false,
     },
+    // Make sure the form doesn't reset values to defaults when typing
+    mode: "onChange",
   });
 
   const { selectedCountry, availableCities, handleCountryChange } = useLocationSelector(form);
@@ -70,23 +72,25 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
   // Populate form with property data once loaded
   useEffect(() => {
     if (property) {
+      console.log("Setting form data with property:", property);
+      
       // Map API data to form values
       const formData: Partial<FormValues> = {
-        name: property.name,
-        property_type: property.property_type,
+        name: property.name || "",
+        property_type: property.property_type || undefined,
         description: property.description || "",
         street: property.address?.street || "",
         city: property.address?.city || "",
         country: property.address?.country || "",
-        stateProvince: property.address?.stateProvince || "",
-        postalCode: property.address?.postalCode || "",
-        latitude: property.address?.coordinates?.latitude,
-        longitude: property.address?.coordinates?.longitude,
-        bedrooms: property.bedrooms,
-        bathrooms: property.bathrooms,
-        beds: property.beds || property.bedrooms,
-        accommodates: property.accommodates,
-        images: property.images?.map(url => ({ value: url })) || [{ value: "" }],
+        stateProvince: property.address?.state_province || "",
+        postalCode: property.address?.postal_code || "",
+        latitude: property.address?.coordinates?.latitude || undefined,
+        longitude: property.address?.coordinates?.longitude || undefined,
+        bedrooms: property.bedrooms || 0,
+        bathrooms: property.bathrooms || 0,
+        beds: property.beds || property.bedrooms || 0,
+        accommodates: property.accommodates || 1,
+        images: (property.images?.length > 0 ? property.images?.map(url => ({ value: url })) : [{ value: "" }]),
         checkInTime: property.policies?.check_in_time || "15:00",
         checkOutTime: property.policies?.check_out_time || "11:00",
         minimumStay: property.policies?.minimum_stay || 1,

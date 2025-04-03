@@ -25,10 +25,13 @@ export function CheckInOutField({ form, name, label }: CheckInOutFieldProps) {
           <FormControl>
             <Input 
               type="time" 
-              {...field} 
               className="font-mono"
-              // Provide a default value in case it's undefined
               value={field.value || (name === "checkInTime" ? "15:00" : "11:00")}
+              onChange={(e) => field.onChange(e.target.value)}
+              onBlur={field.onBlur}
+              name={field.name}
+              ref={field.ref}
+              disabled={field.disabled}
             />
           </FormControl>
           <FormMessage />
