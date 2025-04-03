@@ -1,28 +1,29 @@
 
-import * as z from "zod";
+import { z } from "zod";
 import { PropertyType } from "@/types/enums";
 
-// Define the form schema with Zod
+// Create a schema for the form
 export const formSchema = z.object({
-  name: z.string().min(3, { message: "Property name must be at least 3 characters" }),
+  name: z.string().min(3, "Property name must be at least 3 characters"),
   property_type: z.nativeEnum(PropertyType),
-  description: z.string().min(10, { message: "Description must be at least 10 characters" }),
-  street: z.string().min(1, { message: "Street address is required" }),
-  city: z.string().min(1, { message: "City is required" }),
-  country: z.string().min(1, { message: "Country is required" }),
-  stateProvince: z.string().optional(), // Optional state/province field
-  postalCode: z.string().min(1, { message: "Postal code is required" }),
-  latitude: z.coerce.number().optional(),
-  longitude: z.coerce.number().optional(),
-  bedrooms: z.coerce.number().int().min(0),
-  bathrooms: z.coerce.number().min(0),
-  beds: z.coerce.number().int().min(0),
-  accommodates: z.coerce.number().int().min(1),
-  images: z.array(
-    z.object({
-      value: z.string()
-    })
-  ).min(1, { message: "At least one image is required" }),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  
+  // Address fields
+  street: z.string().min(3, "Street address is required"),
+  city: z.string().min(2, "City is required"),
+  stateProvince: z.string().optional(),
+  postalCode: z.string().optional(),
+  country: z.string().min(2, "Country is required"),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  
+  // Capacity fields
+  bedrooms: z.coerce.number().min(0, "Bedrooms must be a positive number"),
+  bathrooms: z.coerce.number().min(0, "Bathrooms must be a positive number"),
+  beds: z.coerce.number().min(0, "Beds must be a positive number"),
+  accommodates: z.coerce.number().min(1, "Must accommodate at least 1 person"),
+  
+  // Amenities
   wifi: z.boolean().default(false),
   kitchen: z.boolean().default(false),
   ac: z.boolean().default(false),
@@ -33,11 +34,21 @@ export const formSchema = z.object({
   parking: z.boolean().default(false),
   elevator: z.boolean().default(false),
   pool: z.boolean().default(false),
-  checkInTime: z.string().default("15:00"),
-  checkOutTime: z.string().default("11:00"),
-  minimumStay: z.coerce.number().int().min(1).default(1),
+  
+  // Policies
+  checkInTime: z.string().optional(),
+  checkOutTime: z.string().optional(),
+  minimumStay: z.coerce.number().min(1, "Minimum stay must be at least 1 night"),
   petsAllowed: z.boolean().default(false),
   smokingAllowed: z.boolean().default(false),
+  
+  // Images
+  images: z.array(
+    z.object({
+      value: z.string()
+    })
+  ).min(1, "At least one image is required"),
 });
 
+// Export the type for form values
 export type FormValues = z.infer<typeof formSchema>;

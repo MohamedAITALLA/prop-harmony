@@ -14,9 +14,18 @@ export function PropertyCard({ property }: PropertyCardProps) {
   const navigate = useNavigate();
   
   const defaultImage = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
-  const imageUrl = property.images && property.images.length > 0 
-    ? property.images[0] 
-    : defaultImage;
+  
+  // Get the first image from the property or use default
+  let imageUrl = defaultImage;
+  if (property.images && property.images.length > 0) {
+    const firstImage = property.images[0];
+    const imagePath = typeof firstImage === 'string' ? firstImage : (firstImage as any)?.value || '';
+    
+    // If imagePath starts with '/' it's a server path, otherwise it's an external URL
+    imageUrl = imagePath.startsWith('/') 
+      ? `${import.meta.env.VITE_API_URL || ''}${imagePath}`
+      : imagePath || defaultImage;
+  }
 
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md">

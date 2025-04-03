@@ -119,6 +119,21 @@ export const propertyService = {
       throw error;
     }
   },
+  uploadImage: async (formData: FormData) => {
+    try {
+      console.log("Uploading image...");
+      const response = await api.post("/properties/upload-image", formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      console.log("Upload image response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      throw error;
+    }
+  }
 };
 
 export default propertyService;

@@ -1,14 +1,18 @@
 
 import { FormValues } from "./PropertyFormSchema";
-import { propertyService } from "@/services/api-service";
+import { propertyService } from "@/services/property-service";
 import { toast } from "sonner";
 import { NavigateFunction } from "react-router-dom";
 
 export const handleFormSubmission = async (
   values: FormValues, 
-  navigate: NavigateFunction
+  navigate: NavigateFunction,
+  uploadedImages: { [key: number]: File | null } = {}
 ) => {
   try {
+    // First, upload all images and collect their paths
+    const imagePaths = await uploadPropertyImages(uploadedImages);
+    
     // Prepare data for API
     const propertyData = {
       name: values.name,
@@ -48,7 +52,10 @@ export const handleFormSubmission = async (
         pets_allowed: Boolean(values.petsAllowed),
         smoking_allowed: Boolean(values.smokingAllowed),
       },
-      images: values.images.map(img => img.value).filter(url => url.trim() !== ""),
+      // If we have uploaded images, use their paths; otherwise, use the values from the form
+      images: imagePaths.length > 0 ? 
+        imagePaths : 
+        values.images.map(img => img.value).filter(url => url.trim() !== ""),
     };
 
     const response = await propertyService.createProperty(propertyData);
@@ -64,5 +71,41 @@ export const handleFormSubmission = async (
   } catch (error) {
     console.error("Error creating property:", error);
     toast.error("Failed to create property. Please try again.");
+  }
+};
+
+// Helper function to upload images to the server
+const uploadPropertyImages = async (uploadedImages: { [key: number]: File | null }): Promise<string[]> => {
+  try {
+    const imagePaths: string[] = [];
+    const imageIndices = Object.keys(uploadedImages);
+    
+    if (imageIndices.length === 0) {
+      return imagePaths;
+    }
+    
+    // Create a FormData object to upload files
+    for (const indexStr of imageIndices) {
+      const index = parseInt(indexStr);
+      const file = uploadedImages[index];
+      
+      if (file) {
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        // Upload the image using the uploadImage service
+        const response = await propertyService.uploadImage(formData);
+        
+        if (response?.data?.imagePath) {
+          imagePaths.push(response.data.imagePath);
+        }
+      }
+    }
+    
+    return imagePaths;
+  } catch (error) {
+    console.error("Error uploading images:", error);
+    toast.error("Failed to upload one or more images.");
+    return [];
   }
 };

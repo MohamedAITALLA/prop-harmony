@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +31,7 @@ interface PropertyEditFormProps {
 
 export function PropertyEditForm({ propertyId, initialData, refetchProperty }: PropertyEditFormProps) {
   const navigate = useNavigate();
+  const [uploadedImages, setUploadedImages] = useState<{ [key: number]: File | null }>({});
   
   console.log("Initial property data:", initialData);
   
@@ -85,7 +86,7 @@ export function PropertyEditForm({ propertyId, initialData, refetchProperty }: P
 
   const onSubmit = async (values: FormValues) => {
     try {
-      await handleEditFormSubmission(values, propertyId, navigate, refetchProperty);
+      await handleEditFormSubmission(values, propertyId, navigate, refetchProperty, uploadedImages);
     } catch (error) {
       console.error("Error updating property:", error);
       toast.error("Failed to update property. Please try again.");

@@ -28,12 +28,21 @@ export function ImagesCard({ property }: ImagesCardProps) {
             // Handle both string and object with value property
             const imageUrl = typeof image === 'string' ? image : (image as any)?.value || '';
             
+            // If imageUrl starts with '/' it's a server path, otherwise it's an external URL
+            const finalImageUrl = imageUrl.startsWith('/') 
+              ? `${import.meta.env.VITE_API_URL || ''}${imageUrl}`
+              : imageUrl;
+            
             return (
               <div key={index} className="aspect-video overflow-hidden rounded-md shadow-sm border border-border/50">
                 <img 
-                  src={imageUrl} 
+                  src={finalImageUrl} 
                   alt={`${property.name} - ${index + 1}`} 
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
+                  onError={(e) => {
+                    // Fallback image if the image fails to load
+                    (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
+                  }}
                 />
               </div>
             );
