@@ -27,6 +27,8 @@ export function CheckInOutField({ form, name, label }: CheckInOutFieldProps) {
               type="time" 
               {...field} 
               className="font-mono"
+              // Provide a default value in case it's undefined
+              value={field.value || (name === "checkInTime" ? "15:00" : "11:00")}
             />
           </FormControl>
           <FormMessage />

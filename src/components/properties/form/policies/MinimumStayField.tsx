@@ -22,9 +22,10 @@ export function MinimumStayField({ form }: MinimumStayFieldProps) {
               type="number" 
               min="1" 
               {...field}
+              // Fix: Ensure the value is always defined as a number
+              value={field.value || 1}
               // Ensure the value is treated as a number
-              onChange={(e) => field.onChange(Number(e.target.value))}
-              value={field.value}
+              onChange={(e) => field.onChange(Number(e.target.value) || 1)}
             />
           </FormControl>
           <FormMessage />
