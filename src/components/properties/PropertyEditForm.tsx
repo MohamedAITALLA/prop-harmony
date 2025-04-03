@@ -25,9 +25,10 @@ import { toast } from "sonner";
 interface PropertyEditFormProps {
   propertyId: string;
   initialData: Property;
+  refetchProperty: () => Promise<void>;
 }
 
-export function PropertyEditForm({ propertyId, initialData }: PropertyEditFormProps) {
+export function PropertyEditForm({ propertyId, initialData, refetchProperty }: PropertyEditFormProps) {
   const navigate = useNavigate();
   
   // Transform API data to form data structure
@@ -74,7 +75,7 @@ export function PropertyEditForm({ propertyId, initialData }: PropertyEditFormPr
 
   const onSubmit = async (values: FormValues) => {
     try {
-      await handleEditFormSubmission(values, propertyId, navigate);
+      await handleEditFormSubmission(values, propertyId, navigate, refetchProperty);
     } catch (error) {
       console.error("Error updating property:", error);
       toast.error("Failed to update property. Please try again.");

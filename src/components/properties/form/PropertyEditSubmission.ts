@@ -7,17 +7,17 @@ import { NavigateFunction } from "react-router-dom";
 export const handleEditFormSubmission = async (
   values: FormValues, 
   propertyId: string,
-  navigate: NavigateFunction
+  navigate: NavigateFunction,
+  refetchProperty?: () => void
 ) => {
   try {
     toast.info("Updating property...");
     console.log("Submitting property update with values:", values);
     
-    // Prepare data for API
+    // Prepare data for API - include only the specified fields
     const propertyData = {
       name: values.name,
       property_type: values.property_type,
-      description: values.description,
       address: {
         street: values.street,
         city: values.city,
@@ -63,15 +63,24 @@ export const handleEditFormSubmission = async (
     const updatedFields = response?.data?.meta?.updated_fields || [];
     const changesCount = response?.data?.meta?.changes_count || 0;
     
-    // Show different toast messages based on the number of changes
-    if (changesCount === 0) {
-      toast.info("No changes were made to the property.");
+    if (response?.success) {
+      // Refetch the property data if the update was successful
+      if (refetchProperty) {
+        await refetchProperty();
+      }
+      
+      // Show different toast messages based on the number of changes
+      if (changesCount === 0) {
+        toast.info("No changes were made to the property.");
+      } else {
+        toast.success(`Property updated successfully! (${changesCount} change${changesCount > 1 ? 's' : ''})`);
+      }
+      
+      // Navigate to the property details page
+      navigate(`/properties/${propertyId}`);
     } else {
-      toast.success(`Property updated successfully! (${changesCount} change${changesCount > 1 ? 's' : ''})`);
+      toast.error("Failed to update property. Please check your inputs and try again.");
     }
-    
-    // Navigate to the property details page
-    navigate(`/properties/${propertyId}`);
   } catch (error) {
     console.error("Error updating property:", error);
     toast.error("Failed to update property. Please try again.");

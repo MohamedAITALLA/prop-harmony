@@ -16,6 +16,15 @@ export default function EditProperty() {
     toast.info("Retrying to load property details...");
   };
 
+  const handleRefetchProperty = async () => {
+    try {
+      await refetchProperty();
+      console.log("Property data refetched successfully");
+    } catch (error) {
+      console.error("Error refetching property data:", error);
+    }
+  };
+
   if (propertyLoading) {
     return <PropertyDetailsLoading />;
   }
@@ -39,7 +48,11 @@ export default function EditProperty() {
         </p>
       </div>
 
-      <PropertyEditForm propertyId={id} initialData={property} />
+      <PropertyEditForm 
+        propertyId={id} 
+        initialData={property} 
+        refetchProperty={handleRefetchProperty} 
+      />
     </div>
   );
 }
