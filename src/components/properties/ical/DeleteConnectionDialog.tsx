@@ -1,18 +1,21 @@
 
 import React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { icalConnectionService } from '@/services/api-service';
+import { icalConnectionService } from '@/services/ical-connection-service';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ICalConnection } from "@/types/api-responses";
+import { Loader2, Trash2, Calendar, Link2 } from "lucide-react";
 import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter,
-  DialogDescription
-} from "@/components/ui/dialog";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface DeleteConnectionDialogProps {
   open: boolean;
@@ -36,14 +39,23 @@ export function DeleteConnectionDialog({
     mutationFn: (connectionId: string) => {
       return icalConnectionService.deleteConnection(propertyId, connectionId);
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: [`property-ical-connections-${propertyId}`] });
       onOpenChange(false);
-      toast.success("Connection deleted successfully");
+      
+      const action = response.data.meta?.action || "removed";
+      const platform = response.data.meta?.platform || connection?.platform || "Calendar";
+      
+      toast.success(`${platform} connection removed`, {
+        description: response.data.message || "Connection deleted successfully"
+      });
+      
       if (onDeleted) onDeleted();
     },
     onError: (error) => {
-      toast.error("Failed to delete connection");
+      toast.error("Failed to delete connection", {
+        description: "There was a problem removing the calendar connection."
+      });
       console.error("Error deleting connection:", error);
     }
   });
@@ -56,34 +68,58 @@ export function DeleteConnectionDialog({
   if (!connection) return null;
   
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Delete Connection</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete this connection? This action cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="py-4">
-          <div className="bg-muted p-3 rounded-md">
-            <p><strong>Platform:</strong> {connection.platform}</p>
-            <p className="truncate"><strong>URL:</strong> {connection.ical_url}</p>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent className="max-w-[450px]">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center text-destructive gap-2">
+            <Trash2 className="h-5 w-5" />
+            Delete Calendar Connection
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. This will permanently delete the
+            connection and remove all synced data.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        
+        <div className="my-4 bg-destructive/5 rounded-lg p-4 border border-destructive/20">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="bg-destructive/10 p-2 rounded-md">
+              <Calendar className="h-5 w-5 text-destructive" />
+            </div>
+            <div>
+              <h4 className="font-medium">{connection.platform}</h4>
+              <div className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
+                <Link2 className="h-3 w-3" />
+                <span className="truncate max-w-[300px]">{connection.ical_url}</span>
+              </div>
+            </div>
           </div>
         </div>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
+        
+        <AlertDialogFooter className="gap-2">
+          <AlertDialogCancel asChild>
+            <Button variant="outline">Cancel</Button>
+          </AlertDialogCancel>
           <Button 
-            type="button" 
             variant="destructive" 
             onClick={handleDeleteConnection}
             disabled={deleteMutation.isPending}
+            className="gap-2"
           >
-            {deleteMutation.isPending ? "Deleting..." : "Delete Connection"}
+            {deleteMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 className="h-4 w-4" />
+                Delete Connection
+              </>
+            )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
