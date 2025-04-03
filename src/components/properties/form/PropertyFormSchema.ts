@@ -1,4 +1,3 @@
-
 import * as z from "zod";
 import { PropertyType } from "@/types/enums";
 
@@ -10,7 +9,7 @@ export const formSchema = z.object({
   street: z.string().min(1, { message: "Street address is required" }),
   city: z.string().min(1, { message: "City is required" }),
   country: z.string().min(1, { message: "Country is required" }),
-  stateProvince: z.string().optional(), // Made state/province optional
+  stateProvince: z.string().optional(), // Change to optional string
   postalCode: z.string().min(1, { message: "Postal code is required" }),
   latitude: z.coerce.number().optional(),
   longitude: z.coerce.number().optional(),
