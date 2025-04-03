@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
@@ -31,15 +31,17 @@ interface PropertyEditFormProps {
 export function PropertyEditForm({ propertyId, initialData, refetchProperty }: PropertyEditFormProps) {
   const navigate = useNavigate();
   
-  // Transform API data to form data structure
+  console.log("Initial property data:", initialData);
+  
+  // Transform API data to form data structure, ensuring proper field mapping
   const transformedInitialData: FormValues = {
     name: initialData.name,
     property_type: initialData.property_type,
-    description: initialData.description || "",
+    description: initialData.desc || "", // Map from desc field instead of description
     street: initialData.address.street || "",
     city: initialData.address.city || "",
-    stateProvince: initialData.address.stateProvince || "",
-    postalCode: initialData.address.postalCode || "",
+    stateProvince: initialData.address.state_province || "", // Map from state_province field
+    postalCode: initialData.address.postal_code || "", // Map from postal_code field
     country: initialData.address.country || "",
     latitude: initialData.address.coordinates?.latitude || 0,
     longitude: initialData.address.coordinates?.longitude || 0,
@@ -71,7 +73,14 @@ export function PropertyEditForm({ propertyId, initialData, refetchProperty }: P
     mode: "onChange",
   });
 
-  const { selectedCountry, availableCities, handleCountryChange } = useLocationSelector(form);
+  const { selectedCountry, availableCities, handleCountryChange } = useLocationSelector(form, initialData.address.country, initialData.address.city);
+
+  useEffect(() => {
+    // Reset form with the transformed data to ensure all fields are properly initialized
+    form.reset(transformedInitialData);
+    // Log the initialized form values for debugging
+    console.log("Form initialized with values:", transformedInitialData);
+  }, [initialData, form]);
 
   const onSubmit = async (values: FormValues) => {
     try {
