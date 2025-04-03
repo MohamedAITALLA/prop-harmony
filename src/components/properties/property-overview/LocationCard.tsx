@@ -20,8 +20,8 @@ export function LocationCard({ property }: LocationCardProps) {
       <CardContent className="pt-4">
         <p className="font-medium">{property.address.city}, {property.address.country}</p>
         {property.address.street && <p className="text-muted-foreground text-sm">{property.address.street}</p>}
-        {property.address.stateProvince && <p className="text-muted-foreground text-sm">{property.address.stateProvince}</p>}
-        {property.address.postalCode && <p className="text-muted-foreground text-sm">Postal Code: {property.address.postalCode}</p>}
+        {property.address.state_province && <p className="text-muted-foreground text-sm">{property.address.state_province}</p>}
+        {property.address.postal_code && <p className="text-muted-foreground text-sm">Postal Code: {property.address.postal_code}</p>}
       </CardContent>
     </Card>
   );

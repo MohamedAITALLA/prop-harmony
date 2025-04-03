@@ -24,11 +24,11 @@ export function AddressDetailsCard({ property }: AddressDetailsCardProps) {
               <p><span className="text-muted-foreground">Street:</span> {property.address.street}</p>
             )}
             <p><span className="text-muted-foreground">City:</span> {property.address.city}</p>
-            {property.address.stateProvince && (
-              <p><span className="text-muted-foreground">State/Province:</span> {property.address.stateProvince}</p>
+            {property.address.state_province && (
+              <p><span className="text-muted-foreground">State/Province:</span> {property.address.state_province}</p>
             )}
-            {property.address.postalCode && (
-              <p><span className="text-muted-foreground">Postal Code:</span> {property.address.postalCode}</p>
+            {property.address.postal_code && (
+              <p><span className="text-muted-foreground">Postal Code:</span> {property.address.postal_code}</p>
             )}
             <p><span className="text-muted-foreground">Country:</span> {property.address.country}</p>
           </div>

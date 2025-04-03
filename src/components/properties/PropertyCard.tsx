@@ -36,7 +36,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
           <MapPin className="h-4 w-4 mr-1" />
           <span className="text-sm line-clamp-1">
             {property.address && property.address.city ? 
-              `${property.address.city}, ${property.address.stateProvince || ''}, ${property.address.country || ''}` :
+              `${property.address.city}, ${property.address.state_province || ''}, ${property.address.country || ''}` :
               'Location not specified'}
           </span>
         </div>

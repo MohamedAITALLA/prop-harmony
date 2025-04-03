@@ -37,8 +37,8 @@ export function PropertyDetailsHeader({ property, onSync, onDelete }: PropertyDe
             <span>•</span>
             <span>{property.address.city}, {property.address.country}</span>
           </div>
-          {property.description && (
-            <p className="text-muted-foreground text-sm max-w-2xl line-clamp-2">{property.description}</p>
+          {property.desc && (
+            <p className="text-muted-foreground text-sm max-w-2xl line-clamp-2">{property.desc}</p>
           )}
         </div>
         
