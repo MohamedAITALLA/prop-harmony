@@ -11,40 +11,17 @@ import { FormValues } from "./PropertyFormSchema";
 interface AddressSectionProps {
   form: UseFormReturn<FormValues>;
   selectedCountry: string;
-  setSelectedCountry: React.Dispatch<React.SetStateAction<string>>;
   availableCities: string[];
-  setAvailableCities: React.Dispatch<React.SetStateAction<string[]>>;
+  handleCountryChange: (value: string) => void;
 }
 
 export function AddressSection({ 
   form, 
-  selectedCountry, 
-  setSelectedCountry,
-  availableCities, 
-  setAvailableCities 
+  selectedCountry,
+  availableCities,
+  handleCountryChange
 }: AddressSectionProps) {
   
-  // Update cities when country changes
-  useEffect(() => {
-    if (selectedCountry) {
-      const cities = getCitiesForCountry(selectedCountry);
-      setAvailableCities(cities);
-      
-      // Clear city selection if the currently selected city is not in the new list
-      const currentCity = form.getValues("city");
-      if (currentCity && !cities.includes(currentCity)) {
-        form.setValue("city", "");
-      }
-    } else {
-      setAvailableCities([]);
-    }
-  }, [selectedCountry, form, setAvailableCities]);
-
-  const handleCountryChange = (value: string) => {
-    setSelectedCountry(value);
-    form.setValue("country", value);
-  };
-
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium flex items-center gap-2">
