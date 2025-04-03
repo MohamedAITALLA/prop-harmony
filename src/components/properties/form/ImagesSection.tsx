@@ -37,12 +37,35 @@ export function ImagesSection({ form }: ImagesSectionProps) {
         [index]: previewUrl
       }));
       
-      // Update the form value to include the file name
+      // Update the form value to include the preview URL (not just the filename)
       // This will be replaced with the actual path when submitting
       const values = [...form.getValues("images")];
-      values[index] = { value: file.name };
+      values[index] = { value: previewUrl };
       form.setValue("images", values);
     }
+  };
+
+  const handleUrlChange = (index: number, url: string) => {
+    // If there was a preview URL, revoke it
+    if (previewUrls[index]) {
+      URL.revokeObjectURL(previewUrls[index]);
+      
+      const newPreviewUrls = { ...previewUrls };
+      delete newPreviewUrls[index];
+      setPreviewUrls(newPreviewUrls);
+    }
+
+    // If there was an uploaded image, remove it
+    if (uploadedImages[index]) {
+      const newUploadedImages = { ...uploadedImages };
+      delete newUploadedImages[index];
+      setUploadedImages(newUploadedImages);
+    }
+    
+    // Update the form value
+    const values = [...form.getValues("images")];
+    values[index] = { value: url };
+    form.setValue("images", values);
   };
   
   const addImageUpload = () => {
@@ -82,17 +105,23 @@ export function ImagesSection({ form }: ImagesSectionProps) {
                 <FormItem className="flex-1">
                   <FormControl>
                     <div className="flex flex-col gap-2">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleFileChange(index, e.target.files)}
-                        className="cursor-pointer"
-                      />
-                      {!previewUrls[index] && formField.value && (
-                        <div className="text-sm text-muted-foreground">
-                          Current: {formField.value}
+                      <div className="grid grid-cols-1 gap-2">
+                        <Input
+                          type="url"
+                          placeholder="Enter image URL"
+                          value={formField.value}
+                          onChange={(e) => handleUrlChange(index, e.target.value)}
+                        />
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">Or upload an image:</span>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(index, e.target.files)}
+                            className="cursor-pointer"
+                          />
                         </div>
-                      )}
+                      </div>
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -110,12 +139,16 @@ export function ImagesSection({ form }: ImagesSectionProps) {
             </Button>
           </div>
           
-          {previewUrls[index] && (
+          {(previewUrls[index] || (fields[index].value && !uploadedImages[index])) && (
             <div className="relative w-full h-40 overflow-hidden rounded-md border border-border/50">
               <img 
-                src={previewUrls[index]} 
+                src={previewUrls[index] || fields[index].value} 
                 alt={`Preview ${index}`} 
-                className="w-full h-full object-cover" 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // If the image fails to load, show a placeholder
+                  (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
+                }}
               />
             </div>
           )}

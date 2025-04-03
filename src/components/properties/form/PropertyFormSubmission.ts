@@ -10,8 +10,16 @@ export const handleFormSubmission = async (
   uploadedImages: { [key: number]: File | null } = {}
 ) => {
   try {
-    // First, upload all images and collect their paths
+    // First, upload any images that are files and collect their paths
     const imagePaths = await uploadPropertyImages(uploadedImages);
+    
+    // Get image URLs from the form values
+    const imageUrls = values.images.map(img => img.value)
+      // Filter out blob URLs which are only for preview
+      .filter(url => !url.startsWith('blob:') && url.trim() !== "");
+    
+    // Combine uploaded image paths and image URLs
+    const finalImages = [...imagePaths, ...imageUrls];
     
     // Prepare data for API
     const propertyData = {
@@ -52,10 +60,8 @@ export const handleFormSubmission = async (
         pets_allowed: Boolean(values.petsAllowed),
         smoking_allowed: Boolean(values.smokingAllowed),
       },
-      // If we have uploaded images, use their paths; otherwise, use the values from the form
-      images: imagePaths.length > 0 ? 
-        imagePaths : 
-        values.images.map(img => img.value).filter(url => url.trim() !== ""),
+      // Use the combined list of images
+      images: finalImages.length > 0 ? finalImages : ["https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop"],
     };
 
     const response = await propertyService.createProperty(propertyData);

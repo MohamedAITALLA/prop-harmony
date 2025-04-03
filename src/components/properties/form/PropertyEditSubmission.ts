@@ -1,3 +1,4 @@
+
 import { FormValues } from "./PropertyFormSchema";
 import { propertyService } from "@/services/api-service";
 import { toast } from "sonner";
@@ -22,16 +23,18 @@ export const handleEditFormSubmission = async (
       .filter((img, index) => !uploadedImages[index] && img.value.startsWith('/'))
       .map(img => img.value);
     
-    // Combine new and existing image paths
-    const allImagePaths = [...existingImagePaths, ...newImagePaths];
-    
-    // For any values.images that don't have corresponding uploaded files and don't start with '/',
-    // these are URLs so we should keep them
+    // Get external URLs that are not blob: URLs (which are only for preview)
     const externalUrls = values.images
-      .filter((img, index) => !uploadedImages[index] && !img.value.startsWith('/') && img.value.trim() !== '')
+      .filter((img, index) => 
+        !uploadedImages[index] && 
+        !img.value.startsWith('/') && 
+        !img.value.startsWith('blob:') && 
+        img.value.trim() !== ''
+      )
       .map(img => img.value);
     
-    const finalImagePaths = [...allImagePaths, ...externalUrls];
+    // Combine all images
+    const finalImagePaths = [...existingImagePaths, ...newImagePaths, ...externalUrls];
     
     // Prepare data for API - include only the specified fields
     const propertyData = {
@@ -72,7 +75,7 @@ export const handleEditFormSubmission = async (
         pets_allowed: Boolean(values.petsAllowed),
         smoking_allowed: Boolean(values.smokingAllowed),
       },
-      images: finalImagePaths,
+      images: finalImagePaths.length > 0 ? finalImagePaths : ["https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop"],
     };
 
     console.log("Submitting update with data:", propertyData);
