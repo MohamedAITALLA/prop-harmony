@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { Form } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building, Loader2 } from "lucide-react";
+import { Building } from "lucide-react";
 import { toast } from "sonner";
 
 import { formSchema, FormValues } from "../form/PropertyFormSchema";
@@ -14,6 +14,8 @@ import { useLocationSelector } from "../form/useLocationSelector";
 import { usePropertyDetails } from "@/hooks/properties/usePropertyDetails";
 import { PropertyEditFormContent } from "./PropertyEditFormContent";
 import { PropertyEditActions } from "../form/PropertyEditActions";
+import { PropertyFormLoading } from "../form/PropertyFormLoading";
+import { PropertyFormError } from "../form/PropertyFormError";
 
 interface PropertyEditFormProps {
   propertyId: string;
@@ -21,7 +23,14 @@ interface PropertyEditFormProps {
 
 export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
   const navigate = useNavigate();
-  const { property, propertyLoading, propertyError } = usePropertyDetails(propertyId);
+  const { 
+    property, 
+    propertyLoading, 
+    propertyError, 
+    refetchProperty,
+    isError,
+    manualRetry
+  } = usePropertyDetails(propertyId);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -124,34 +133,24 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
     await handleEditFormSubmission(values, propertyId, navigate);
   };
 
+  const handleBackToProperties = () => {
+    navigate("/properties");
+  };
+
+  // Loading state
   if (propertyLoading) {
-    return (
-      <Card>
-        <CardContent className="pt-6 flex justify-center items-center min-h-[400px]">
-          <div className="flex flex-col items-center gap-2">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <p className="text-muted-foreground">Loading property details...</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <PropertyFormLoading />;
   }
 
-  if (propertyError || !property) {
+  // Error state
+  if (isError || !property) {
+    const errorMessage = propertyError instanceof Error ? propertyError.message : "Failed to load property details";
     return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center gap-2 text-center">
-            <p className="text-red-500">Failed to load property details</p>
-            <button 
-              onClick={() => navigate("/properties")}
-              className="text-blue-500 hover:underline"
-            >
-              Return to Properties
-            </button>
-          </div>
-        </CardContent>
-      </Card>
+      <PropertyFormError 
+        onRetry={manualRetry} 
+        onBack={handleBackToProperties}
+        errorMessage={errorMessage}
+      />
     );
   }
 

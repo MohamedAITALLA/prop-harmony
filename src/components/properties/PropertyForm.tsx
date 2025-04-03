@@ -19,6 +19,7 @@ import { formSchema, FormValues } from "./form/PropertyFormSchema";
 import { defaultFormValues } from "./form/PropertyFormDefaults";
 import { handleFormSubmission } from "./form/PropertyFormSubmission";
 import { useLocationSelector } from "./form/useLocationSelector";
+import { PropertyFormError } from "./form/PropertyFormError";
 
 export function PropertyForm() {
   const navigate = useNavigate();
@@ -32,6 +33,10 @@ export function PropertyForm() {
 
   const onSubmit = async (values: FormValues) => {
     await handleFormSubmission(values, navigate);
+  };
+
+  const handleBackToProperties = () => {
+    navigate("/properties");
   };
 
   return (
