@@ -25,7 +25,8 @@ export function ImagesCard({ property }: ImagesCardProps) {
       <CardContent className="pt-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {property.images.map((image, index) => {
-            const imageUrl = typeof image === 'string' ? image : image.value || '';
+            // Handle both string and object with value property
+            const imageUrl = typeof image === 'string' ? image : (image as any)?.value || '';
             
             return (
               <div key={index} className="aspect-video overflow-hidden rounded-md shadow-sm border border-border/50">
