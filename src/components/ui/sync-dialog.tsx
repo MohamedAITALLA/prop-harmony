@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -41,18 +40,18 @@ interface SyncPlatformResult {
 interface SyncResult {
   property_id: string;
   sync_results: SyncPlatformResult[];
-  summary: {
-    total_connections: number;
-    successful_syncs: number;
-    failed_syncs: number;
-    total_events_synced: number;
-    events_created: number;
-    events_updated: number;
-    events_cancelled: number;
-    conflicts_detected: number;
-    sync_completion_time: string;
+  summary?: {
+    total_connections?: number;
+    successful_syncs?: number;
+    failed_syncs?: number;
+    total_events_synced?: number;
+    events_created?: number;
+    events_updated?: number;
+    events_cancelled?: number;
+    conflicts_detected?: number;
+    sync_completion_time?: string;
   };
-  next_sync: string;
+  next_sync?: string;
 }
 
 export function SyncDialog({ 
@@ -73,21 +72,18 @@ export function SyncDialog({
   
   const queryClient = useQueryClient();
 
-  // Simulate progress when syncing is in progress
   React.useEffect(() => {
     if (!syncing) return;
     
     let progressInterval: number;
     let timeoutWarningTimeout: number;
     
-    // Start with fast progress that slows down
     progressInterval = window.setInterval(() => {
       setSyncProgress(prev => {
-        if (prev >= 90) return prev; // Cap at 90% until we get response
-        return prev + (90 - prev) * 0.1; // Gradually approach 90%
+        if (prev >= 90) return prev;
+        return prev + (90 - prev) * 0.1;
       });
       
-      // Update messages based on progress
       if (syncProgress < 30) {
         setSyncMessage("Connecting to platforms...");
       } else if (syncProgress < 60) {
@@ -99,7 +95,6 @@ export function SyncDialog({
       }
     }, 1000);
     
-    // Show timeout warning after 45 seconds
     timeoutWarningTimeout = window.setTimeout(() => {
       setTimeoutWarning(true);
     }, 45000);
@@ -126,7 +121,6 @@ export function SyncDialog({
         response = await syncService.syncProperty(propertyId);
         console.log("Sync response received:", response);
         
-        // Set progress to 100% on success
         setSyncProgress(100);
         setSyncMessage("Sync completed!");
         
@@ -145,7 +139,6 @@ export function SyncDialog({
       } else {
         response = await syncService.syncAll();
         
-        // Set progress to 100% on success
         setSyncProgress(100);
         setSyncMessage("Sync completed!");
         
@@ -164,7 +157,6 @@ export function SyncDialog({
       setSyncComplete(true);
       setStatus("success");
       
-      // Invalidate related queries
       queryClient.invalidateQueries({
         queryKey: ["notifications"],
       });
@@ -192,7 +184,6 @@ export function SyncDialog({
       let errorMessage = "Failed to sync. Please try again.";
       
       if (error instanceof Error) {
-        // Check for common network errors
         if (error.message.includes("Network Error") || 
             error.message.includes("ERR_CONNECTION") || 
             error.message.includes("timeout")) {
@@ -251,21 +242,21 @@ export function SyncDialog({
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
               <span className="text-muted-foreground">Total connections:</span>{" "}
-              <span className="font-medium">{syncResult.summary.total_connections}</span>
+              <span className="font-medium">{syncResult.summary?.total_connections || 0}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Successful syncs:</span>{" "}
-              <span className="font-medium">{syncResult.summary.successful_syncs}</span>
+              <span className="font-medium">{syncResult.summary?.successful_syncs || 0}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Failed syncs:</span>{" "}
-              <span className="font-medium">{syncResult.summary.failed_syncs}</span>
+              <span className="font-medium">{syncResult.summary?.failed_syncs || 0}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Total events synced:</span>{" "}
-              <span className="font-medium">{syncResult.summary.total_events_synced}</span>
+              <span className="font-medium">{syncResult.summary?.total_events_synced || 0}</span>
             </div>
-            {syncResult.summary.conflicts_detected > 0 && (
+            {syncResult.summary?.conflicts_detected && syncResult.summary.conflicts_detected > 0 && (
               <div className="col-span-2">
                 <span className="text-muted-foreground">Conflicts detected:</span>{" "}
                 <Badge variant="destructive" className="ml-1">
@@ -352,7 +343,6 @@ export function SyncDialog({
                 {syncMessage}
               </p>
               
-              {/* Progress bar */}
               <div className="w-full bg-muted rounded-full h-2.5 mb-1">
                 <div 
                   className="bg-primary h-2.5 rounded-full transition-all duration-300 ease-out" 

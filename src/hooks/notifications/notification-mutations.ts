@@ -1,10 +1,10 @@
 
-import { useMutation, UseQueryClient } from "@tanstack/react-query";
+import { useMutation, QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { notificationService } from "@/services/notification-service";
 import { NotificationSettings } from "@/types/api-responses";
 
-export function useNotificationMutations(queryClient: UseQueryClient) {
+export function useNotificationMutations(queryClient: QueryClient) {
   const markAsReadMutation = useMutation({
     mutationFn: async (id: string) => {
       return notificationService.markAsRead(id);
