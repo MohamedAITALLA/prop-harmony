@@ -1,4 +1,3 @@
-
 import api from "@/lib/base-api";
 import { ApiResponse } from "@/types/api-responses";
 
@@ -122,7 +121,8 @@ export const propertyService = {
   uploadImage: async (formData: FormData) => {
     try {
       console.log("Uploading image...");
-      const response = await api.post("/properties/upload-image", formData, {
+      // Update the endpoint to the correct one
+      const response = await api.post("/upload/image", formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
