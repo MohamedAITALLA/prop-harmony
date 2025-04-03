@@ -10,7 +10,7 @@ export const formSchema = z.object({
   street: z.string().min(1, { message: "Street address is required" }),
   city: z.string().min(1, { message: "City is required" }),
   country: z.string().min(1, { message: "Country is required" }),
-  stateProvince: z.string().min(1, { message: "State/Province is required" }),
+  stateProvince: z.string().optional(), // Made state/province optional
   postalCode: z.string().min(1, { message: "Postal code is required" }),
   latitude: z.coerce.number().optional(),
   longitude: z.coerce.number().optional(),
@@ -35,7 +35,7 @@ export const formSchema = z.object({
   pool: z.boolean().default(false),
   checkInTime: z.string().default("15:00"),
   checkOutTime: z.string().default("11:00"),
-  minimumStay: z.coerce.number().int().min(1).default(1),
+  minimumStay: z.coerce.number().int().min(1).default(1), // Keep in schema for now for compatibility
   petsAllowed: z.boolean().default(false),
   smokingAllowed: z.boolean().default(false),
 });

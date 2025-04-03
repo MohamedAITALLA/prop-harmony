@@ -58,25 +58,7 @@ export function PoliciesSection({ form }: PoliciesSectionProps) {
         />
       </div>
 
-      <FormField
-        control={form.control}
-        name="minimumStay"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Minimum Stay (Nights)</FormLabel>
-            <FormControl>
-              <Input 
-                type="number" 
-                min="1"
-                {...field}
-                value={field.value}
-                onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {/* Removed MinimumStayField */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
         <FormField

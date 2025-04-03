@@ -17,11 +17,12 @@ export const handleEditFormSubmission = async (
     // Prepare data for API - include only the specified fields
     const propertyData = {
       name: values.name,
+      desc: values.description, // Map description to desc
       property_type: values.property_type,
       address: {
         street: values.street,
         city: values.city,
-        state_province: values.stateProvince,
+        state_province: values.stateProvince || undefined, // Optional field
         postal_code: values.postalCode,
         country: values.country,
         coordinates: {
@@ -48,7 +49,7 @@ export const handleEditFormSubmission = async (
       policies: {
         check_in_time: values.checkInTime,
         check_out_time: values.checkOutTime,
-        minimum_stay: Number(values.minimumStay) || 1,
+        minimum_stay: Number(values.minimumStay) || 1, // Keep this in API submission
         pets_allowed: Boolean(values.petsAllowed),
         smoking_allowed: Boolean(values.smokingAllowed),
       },
