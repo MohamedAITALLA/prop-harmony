@@ -13,6 +13,8 @@ interface CheckInOutFieldProps {
 }
 
 export function CheckInOutField({ form, name, label }: CheckInOutFieldProps) {
+  const defaultValue = name === "checkInTime" ? "15:00" : "11:00";
+  
   return (
     <FormField
       control={form.control}
@@ -27,8 +29,11 @@ export function CheckInOutField({ form, name, label }: CheckInOutFieldProps) {
               type="time" 
               className="font-mono"
               {...field}
-              // Ensure the value is always defined
-              value={field.value || (name === "checkInTime" ? "15:00" : "11:00")}
+              // Ensure the value is always defined with a proper fallback
+              value={field.value || defaultValue}
+              onChange={(e) => {
+                field.onChange(e.target.value || defaultValue);
+              }}
             />
           </FormControl>
           <FormMessage />

@@ -5,17 +5,24 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import { Form } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building } from "lucide-react";
+import { Building, Save, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 import { formSchema, FormValues } from "../form/PropertyFormSchema";
-import { handleEditFormSubmission } from "../form/PropertyEditSubmission";
-import { useLocationSelector } from "../form/useLocationSelector";
 import { usePropertyDetails } from "@/hooks/properties/usePropertyDetails";
-import { PropertyEditFormContent } from "./PropertyEditFormContent";
-import { PropertyEditActions } from "../form/PropertyEditActions";
+import { propertyService } from "@/services/property-service";
+import { useLocationSelector } from "../form/useLocationSelector";
 import { PropertyFormLoading } from "../form/PropertyFormLoading";
 import { PropertyFormError } from "../form/PropertyFormError";
+import { Separator } from "@/components/ui/separator";
+
+import { BasicInfoSection } from "../form/BasicInfoSection";
+import { AddressSection } from "../form/AddressSection";
+import { CapacitySection } from "../form/CapacitySection";
+import { AmenitiesSection } from "../form/AmenitiesSection";
+import { PoliciesSection } from "../form/PoliciesSection";
+import { ImagesSection } from "../form/ImagesSection";
 
 interface PropertyEditFormProps {
   propertyId: string;
@@ -23,16 +30,17 @@ interface PropertyEditFormProps {
 
 export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const { 
     property, 
     propertyLoading, 
-    propertyError, 
-    refetchProperty,
+    propertyError,
     isError,
     manualRetry
   } = usePropertyDetails(propertyId);
   
-  // Initialize form with empty values
+  // Initialize form with default values that will be replaced once property loads
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -67,7 +75,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
       petsAllowed: false,
       smokingAllowed: false,
     },
-    mode: "onChange",
+    mode: "onTouched",
   });
 
   const { selectedCountry, availableCities, handleCountryChange } = useLocationSelector(form);
@@ -127,18 +135,92 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
     }
   }, [property, form, handleCountryChange]);
 
-  const onSubmit = async (values: FormValues) => {
-    console.log("Form submitted with values:", values);
+  const handleSubmit = async (values: FormValues) => {
     if (!propertyId) {
       toast.error("Property ID is missing");
       return;
     }
     
-    await handleEditFormSubmission(values, propertyId, navigate);
+    try {
+      setIsSubmitting(true);
+      toast.info("Updating property...");
+      console.log("Submitting property update with values:", values);
+      
+      // Prepare data for API
+      const propertyData = {
+        name: values.name,
+        property_type: values.property_type,
+        description: values.description,
+        address: {
+          street: values.street,
+          city: values.city,
+          state_province: values.stateProvince,
+          postal_code: values.postalCode,
+          country: values.country,
+          coordinates: {
+            latitude: values.latitude || 0,
+            longitude: values.longitude || 0,
+          }
+        },
+        bedrooms: Number(values.bedrooms) || 0,
+        bathrooms: Number(values.bathrooms) || 0,
+        beds: Number(values.beds) || Number(values.bedrooms) || 0,
+        accommodates: Number(values.accommodates) || 1,
+        amenities: {
+          wifi: Boolean(values.wifi),
+          kitchen: Boolean(values.kitchen),
+          ac: Boolean(values.ac),
+          heating: Boolean(values.heating),
+          tv: Boolean(values.tv),
+          washer: Boolean(values.washer),
+          dryer: Boolean(values.dryer),
+          parking: Boolean(values.parking),
+          elevator: Boolean(values.elevator),
+          pool: Boolean(values.pool),
+        },
+        policies: {
+          check_in_time: values.checkInTime,
+          check_out_time: values.checkOutTime,
+          minimum_stay: Number(values.minimumStay) || 1,
+          pets_allowed: Boolean(values.petsAllowed),
+          smoking_allowed: Boolean(values.smokingAllowed),
+        },
+        images: values.images.map(img => img.value).filter(url => url.trim() !== ""),
+      };
+
+      console.log("Submitting update with data:", propertyData);
+      const response = await propertyService.updateProperty(propertyId, propertyData);
+      console.log("Update response:", response);
+      
+      // Get updated fields from response if available
+      const updatedFields = response?.data?.meta?.updated_fields || [];
+      const changesCount = response?.data?.meta?.changes_count || 0;
+      
+      // Show different toast messages based on the number of changes
+      if (changesCount === 0) {
+        toast.info("No changes were made to the property.");
+      } else {
+        toast.success(`Property updated successfully! (${changesCount} change${changesCount > 1 ? 's' : ''})`);
+      }
+      
+      // Navigate to the property details page
+      navigate(`/properties/${propertyId}`);
+    } catch (error) {
+      console.error("Error updating property:", error);
+      toast.error("Failed to update property. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleBackToProperties = () => {
-    navigate("/properties");
+  const handleCancel = () => {
+    if (form.formState.isDirty) {
+      if (window.confirm("You have unsaved changes. Are you sure you want to cancel?")) {
+        navigate(`/properties/${propertyId}`);
+      }
+    } else {
+      navigate(`/properties/${propertyId}`);
+    }
   };
 
   // Loading state
@@ -148,11 +230,14 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
 
   // Error state
   if (isError || !property) {
-    const errorMessage = propertyError instanceof Error ? propertyError.message : "Failed to load property details";
+    const errorMessage = propertyError instanceof Error 
+      ? propertyError.message 
+      : "Failed to load property details";
+    
     return (
       <PropertyFormError 
         onRetry={manualRetry} 
-        onBack={handleBackToProperties}
+        onBack={() => navigate("/properties")}
         errorMessage={errorMessage}
       />
     );
@@ -167,16 +252,61 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <PropertyEditFormContent 
-              form={form}
-              selectedCountry={selectedCountry}
-              availableCities={availableCities}
-              handleCountryChange={handleCountryChange}
-            />
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            <div className="space-y-6">
+              {/* Basic Information Section */}
+              <BasicInfoSection form={form} />
+
+              <Separator />
+
+              {/* Address Information Section */}
+              <AddressSection 
+                form={form} 
+                selectedCountry={selectedCountry} 
+                availableCities={availableCities}
+                handleCountryChange={handleCountryChange}
+              />
+
+              <Separator />
+
+              {/* Capacity Information */}
+              <CapacitySection form={form} />
+
+              <Separator />
+
+              {/* Amenities Section */}
+              <AmenitiesSection form={form} />
+
+              <Separator />
+
+              {/* Policies Section */}
+              <PoliciesSection form={form} />
+
+              <Separator />
+
+              {/* Images Section */}
+              <ImagesSection form={form} />
+            </div>
 
             {/* Form Actions */}
-            <PropertyEditActions propertyId={propertyId} />
+            <div className="flex justify-end gap-4 pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleCancel}
+                disabled={isSubmitting}
+              >
+                <X className="mr-2 h-4 w-4" /> Cancel
+              </Button>
+              <Button 
+                type="submit"
+                className="bg-green-600 hover:bg-green-700"
+                disabled={isSubmitting}
+              >
+                <Save className="mr-2 h-4 w-4" />
+                {isSubmitting ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>
