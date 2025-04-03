@@ -40,11 +40,11 @@ export function ICalConnectionsManager({ propertyId }: ICalConnectionsManagerPro
   }
 
   return (
-    <Card className="mb-8 shadow-sm border-primary/10">
-      <CardHeader className="bg-primary/5 border-b">
+    <Card className="mb-8 shadow-md border-primary/10 overflow-hidden">
+      <CardHeader className="bg-primary/5 border-b px-6">
         <ConnectionsHeader onAddClick={() => setIsAddDialogOpen(true)} />
       </CardHeader>
-      <CardContent className="pt-6">
+      <CardContent className="pt-6 px-6">
         <ConnectionsTable 
           connections={connections}
           onEdit={handleEditClick}
@@ -52,7 +52,7 @@ export function ICalConnectionsManager({ propertyId }: ICalConnectionsManagerPro
           onTest={handleTestClick}
         />
       </CardContent>
-      <CardFooter className="bg-muted/10 border-t py-3">
+      <CardFooter className="bg-muted/10 border-t py-4 px-6 flex justify-between">
         <ConnectionsFooter 
           totalConnections={connectionsMeta.total}
           activeConnections={connectionsMeta.active_connections}
