@@ -18,7 +18,7 @@ export function ImagesSection({ form }: ImagesSectionProps) {
   });
   
   const addImageUrl = () => {
-    append("");
+    append("" as any);
   };
 
   return (

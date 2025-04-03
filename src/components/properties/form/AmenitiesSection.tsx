@@ -9,7 +9,10 @@ import {
   Flame, 
   Tv, 
   BedDouble, 
-  ParkingSquare
+  ParkingSquare,
+  Utensils,
+  Building,
+  Waves
 } from "lucide-react";
 import { FormValues } from "./PropertyFormSchema";
 
@@ -18,9 +21,6 @@ interface AmenitySectionProps {
 }
 
 export function AmenitiesSection({ form }: AmenitySectionProps) {
-  // Since 'Kitchen', 'Elevator', and 'Pool' icons aren't available in lucide-react,
-  // we'll use a generic icon or text for them.
-  
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Amenities</h3>
@@ -59,8 +59,7 @@ export function AmenitiesSection({ form }: AmenitySectionProps) {
               </FormControl>
               <div className="space-y-1 leading-none">
                 <FormLabel className="flex items-center gap-2">
-                  {/* Using BedDouble as a temporary replacement for Kitchen */}
-                  <BedDouble className="h-4 w-4" /> Kitchen
+                  <Utensils className="h-4 w-4" /> Kitchen
                 </FormLabel>
               </div>
             </FormItem>
@@ -200,8 +199,7 @@ export function AmenitiesSection({ form }: AmenitySectionProps) {
               </FormControl>
               <div className="space-y-1 leading-none">
                 <FormLabel className="flex items-center gap-2">
-                  {/* Using a basic icon as a substitute */}
-                  <BedDouble className="h-4 w-4" /> Elevator
+                  <Building className="h-4 w-4" /> Elevator
                 </FormLabel>
               </div>
             </FormItem>
@@ -221,8 +219,7 @@ export function AmenitiesSection({ form }: AmenitySectionProps) {
               </FormControl>
               <div className="space-y-1 leading-none">
                 <FormLabel className="flex items-center gap-2">
-                  {/* Using a basic icon as a substitute */}
-                  <BedDouble className="h-4 w-4" /> Pool
+                  <Waves className="h-4 w-4" /> Pool
                 </FormLabel>
               </div>
             </FormItem>
