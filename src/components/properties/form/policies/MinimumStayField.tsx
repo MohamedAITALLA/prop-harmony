@@ -25,12 +25,13 @@ export function MinimumStayField({ form }: MinimumStayFieldProps) {
               type="number" 
               min="1"
               {...field}
-              // Parse the field value as a number for controlled component
-              value={field.value !== undefined && field.value !== "" ? field.value : 1}
-              // Convert to number on change
+              // Ensure value is always a number, defaulting to 1
+              value={field.value ?? 1}
               onChange={(e) => {
-                const value = e.target.value !== "" ? parseInt(e.target.value, 10) : "";
-                field.onChange(value === "" ? 1 : value);
+                const value = e.target.value !== "" 
+                  ? Number(e.target.value) 
+                  : 1;
+                field.onChange(value);
               }}
             />
           </FormControl>
