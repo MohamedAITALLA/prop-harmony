@@ -56,6 +56,15 @@ export function PropertyTable({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<{id: string, name: string} | null>(null);
 
+  // Type-safe wrapper functions for setting sort field and direction
+  const handleSetSortField = (field: string) => {
+    setSortField(field as SortField);
+  };
+  
+  const handleSetSortDirection = (direction: string) => {
+    setSortDirection(direction as SortDirection);
+  };
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -130,8 +139,8 @@ export function PropertyTable({
         setCityFilter={setCityFilter}
         sortField={sortField}
         sortDirection={sortDirection}
-        setSortField={setSortField}
-        setSortDirection={setSortDirection}
+        setSortField={handleSetSortField}
+        setSortDirection={handleSetSortDirection}
       />
 
       <div className="border rounded-md overflow-hidden">

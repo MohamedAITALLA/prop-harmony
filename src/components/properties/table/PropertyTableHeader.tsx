@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PropertyType } from "@/types/enums";
+import { SortDirection, SortField } from "./PropertyTableUtils";
 
 interface PropertyTableHeaderProps {
   searchQuery: string;
@@ -54,7 +55,7 @@ export function PropertyTableHeader({
             <SelectValue placeholder="Property Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all_types">All types</SelectItem>
+            <SelectItem value="">All types</SelectItem>
             <SelectItem value={PropertyType.APARTMENT}>Apartment</SelectItem>
             <SelectItem value={PropertyType.HOUSE}>House</SelectItem>
             <SelectItem value={PropertyType.VILLA}>Villa</SelectItem>
