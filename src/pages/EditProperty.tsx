@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useParams } from "react-router-dom";
-import { PropertyEditForm } from "@/components/properties/PropertyEditForm";
+import { PropertyEditForm } from "@/components/properties/edit-form/PropertyEditForm";
 
 export default function EditProperty() {
   const { id } = useParams<{ id: string }>();

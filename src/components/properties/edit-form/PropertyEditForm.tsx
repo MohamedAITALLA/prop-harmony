@@ -6,20 +6,14 @@ import { useNavigate } from "react-router-dom";
 import { Form } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, Loader2 } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 
-import { BasicInfoSection } from "./form/BasicInfoSection";
-import { AddressSection } from "./form/AddressSection";
-import { CapacitySection } from "./form/CapacitySection";
-import { AmenitiesSection } from "./form/AmenitiesSection";
-import { PoliciesSection } from "./form/PoliciesSection";
-import { ImagesSection } from "./form/ImagesSection";
-import { PropertyEditActions } from "./form/PropertyEditActions";
-import { formSchema, FormValues } from "./form/PropertyFormSchema";
-import { handleEditFormSubmission } from "./form/PropertyEditSubmission";
-import { useLocationSelector } from "./form/useLocationSelector";
+import { formSchema, FormValues } from "../form/PropertyFormSchema";
+import { handleEditFormSubmission } from "../form/PropertyEditSubmission";
+import { useLocationSelector } from "../form/useLocationSelector";
 import { usePropertyDetails } from "@/hooks/properties/usePropertyDetails";
+import { PropertyEditFormContent } from "./PropertyEditFormContent";
+import { PropertyEditActions } from "../form/PropertyEditActions";
 
 interface PropertyEditFormProps {
   propertyId: string;
@@ -63,7 +57,6 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
       petsAllowed: false,
       smokingAllowed: false,
     },
-    // Make sure the form doesn't reset values to defaults when typing
     mode: "onChange",
   });
 
@@ -172,40 +165,12 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-6">
-              {/* Basic Information Section */}
-              <BasicInfoSection form={form} />
-
-              <Separator />
-
-              {/* Address Information Section */}
-              <AddressSection 
-                form={form} 
-                selectedCountry={selectedCountry} 
-                availableCities={availableCities}
-                handleCountryChange={handleCountryChange}
-              />
-
-              <Separator />
-
-              {/* Capacity Information */}
-              <CapacitySection form={form} />
-
-              <Separator />
-
-              {/* Amenities Section */}
-              <AmenitiesSection form={form} />
-
-              <Separator />
-
-              {/* Policies Section */}
-              <PoliciesSection form={form} />
-
-              <Separator />
-
-              {/* Images Section */}
-              <ImagesSection form={form} />
-            </div>
+            <PropertyEditFormContent 
+              form={form}
+              selectedCountry={selectedCountry}
+              availableCities={availableCities}
+              handleCountryChange={handleCountryChange}
+            />
 
             {/* Form Actions */}
             <PropertyEditActions propertyId={propertyId} />
