@@ -22,7 +22,7 @@ export function AmenityItem({ form, name, label, icon: Icon }: AmenityItemProps)
         <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4">
           <FormControl>
             <Checkbox
-              checked={field.value}
+              checked={field.value as boolean}
               onCheckedChange={field.onChange}
             />
           </FormControl>
