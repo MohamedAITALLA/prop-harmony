@@ -149,16 +149,14 @@ export function PropertyTable({
     }
   };
   
-  const handleDeleteConfirm = async (preserveHistory: boolean) => {
+  const handleDeleteConfirm = async () => {
     if (!propertyToDelete) return;
     
     try {
-      await propertyService.deleteProperty(propertyToDelete.id, preserveHistory);
+      await propertyService.deleteProperty(propertyToDelete.id);
       
       toast.success(`Property ${propertyToDelete.name} deleted successfully`, {
-        description: preserveHistory 
-          ? "Historical data has been preserved for reporting purposes." 
-          : "All property data has been permanently deleted."
+        description: "Historical data has been preserved for reporting purposes."
       });
       
       // Call the callback to refresh the property list

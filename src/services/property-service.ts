@@ -1,3 +1,4 @@
+
 import api from "@/lib/base-api";
 import { ApiResponse } from "@/types/api-responses";
 
@@ -107,6 +108,7 @@ export const propertyService = {
   deleteProperty: async (id: string) => {
     try {
       console.log(`Deleting property ${id}`);
+      // Always set preserve_history to true by default
       const response = await api.delete(`/properties/${id}`, {
         params: { preserve_history: true }
       });
