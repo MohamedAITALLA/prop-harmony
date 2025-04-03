@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Properties from "./pages/Properties";
 import NewProperty from "./pages/NewProperty";
 import PropertyDetails from "./pages/PropertyDetails";
+import EditProperty from "./pages/EditProperty";
 import Calendar from "./pages/Calendar";
 import EventManagement from "./pages/EventManagement";
 import Notifications from "./pages/Notifications";
@@ -91,6 +92,7 @@ const App = () => (
             <Route path="/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
             <Route path="/properties/new" element={<ProtectedRoute><NewProperty /></ProtectedRoute>} />
             <Route path="/properties/:id" element={<ProtectedRoute><PropertyDetails /></ProtectedRoute>} />
+            <Route path="/properties/:id/edit" element={<ProtectedRoute><EditProperty /></ProtectedRoute>} />
             <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
             <Route path="/events" element={<ProtectedRoute><EventManagement /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
