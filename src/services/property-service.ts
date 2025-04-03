@@ -94,8 +94,15 @@ export const propertyService = {
   createProperty: (data: any) => {
     return api.post("/properties", data);
   },
-  updateProperty: (id: string, data: any) => {
-    return api.put(`/properties/${id}`, data);
+  updateProperty: async (id: string, data: any) => {
+    try {
+      const response = await api.put(`/properties/${id}`, data);
+      console.log("Update property response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating property ${id}:`, error);
+      throw error;
+    }
   },
   deleteProperty: (id: string, preserveHistory: boolean = true) => {
     return api.delete(`/properties/${id}`, {

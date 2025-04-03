@@ -15,6 +15,10 @@ interface PropertyDetailsHeaderProps {
 export function PropertyDetailsHeader({ property, onSync, onDelete }: PropertyDetailsHeaderProps) {
   const navigate = useNavigate();
 
+  const handleEdit = () => {
+    navigate(`/properties/${property._id}/edit`);
+  };
+
   return (
     <div className="bg-white dark:bg-card rounded-lg shadow-sm border p-6 mb-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -39,7 +43,7 @@ export function PropertyDetailsHeader({ property, onSync, onDelete }: PropertyDe
         </div>
         
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => navigate(`/properties/${property._id}/edit`)}>
+          <Button variant="outline" size="sm" onClick={handleEdit}>
             <Edit className="mr-2 h-4 w-4" /> Edit
           </Button>
           <Button variant="outline" size="sm" onClick={onSync}>

@@ -18,7 +18,14 @@ export function MinimumStayField({ form }: MinimumStayFieldProps) {
         <FormItem>
           <FormLabel>Minimum Stay (nights)</FormLabel>
           <FormControl>
-            <Input type="number" min="1" {...field} />
+            <Input 
+              type="number" 
+              min="1" 
+              {...field}
+              // Ensure the value is treated as a number
+              onChange={(e) => field.onChange(Number(e.target.value))}
+              value={field.value}
+            />
           </FormControl>
           <FormMessage />
         </FormItem>

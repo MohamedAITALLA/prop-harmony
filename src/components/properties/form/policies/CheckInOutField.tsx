@@ -4,6 +4,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { UseFormReturn } from "react-hook-form";
 import { FormValues } from "../PropertyFormSchema";
+import { Clock } from "lucide-react";
 
 interface CheckInOutFieldProps {
   form: UseFormReturn<FormValues>;
@@ -18,9 +19,15 @@ export function CheckInOutField({ form, name, label }: CheckInOutFieldProps) {
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FormLabel className="flex items-center gap-1">
+            <Clock className="h-3.5 w-3.5 text-muted-foreground" /> {label}
+          </FormLabel>
           <FormControl>
-            <Input type="time" {...field} />
+            <Input 
+              type="time" 
+              {...field} 
+              className="font-mono"
+            />
           </FormControl>
           <FormMessage />
         </FormItem>
