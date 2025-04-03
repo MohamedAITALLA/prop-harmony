@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Property } from "@/types/api-responses";
 
 export type SortField = "name" | "property_type" | "address.city" | "created_at" | "bookings_count";
@@ -65,12 +66,12 @@ export const renderSortIndicator = (
   currentField: SortField, 
   targetField: SortField, 
   sortDirection: SortDirection,
-  ChevronUp: React.ElementType,
-  ChevronDown: React.ElementType
+  ChevronUp: React.ComponentType<{className?: string}>,
+  ChevronDown: React.ComponentType<{className?: string}>
 ) => {
   if (currentField !== targetField) return null;
   
-  return sortDirection === "asc" ? 
-    <ChevronUp className="h-4 w-4 inline ml-1" /> : 
-    <ChevronDown className="h-4 w-4 inline ml-1" />;
+  return sortDirection === "asc" 
+    ? React.createElement(ChevronUp, { className: "h-4 w-4 inline ml-1" })
+    : React.createElement(ChevronDown, { className: "h-4 w-4 inline ml-1" });
 };
