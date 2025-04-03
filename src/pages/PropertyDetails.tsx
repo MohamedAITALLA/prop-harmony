@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Tabs } from "@/components/ui/tabs";
@@ -24,7 +23,6 @@ export default function PropertyDetails() {
   const initialTab = searchParams.get("tab") || "overview";
   const [activeTab, setActiveTab] = useState(initialTab);
 
-  // Use custom hooks to fetch data
   const { 
     property, 
     propertyLoading, 
@@ -45,7 +43,6 @@ export default function PropertyDetails() {
     setActiveTab(value);
     setSearchParams({ tab: value });
     
-    // Scroll to top when changing tabs
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -57,20 +54,16 @@ export default function PropertyDetails() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = async (preserveHistory: boolean) => {
+  const handleDeleteConfirm = async () => {
     try {
       if (!id) throw new Error("Property ID not found");
       
-      const result = await propertyService.deleteProperty(id, preserveHistory);
+      const result = await propertyService.deleteProperty(id);
       
-      const actionType = preserveHistory ? "deactivated" : "deleted";
-      toast.success(`Property ${property?.name} successfully ${actionType}`, {
-        description: preserveHistory 
-          ? "Historical data has been preserved for reporting purposes"
-          : "All property data has been permanently deleted"
+      toast.success(`Property ${property?.name} successfully deleted`, {
+        description: "All property data has been permanently deleted"
       });
       
-      // Navigate back to properties list
       navigate("/properties");
     } catch (error) {
       console.error("Error deleting property:", error);

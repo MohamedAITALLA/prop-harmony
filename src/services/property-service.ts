@@ -1,4 +1,3 @@
-
 import api from "@/lib/base-api";
 import { ApiResponse } from "@/types/api-responses";
 
@@ -105,11 +104,11 @@ export const propertyService = {
       throw error;
     }
   },
-  deleteProperty: async (id: string, preserveHistory: boolean = true) => {
+  deleteProperty: async (id: string) => {
     try {
-      console.log(`Deleting property ${id} with preserveHistory=${preserveHistory}`);
+      console.log(`Deleting property ${id}`);
       const response = await api.delete(`/properties/${id}`, {
-        params: { preserve_history: preserveHistory }
+        params: { preserve_history: true }
       });
       console.log("Delete property response:", response.data);
       return response.data;
