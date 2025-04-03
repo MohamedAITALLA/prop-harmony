@@ -24,15 +24,19 @@ export function ImagesCard({ property }: ImagesCardProps) {
       </CardHeader>
       <CardContent className="pt-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {property.images.map((image, index) => (
-            <div key={index} className="aspect-video overflow-hidden rounded-md shadow-sm border border-border/50">
-              <img 
-                src={image} 
-                alt={`${property.name} - ${index + 1}`} 
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
-              />
-            </div>
-          ))}
+          {property.images.map((image, index) => {
+            const imageUrl = typeof image === 'string' ? image : image.value || '';
+            
+            return (
+              <div key={index} className="aspect-video overflow-hidden rounded-md shadow-sm border border-border/50">
+                <img 
+                  src={imageUrl} 
+                  alt={`${property.name} - ${index + 1}`} 
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
+                />
+              </div>
+            );
+          })}
         </div>
       </CardContent>
     </Card>

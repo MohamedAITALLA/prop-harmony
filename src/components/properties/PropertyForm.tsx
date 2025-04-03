@@ -53,7 +53,7 @@ export function PropertyForm() {
       bathrooms: 1,
       beds: 1,
       accommodates: 2,
-      images: ["https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop"],
+      images: [{ value: "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop" }],
       wifi: false,
       kitchen: false,
       ac: false,
@@ -129,7 +129,7 @@ export function PropertyForm() {
           pets_allowed: values.petsAllowed,
           smoking_allowed: values.smokingAllowed,
         },
-        images: values.images,
+        images: values.images.map(img => img.value),
       };
 
       const response = await propertyService.createProperty(propertyData);

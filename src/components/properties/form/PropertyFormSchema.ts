@@ -18,7 +18,11 @@ export const formSchema = z.object({
   bathrooms: z.coerce.number().min(0),
   beds: z.coerce.number().int().min(0),
   accommodates: z.coerce.number().int().min(1),
-  images: z.array(z.string()).min(1, { message: "At least one image is required" }),
+  images: z.array(
+    z.object({
+      value: z.string()
+    })
+  ).min(1, { message: "At least one image is required" }),
   wifi: z.boolean().default(false),
   kitchen: z.boolean().default(false),
   ac: z.boolean().default(false),

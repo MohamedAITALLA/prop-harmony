@@ -12,13 +12,13 @@ interface ImagesSectionProps {
 }
 
 export function ImagesSection({ form }: ImagesSectionProps) {
-  const { fields, append, remove } = useFieldArray<FormValues>({
+  const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "images"
   });
   
   const addImageUrl = () => {
-    append("");
+    append({ value: "" });
   };
 
   return (
@@ -31,11 +31,11 @@ export function ImagesSection({ form }: ImagesSectionProps) {
         <div key={field.id} className="flex items-center gap-2">
           <FormField
             control={form.control}
-            name={`images.${index}`}
-            render={({ field }) => (
+            name={`images.${index}.value`}
+            render={({ field: fieldProps }) => (
               <FormItem className="flex-1">
                 <FormControl>
-                  <Input placeholder="Image URL" {...field} />
+                  <Input placeholder="Image URL" {...fieldProps} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
