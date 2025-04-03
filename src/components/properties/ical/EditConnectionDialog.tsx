@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { icalConnectionService } from '@/services/ical-connection-service';
@@ -8,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { ICalConnection } from "@/types/api-responses";
 import { Loader2, AlertCircle, Link2, Calendar, Clock } from "lucide-react";
+import { Platform } from "@/types/enums";
 import { 
   Dialog, 
   DialogContent, 
@@ -37,7 +39,14 @@ export function EditConnectionDialog({
 
   // Update connection mutation
   const updateMutation = useMutation({
-    mutationFn: (data: { connectionId: string; connectionData: Partial<{ platform: string; ical_url: string; sync_frequency: number; }> }) => {
+    mutationFn: (data: { 
+      connectionId: string; 
+      connectionData: Partial<{ 
+        platform: string; 
+        ical_url: string; 
+        sync_frequency: number;
+      }> 
+    }) => {
       return icalConnectionService.updateConnection(propertyId, data.connectionId, data.connectionData);
     },
     onSuccess: (response) => {
@@ -111,7 +120,7 @@ export function EditConnectionDialog({
         <div className="bg-muted/30 rounded-lg p-3 border mb-4">
           <div className="flex items-center justify-between mb-2">
             <div className="font-medium text-sm">{connection.platform}</div>
-            {/* Keep status display but remove editing capability */}
+            {/* Status display without editing capability */}
             <div className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
               {connection.status}
             </div>
@@ -136,7 +145,10 @@ export function EditConnectionDialog({
               <Input
                 id="edit-platform"
                 value={connection.platform}
-                onChange={(e) => onConnectionChange({ ...connection, platform: e.target.value })}
+                onChange={(e) => onConnectionChange({ 
+                  ...connection, 
+                  platform: e.target.value as unknown as Platform 
+                })}
                 placeholder="e.g. Airbnb, Booking.com"
               />
               <p className="text-xs text-muted-foreground mt-1">
