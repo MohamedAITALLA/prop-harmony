@@ -58,7 +58,7 @@ export function TestConnectionDialog({
 
         <TestConnectionFooter 
           onClose={() => onOpenChange(false)}
-          onRetry={() => {
+          onTest={() => {
             if (connection) {
               handleTestConnection(connection._id);
             }

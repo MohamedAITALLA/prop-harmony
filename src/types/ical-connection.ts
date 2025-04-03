@@ -1,4 +1,6 @@
 
+import { ICalConnection } from "./api-responses";
+
 // Add to existing types
 export interface UpdateConnectionResponse {
   success: boolean;
@@ -30,12 +32,7 @@ export interface DeleteConnectionResponse {
 }
 
 export interface TestResult {
-  data: {
-    valid: boolean;
-    events_found?: number;
-    parse_time_ms?: number;
-    error?: string;
-  } | null;
+  data: TestConnectionResponse | null;
   meta: TestConnectionMeta | null;
   message: string | null;
   timestamp: string | null;
@@ -47,6 +44,7 @@ export interface TestConnectionMeta {
   content_type?: string;
   content_length?: number;
   response_time_ms?: number;
+  tested_at?: string;
 }
 
 export interface TestConnectionResponse {
@@ -54,4 +52,14 @@ export interface TestConnectionResponse {
   events_found?: number;
   parse_time_ms?: number;
   error?: string;
+  connection?: {
+    _id: string;
+    property_id: string;
+    platform: string;
+    ical_url: string;
+    sync_frequency: number;
+    status: string;
+    last_synced?: string;
+    error_message?: string | null;
+  };
 }

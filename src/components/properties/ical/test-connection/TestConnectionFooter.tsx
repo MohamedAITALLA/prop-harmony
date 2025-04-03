@@ -6,14 +6,25 @@ import { RefreshCw, CheckCircle2 } from "lucide-react";
 interface TestConnectionFooterProps {
   onClose: () => void;
   onTest: () => void;
+  onRetry?: () => void;
   isLoading: boolean;
 }
 
 export const TestConnectionFooter: React.FC<TestConnectionFooterProps> = ({ 
   onClose, 
-  onTest, 
+  onTest,
+  onRetry,
   isLoading 
 }) => {
+  // Use onRetry if provided, otherwise fall back to onTest
+  const handleRetry = () => {
+    if (onRetry) {
+      onRetry();
+    } else {
+      onTest();
+    }
+  };
+
   return (
     <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2">
       <Button type="button" variant="outline" onClick={onClose}>
@@ -22,7 +33,7 @@ export const TestConnectionFooter: React.FC<TestConnectionFooterProps> = ({
       <Button 
         type="button"
         className="gap-2"
-        onClick={onTest}
+        onClick={handleRetry}
         disabled={isLoading}
       >
         {isLoading ? (

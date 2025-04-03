@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { icalConnectionService } from '@/services/ical-connection-service';
 import { toast } from "sonner";
-import { TestResult, TestConnectionMeta } from '@/types/ical-connection';
+import { TestResult, TestConnectionMeta, TestConnectionResponse } from '@/types/ical-connection';
 
 export function useConnectionTest(propertyId: string) {
   const [testResult, setTestResult] = useState<TestResult>({
@@ -20,7 +20,7 @@ export function useConnectionTest(propertyId: string) {
     onSuccess: (response) => {
       // Store the test results using the actual API response format
       setTestResult({
-        data: response.data.data,
+        data: response.data.data as TestConnectionResponse,
         meta: response.data.meta as TestConnectionMeta,
         message: response.data.message,
         timestamp: response.data.timestamp

@@ -15,6 +15,16 @@ export const TestResultsSection: React.FC<TestResultsSectionProps> = ({ testResu
   if (!data) return null;
   
   const isValid = data.valid;
+  const connectionData = data.connection || {
+    _id: "",
+    property_id: "",
+    platform: "",
+    ical_url: "",
+    sync_frequency: 0,
+    status: "unknown",
+    last_synced: undefined,
+    error_message: null
+  };
   
   return (
     <div className="space-y-4 border rounded-lg p-4 bg-card">
@@ -37,7 +47,7 @@ export const TestResultsSection: React.FC<TestResultsSectionProps> = ({ testResu
             <div className="flex justify-between items-center">
               <span className="text-sm">Status</span>
               <StatusBadge 
-                status={data.connection.status || "unknown"} 
+                status={connectionData.status || "unknown"} 
                 size="sm" 
               />
             </div>
@@ -76,8 +86,8 @@ export const TestResultsSection: React.FC<TestResultsSectionProps> = ({ testResu
                 Last Synced
               </span>
               <span className="text-sm">
-                {data.connection.last_synced ? 
-                  new Date(data.connection.last_synced).toLocaleString() : "Never"}
+                {connectionData.last_synced ? 
+                  new Date(connectionData.last_synced).toLocaleString() : "Never"}
               </span>
             </div>
           </div>
@@ -120,7 +130,7 @@ export const TestResultsSection: React.FC<TestResultsSectionProps> = ({ testResu
         <details className="text-sm">
           <summary className="font-medium cursor-pointer">Advanced Details</summary>
           <div className="mt-2 p-3 rounded-md bg-muted/30 border text-xs font-mono whitespace-pre-wrap overflow-auto max-h-40">
-            {JSON.stringify(data.connection, null, 2)}
+            {JSON.stringify(connectionData, null, 2)}
           </div>
         </details>
       </div>
