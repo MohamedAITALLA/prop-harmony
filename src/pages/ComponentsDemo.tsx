@@ -14,15 +14,16 @@ const mockProperty: Property = {
   address: {
     street: "123 Ocean Drive",
     city: "Malibu",
-    stateProvince: "CA",
-    postalCode: "90210",
+    state_province: "CA",
+    postal_code: "90210",
     country: "USA"
   },
   accommodates: 8,
   bedrooms: 4,
   bathrooms: 3.5,
+  beds: 4,
   images: ["https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop"],
-  description: "A beautiful beachfront villa with stunning views."
+  desc: "A beautiful beachfront villa with stunning views."
 };
 
 export default function ComponentsDemo() {
@@ -83,10 +84,10 @@ export default function ComponentsDemo() {
                     <p>Bedrooms: {mockProperty.bedrooms}</p>
                     <p>Bathrooms: {mockProperty.bathrooms}</p>
                     <h4 className="text-sm font-medium pt-4">Description</h4>
-                    <p>{mockProperty.description}</p>
+                    <p>{mockProperty.desc}</p>
                     <h4 className="text-sm font-medium pt-4">Address</h4>
                     <p>{mockProperty.address.street}</p>
-                    <p>{mockProperty.address.city}, {mockProperty.address.stateProvince} {mockProperty.address.postalCode}</p>
+                    <p>{mockProperty.address.city}, {mockProperty.address.state_province} {mockProperty.address.postal_code}</p>
                     <p>{mockProperty.address.country}</p>
                     <div className="h-20"></div> {/* Extra space to demonstrate scrolling */}
                   </div>

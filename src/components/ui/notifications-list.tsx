@@ -84,7 +84,7 @@ export function NotificationsList({
   };
 
   const getSeverityIcon = (severity: NotificationSeverity) => {
-    switch (severity) {
+    switch (severity as NotificationSeverity) {
       case NotificationSeverity.CRITICAL:
         return <AlertTriangle className="h-4 w-4 text-red-500" />;
       case NotificationSeverity.WARNING:

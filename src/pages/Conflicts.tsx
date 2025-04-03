@@ -93,21 +93,8 @@ export default function Conflicts() {
     }, 500);
   };
   
-  const getSeverityColor = (severity: ConflictSeverity) => {
-    switch (severity) {
-      case ConflictSeverity.HIGH:
-        return "bg-red-100 text-red-800 border-red-200";
-      case ConflictSeverity.MEDIUM:
-        return "bg-orange-100 text-orange-800 border-orange-200";
-      case ConflictSeverity.LOW:
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-  
-  const getTypeLabel = (type: ConflictType) => {
-    switch (type) {
+  const getTypeLabel = (type: string) => {
+    switch (type as ConflictType) {
       case ConflictType.OVERLAP:
         return "Booking Overlap";
       case ConflictType.ADJACENT:
@@ -116,6 +103,19 @@ export default function Conflicts() {
         return "Turnover Conflict";
       default:
         return type;
+    }
+  };
+  
+  const getSeverityColor = (severity: string) => {
+    switch (severity as ConflictSeverity) {
+      case ConflictSeverity.HIGH:
+        return "bg-red-100 text-red-800 border-red-200";
+      case ConflictSeverity.MEDIUM:
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case ConflictSeverity.LOW:
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
   

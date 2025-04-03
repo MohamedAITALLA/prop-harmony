@@ -21,6 +21,7 @@ import { PropertyFormError } from "./form/PropertyFormError";
 import { Property } from "@/types/api-responses";
 import { handleEditFormSubmission } from "./form/PropertyEditSubmission";
 import { toast } from "sonner";
+import { PropertyType } from "@/types/enums";
 
 interface PropertyEditFormProps {
   propertyId: string;
@@ -36,7 +37,7 @@ export function PropertyEditForm({ propertyId, initialData, refetchProperty }: P
   // Transform API data to form data structure, ensuring proper field mapping
   const transformedInitialData: FormValues = {
     name: initialData.name,
-    property_type: initialData.property_type,
+    property_type: initialData.property_type as PropertyType,
     description: initialData.desc || "", // Map from desc field instead of description
     street: initialData.address.street || "",
     city: initialData.address.city || "",

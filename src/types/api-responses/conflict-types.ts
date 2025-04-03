@@ -1,5 +1,6 @@
 
 // Conflict related types
+import { ConflictType, ConflictSeverity, ConflictStatus } from "@/types/enums";
 
 export interface Conflict {
   _id: string;
@@ -9,11 +10,11 @@ export interface Conflict {
     name: string;
   };
   event_ids: string[];
-  conflict_type: string;
+  conflict_type: ConflictType;
   start_date: string;
   end_date: string;
-  severity: string;
-  status: string;
+  severity: ConflictSeverity;
+  status: ConflictStatus;
   description: string;
   created_at: string;
   updated_at: string;

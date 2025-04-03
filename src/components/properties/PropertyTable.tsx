@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Table, 
@@ -321,7 +320,7 @@ export function PropertyTable({
                     </div>
                   </TableCell>
                   <TableCell className="capitalize">{property.property_type}</TableCell>
-                  <TableCell>{property.address.city}, {property.address.stateProvince}</TableCell>
+                  <TableCell>{property.address.city}, {property.address.state_province}</TableCell>
                   <TableCell>{property.bookings_count || 0}</TableCell>
                   <TableCell>
                     <SyncStatusBadge 
