@@ -29,7 +29,7 @@ export function CheckInOutField({ form, name, label }: CheckInOutFieldProps) {
               type="time" 
               className="font-mono"
               {...field}
-              value={field.value || defaultValue}
+              onChange={(e) => field.onChange(e.target.value)}
             />
           </FormControl>
           <FormMessage />
