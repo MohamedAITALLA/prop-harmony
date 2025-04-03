@@ -13,13 +13,11 @@ export const handleFormSubmission = async (
     // First, upload any images that are files and collect their paths
     const imagePaths = await uploadPropertyImages(uploadedImages);
     
-    // Get image URLs from the form values
-    const imageUrls = values.images.map(img => img.value)
-      // Filter out blob URLs which are only for preview
-      .filter(url => !url.startsWith('blob:') && url.trim() !== "");
-    
-    // Combine uploaded image paths and image URLs
-    const finalImages = [...imagePaths, ...imageUrls];
+    // If no images were uploaded successfully, show an error
+    if (imagePaths.length === 0) {
+      toast.error("Please upload at least one image for your property.");
+      return;
+    }
     
     // Prepare data for API
     const propertyData = {
@@ -60,8 +58,8 @@ export const handleFormSubmission = async (
         pets_allowed: Boolean(values.petsAllowed),
         smoking_allowed: Boolean(values.smokingAllowed),
       },
-      // Use the combined list of images
-      images: finalImages.length > 0 ? finalImages : ["https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop"],
+      // Use the uploaded images paths
+      images: imagePaths,
     };
 
     const response = await propertyService.createProperty(propertyData);
@@ -89,6 +87,8 @@ const uploadPropertyImages = async (uploadedImages: { [key: number]: File | null
     if (imageIndices.length === 0) {
       return imagePaths;
     }
+    
+    toast.info("Uploading images...");
     
     // Create a FormData object to upload files
     for (const indexStr of imageIndices) {

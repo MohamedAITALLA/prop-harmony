@@ -18,23 +18,19 @@ export const handleEditFormSubmission = async (
     // First, upload any new images
     const newImagePaths = await uploadPropertyImages(uploadedImages);
     
-    // Get existing image paths that are not being replaced
+    // Get existing image paths that are being kept
     const existingImagePaths = values.images
       .filter((img, index) => !uploadedImages[index] && img.value.startsWith('/'))
       .map(img => img.value);
     
-    // Get external URLs that are not blob: URLs (which are only for preview)
-    const externalUrls = values.images
-      .filter((img, index) => 
-        !uploadedImages[index] && 
-        !img.value.startsWith('/') && 
-        !img.value.startsWith('blob:') && 
-        img.value.trim() !== ''
-      )
-      .map(img => img.value);
-    
     // Combine all images
-    const finalImagePaths = [...existingImagePaths, ...newImagePaths, ...externalUrls];
+    const finalImagePaths = [...existingImagePaths, ...newImagePaths];
+    
+    // Ensure we have at least one image
+    if (finalImagePaths.length === 0) {
+      toast.error("Please upload at least one image for your property.");
+      return;
+    }
     
     // Prepare data for API - include only the specified fields
     const propertyData = {
@@ -75,7 +71,7 @@ export const handleEditFormSubmission = async (
         pets_allowed: Boolean(values.petsAllowed),
         smoking_allowed: Boolean(values.smokingAllowed),
       },
-      images: finalImagePaths.length > 0 ? finalImagePaths : ["https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop"],
+      images: finalImagePaths,
     };
 
     console.log("Submitting update with data:", propertyData);
