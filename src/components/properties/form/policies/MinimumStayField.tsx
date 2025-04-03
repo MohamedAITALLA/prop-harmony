@@ -20,12 +20,15 @@ export function MinimumStayField({ form }: MinimumStayFieldProps) {
           <FormControl>
             <Input 
               type="number" 
-              min="1" 
+              min="1"
               {...field}
-              // Fix: Ensure the value is always defined as a number
+              // Ensure the value is always defined as a number
               value={field.value || 1}
               // Ensure the value is treated as a number
-              onChange={(e) => field.onChange(Number(e.target.value) || 1)}
+              onChange={(e) => {
+                const value = parseInt(e.target.value, 10);
+                field.onChange(isNaN(value) ? 1 : value);
+              }}
             />
           </FormControl>
           <FormMessage />

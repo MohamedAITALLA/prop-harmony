@@ -26,12 +26,9 @@ export function CheckInOutField({ form, name, label }: CheckInOutFieldProps) {
             <Input 
               type="time" 
               className="font-mono"
+              {...field}
+              // Ensure the value is always defined
               value={field.value || (name === "checkInTime" ? "15:00" : "11:00")}
-              onChange={(e) => field.onChange(e.target.value)}
-              onBlur={field.onBlur}
-              name={field.name}
-              ref={field.ref}
-              disabled={field.disabled}
             />
           </FormControl>
           <FormMessage />

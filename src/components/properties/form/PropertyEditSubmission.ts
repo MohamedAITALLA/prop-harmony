@@ -11,6 +11,7 @@ export const handleEditFormSubmission = async (
 ) => {
   try {
     toast.info("Updating property...");
+    console.log("Submitting property update with values:", values);
     
     // Prepare data for API
     const propertyData = {
@@ -28,30 +29,30 @@ export const handleEditFormSubmission = async (
           longitude: values.longitude || 0,
         }
       },
-      bedrooms: values.bedrooms,
-      bathrooms: values.bathrooms,
-      beds: values.beds || values.bedrooms,
-      accommodates: values.accommodates,
+      bedrooms: Number(values.bedrooms) || 0,
+      bathrooms: Number(values.bathrooms) || 0,
+      beds: Number(values.beds) || Number(values.bedrooms) || 0,
+      accommodates: Number(values.accommodates) || 1,
       amenities: {
-        wifi: values.wifi,
-        kitchen: values.kitchen,
-        ac: values.ac,
-        heating: values.heating,
-        tv: values.tv,
-        washer: values.washer,
-        dryer: values.dryer,
-        parking: values.parking,
-        elevator: values.elevator,
-        pool: values.pool,
+        wifi: Boolean(values.wifi),
+        kitchen: Boolean(values.kitchen),
+        ac: Boolean(values.ac),
+        heating: Boolean(values.heating),
+        tv: Boolean(values.tv),
+        washer: Boolean(values.washer),
+        dryer: Boolean(values.dryer),
+        parking: Boolean(values.parking),
+        elevator: Boolean(values.elevator),
+        pool: Boolean(values.pool),
       },
       policies: {
         check_in_time: values.checkInTime,
         check_out_time: values.checkOutTime,
-        minimum_stay: values.minimumStay,
-        pets_allowed: values.petsAllowed,
-        smoking_allowed: values.smokingAllowed,
+        minimum_stay: Number(values.minimumStay) || 1,
+        pets_allowed: Boolean(values.petsAllowed),
+        smoking_allowed: Boolean(values.smokingAllowed),
       },
-      images: values.images.map(img => img.value),
+      images: values.images.map(img => img.value).filter(url => url.trim() !== ""),
     };
 
     console.log("Submitting update with data:", propertyData);

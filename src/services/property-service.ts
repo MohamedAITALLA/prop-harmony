@@ -96,6 +96,7 @@ export const propertyService = {
   },
   updateProperty: async (id: string, data: any) => {
     try {
+      console.log(`Updating property ${id} with data:`, data);
       const response = await api.put(`/properties/${id}`, data);
       console.log("Update property response:", response.data);
       return response.data;

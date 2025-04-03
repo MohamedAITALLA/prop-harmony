@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
@@ -32,6 +32,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
     manualRetry
   } = usePropertyDetails(propertyId);
   
+  // Initialize form with empty values
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -73,8 +74,8 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
   
   // Populate form with property data once loaded
   useEffect(() => {
-    if (property) {
-      console.log("Setting form data with property:", property);
+    if (property && Object.keys(property).length > 0) {
+      console.log("Setting form with property data:", property);
       
       // Map API data to form values
       const formData: Partial<FormValues> = {
@@ -86,13 +87,15 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
         country: property.address?.country || "",
         stateProvince: property.address?.state_province || "",
         postalCode: property.address?.postal_code || "",
-        latitude: property.address?.coordinates?.latitude || undefined,
-        longitude: property.address?.coordinates?.longitude || undefined,
+        latitude: property.address?.coordinates?.latitude,
+        longitude: property.address?.coordinates?.longitude,
         bedrooms: property.bedrooms || 0,
         bathrooms: property.bathrooms || 0,
         beds: property.beds || property.bedrooms || 0,
         accommodates: property.accommodates || 1,
-        images: (property.images?.length > 0 ? property.images?.map(url => ({ value: url })) : [{ value: "" }]),
+        images: property.images?.length > 0 
+          ? property.images.map(url => ({ value: url })) 
+          : [{ value: "" }],
         checkInTime: property.policies?.check_in_time || "15:00",
         checkOutTime: property.policies?.check_out_time || "11:00",
         minimumStay: property.policies?.minimum_stay || 1,
@@ -102,16 +105,16 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
       
       // Handle amenities
       if (property.amenities) {
-        formData.wifi = property.amenities.wifi || false;
-        formData.kitchen = property.amenities.kitchen || false;
-        formData.ac = property.amenities.ac || false;
-        formData.heating = property.amenities.heating || false;
-        formData.tv = property.amenities.tv || false;
-        formData.washer = property.amenities.washer || false;
-        formData.dryer = property.amenities.dryer || false;
-        formData.parking = property.amenities.parking || false;
-        formData.elevator = property.amenities.elevator || false;
-        formData.pool = property.amenities.pool || false;
+        formData.wifi = !!property.amenities.wifi;
+        formData.kitchen = !!property.amenities.kitchen;
+        formData.ac = !!property.amenities.ac;
+        formData.heating = !!property.amenities.heating;
+        formData.tv = !!property.amenities.tv;
+        formData.washer = !!property.amenities.washer;
+        formData.dryer = !!property.amenities.dryer;
+        formData.parking = !!property.amenities.parking;
+        formData.elevator = !!property.amenities.elevator;
+        formData.pool = !!property.amenities.pool;
       }
       
       // Reset form with new values
@@ -125,6 +128,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
   }, [property, form, handleCountryChange]);
 
   const onSubmit = async (values: FormValues) => {
+    console.log("Form submitted with values:", values);
     if (!propertyId) {
       toast.error("Property ID is missing");
       return;
