@@ -1,8 +1,7 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { notificationService } from "@/services/notification-service";
 import React from "react";
-import { NotificationsResponse } from "@/types/api-responses";
+import { NotificationsResponse } from "@/types/api-responses/notification-types";
 
 export function useNotificationData(propertyId?: string) {
   const {

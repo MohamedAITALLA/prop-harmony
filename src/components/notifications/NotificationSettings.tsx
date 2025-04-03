@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
-import { NotificationSettings as NotificationSettingsType } from "@/types/api-responses";
+import { NotificationSettings as NotificationSettingsType } from "@/types/api-responses/notification-types";
 
 export function NotificationSettings() {
   const { settings, updateSettings } = useNotifications();
