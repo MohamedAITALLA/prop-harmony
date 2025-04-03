@@ -38,6 +38,9 @@ export interface Property {
   bookings_count?: number;
   location?: string;
   days_since_creation?: number;
+  rating?: string | number;
+  price_per_night?: number;
+  description?: string; // Backward compatibility
 }
 
 export interface Address {

@@ -1,6 +1,5 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Notification, NotificationSettings } from "@/types/api-responses";
+import { Notification, NotificationSettings, NotificationsResponse } from "@/types/api-responses";
 import { toast } from "sonner";
 import { notificationService } from "@/services/notification-service";
 import { NotificationType, NotificationSeverity } from "@/types/enums";
@@ -16,6 +15,24 @@ interface NotificationFilters {
   search?: string;
 }
 
+interface MockNotificationData {
+  notifications: Array<Notification & { age_in_hours: number; is_recent: boolean; }>;
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
+    has_next_page: boolean;
+    has_previous_page: boolean;
+  };
+  summary: {
+    total_count: number;
+    unread_count: number;
+    read_count: number;
+    by_type: Record<string, number>;
+  };
+}
+
 export function useNotifications(filters?: NotificationFilters) {
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(filters?.page || 1);
@@ -27,7 +44,7 @@ export function useNotifications(filters?: NotificationFilters) {
     limit: pageSize
   };
 
-  const generateMockData = () => {
+  const generateMockData = (): MockNotificationData => {
     const mockNotifications = [
       {
         _id: "1",
@@ -128,7 +145,7 @@ export function useNotifications(filters?: NotificationFilters) {
     };
   };
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<MockNotificationData | NotificationsResponse["data"]>({
     queryKey: ["notifications", currentFilters],
     queryFn: async () => {
       try {
@@ -170,7 +187,6 @@ export function useNotifications(filters?: NotificationFilters) {
 
   const markAsReadMutation = useMutation({
     mutationFn: async (id: string) => {
-      // Fix: Change markOneAsRead to markAsRead
       return notificationService.markAsRead(id);
     },
     onSuccess: () => {
@@ -184,7 +200,6 @@ export function useNotifications(filters?: NotificationFilters) {
 
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      // Fix: Pass an empty array to markAllAsRead to make it all notifications
       return notificationService.markAllAsRead();
     },
     onSuccess: () => {
@@ -225,9 +240,9 @@ export function useNotifications(filters?: NotificationFilters) {
     },
   });
 
-  const notifications = data?.notifications || [];
-  const totalPages = data?.pagination?.pages || 1;
-  const totalNotifications = data?.pagination?.total || 0;
+  const notifications = data ? 'notifications' in data ? data.notifications : [] : [];
+  const totalPages = data && 'pagination' in data ? data.pagination.pages : 1;
+  const totalNotifications = data && 'pagination' in data ? data.pagination.total : 0;
 
   let notificationSettings: NotificationSettings;
   if (settingsResponse) {

@@ -23,7 +23,9 @@ const mockProperty: Property = {
   bathrooms: 3.5,
   beds: 4,
   images: ["https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop"],
-  desc: "A beautiful beachfront villa with stunning views."
+  desc: "A beautiful beachfront villa with stunning views.",
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
 };
 
 export default function ComponentsDemo() {

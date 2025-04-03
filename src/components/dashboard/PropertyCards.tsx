@@ -7,6 +7,7 @@ import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ensureMongoIds } from "@/lib/mongo-helpers";
 import { convertToMongoIdFormat } from "@/lib/id-conversion";
+import { PropertyType } from "@/types/enums";
 
 interface PropertyCardsProps {
   limit?: number;
@@ -25,55 +26,64 @@ export function PropertyCards({ limit = 3, action }: PropertyCardsProps) {
         {
           _id: "prop-1",
           name: "Beachfront Villa",
-          property_type: "villa",
+          property_type: PropertyType.VILLA,
           address: {
             street: "123 Ocean Drive",
             city: "Malibu",
-            stateProvince: "CA",
-            postalCode: "90210",
+            state_province: "CA",
+            postal_code: "90210",
             country: "USA"
           },
           bedrooms: 4,
           bathrooms: 3.5,
+          beds: 4,
           accommodates: 8,
-          description: "Stunning beachfront villa with amazing views",
-          images: ["https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop"]
+          desc: "Stunning beachfront villa with amazing views",
+          images: ["https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop"],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         },
         {
           _id: "prop-2",
           name: "Mountain Cabin",
-          property_type: "cabin",
+          property_type: PropertyType.CABIN,
           address: {
             street: "45 Pine Road",
             city: "Aspen",
-            stateProvince: "CO",
-            postalCode: "81611",
+            state_province: "CO",
+            postal_code: "81611",
             country: "USA"
           },
           bedrooms: 2,
           bathrooms: 1,
+          beds: 2,
           accommodates: 4,
-          description: "Cozy mountain cabin in a scenic location",
-          images: ["https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?q=80&w=800&auto=format&fit=crop"]
+          desc: "Cozy mountain cabin in a scenic location",
+          images: ["https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?q=80&w=800&auto=format&fit=crop"],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         },
         {
           _id: "prop-3",
           name: "Downtown Apartment",
-          property_type: "apartment",
+          property_type: PropertyType.APARTMENT,
           address: {
             street: "789 Broadway",
             city: "New York",
-            stateProvince: "NY",
-            postalCode: "10003",
+            state_province: "NY",
+            postal_code: "10003",
             country: "USA"
           },
           bedrooms: 1,
           bathrooms: 1,
+          beds: 1,
           accommodates: 2,
-          description: "Modern downtown apartment in the heart of the city",
-          images: ["https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=800&auto=format&fit=crop"]
+          desc: "Modern downtown apartment in the heart of the city",
+          images: ["https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=800&auto=format&fit=crop"],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }
-      ];
+      ] as Property[];
 
       return convertToMongoIdFormat(mockData) as Property[];
     },

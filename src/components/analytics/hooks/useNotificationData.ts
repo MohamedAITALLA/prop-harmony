@@ -2,12 +2,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { notificationService } from "@/services/notification-service";
 import React from "react";
+import { NotificationsResponse } from "@/types/api-responses";
 
 export function useNotificationData(propertyId?: string) {
   const {
     data: notificationsData,
     isLoading: isLoadingNotifications
-  } = useQuery({
+  } = useQuery<NotificationsResponse["data"] | null>({
     queryKey: ["property-notifications", propertyId],
     queryFn: async () => {
       if (!propertyId) return null;
