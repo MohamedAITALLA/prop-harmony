@@ -12,13 +12,13 @@ interface ImagesSectionProps {
 }
 
 export function ImagesSection({ form }: ImagesSectionProps) {
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove } = useFieldArray<FormValues>({
     control: form.control,
     name: "images"
   });
   
   const addImageUrl = () => {
-    append("" as any);
+    append("");
   };
 
   return (
