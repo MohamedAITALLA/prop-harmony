@@ -22,12 +22,12 @@ export function SyncStatusBadge({
   const getBadgeConfig = () => {
     const statusLower = status.toLowerCase();
     
-    if (statusLower === "success" || statusLower === "synced") {
+    if (statusLower === "active" || statusLower === "success" || statusLower === "synced") {
       return {
         icon: <CheckCircle className="h-3 w-3" />,
         variant: "outline" as const,
         className: "border-green-500 text-green-500 bg-green-50",
-        text: "Synced"
+        text: "Active"
       };
     }
     
@@ -54,7 +54,7 @@ export function SyncStatusBadge({
         icon: <Clock className="h-3 w-3" />,
         variant: "outline" as const,
         className: "border-blue-500 text-blue-500 bg-blue-50",
-        text: "Syncing..."
+        text: "Pending"
       };
     }
     

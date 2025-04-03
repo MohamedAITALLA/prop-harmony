@@ -22,7 +22,7 @@ export function ConnectionsFooter({ totalConnections, activeConnections }: Conne
       </div>
       <div className="ml-auto text-xs text-muted-foreground flex items-center gap-1.5">
         <Clock className="h-3.5 w-3.5" />
-        Connections refresh every 24 hours
+        Connections refresh depends on sync frequency
       </div>
     </div>
   );
