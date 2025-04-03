@@ -17,7 +17,7 @@ export const handleFormSubmission = async (
       address: {
         street: values.street,
         city: values.city,
-        state_province: values.stateProvince,
+        state_province: values.stateProvince || "", // Always ensure it's a string, default to empty string
         postal_code: values.postalCode,
         country: values.country,
         coordinates: {
