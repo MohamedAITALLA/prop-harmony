@@ -37,7 +37,8 @@ export function DeleteConnectionDialog({
   // Delete connection mutation
   const deleteMutation = useMutation({
     mutationFn: (connectionId: string) => {
-      return icalConnectionService.deleteConnection(propertyId, connectionId);
+      // Always send preserve_history=true
+      return icalConnectionService.deleteConnection(propertyId, connectionId, true);
     },
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: [`property-ical-connections-${propertyId}`] });

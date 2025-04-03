@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { icalConnectionService } from '@/services/ical-connection-service';
@@ -7,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ConnectionStatus } from "@/types/enums";
 import { ICalConnection } from "@/types/api-responses";
 import { Loader2, AlertCircle, Link2, Calendar, Clock } from "lucide-react";
 import { 
@@ -18,7 +16,6 @@ import {
   DialogFooter,
   DialogDescription
 } from "@/components/ui/dialog";
-import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 
 interface EditConnectionDialogProps {
   open: boolean;
@@ -40,7 +37,7 @@ export function EditConnectionDialog({
 
   // Update connection mutation
   const updateMutation = useMutation({
-    mutationFn: (data: { connectionId: string; connectionData: Partial<{ platform: string; ical_url: string; sync_frequency: number; status: string; }> }) => {
+    mutationFn: (data: { connectionId: string; connectionData: Partial<{ platform: string; ical_url: string; sync_frequency: number; }> }) => {
       return icalConnectionService.updateConnection(propertyId, data.connectionId, data.connectionData);
     },
     onSuccess: (response) => {
@@ -91,7 +88,7 @@ export function EditConnectionDialog({
       connectionData: {
         ical_url: connection.ical_url,
         sync_frequency: connection.sync_frequency,
-        status: connection.status
+        platform: connection.platform
       }
     });
   };
@@ -114,22 +111,39 @@ export function EditConnectionDialog({
         <div className="bg-muted/30 rounded-lg p-3 border mb-4">
           <div className="flex items-center justify-between mb-2">
             <div className="font-medium text-sm">{connection.platform}</div>
-            <SyncStatusBadge 
-              status={connection.status} 
-              lastSync={connection.last_synced}
-              message={connection.error_message} 
-            />
+            {/* Keep status display but remove editing capability */}
+            <div className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+              {connection.status}
+            </div>
           </div>
           {connection.last_synced && (
             <div className="flex items-center text-xs text-muted-foreground gap-1.5">
               <Clock className="h-3 w-3" />
-              <span>Syncs every {connection.sync_frequency} hour{connection.sync_frequency !== 1 ? 's' : ''}</span>
+              <span>Last synced: {new Date(connection.last_synced).toLocaleString()}</span>
             </div>
           )}
         </div>
         
         <form onSubmit={handleUpdateConnection}>
           <div className="grid gap-4 py-2">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-platform">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Calendar className="h-3.5 w-3.5" />
+                  Platform Name
+                </div>
+              </Label>
+              <Input
+                id="edit-platform"
+                value={connection.platform}
+                onChange={(e) => onConnectionChange({ ...connection, platform: e.target.value })}
+                placeholder="e.g. Airbnb, Booking.com"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Name of the platform or service providing this calendar
+              </p>
+            </div>
+            
             <div className="grid gap-2">
               <Label htmlFor="edit-ical_url">
                 <div className="flex items-center gap-1.5 mb-1">
@@ -169,38 +183,14 @@ export function EditConnectionDialog({
                   <SelectValue placeholder="Select Frequency" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">Every hour</SelectItem>
-                  <SelectItem value="3">Every 3 hours</SelectItem>
-                  <SelectItem value="6">Every 6 hours</SelectItem>
-                  <SelectItem value="12">Every 12 hours</SelectItem>
                   <SelectItem value="15">Every 15 hours</SelectItem>
-                  <SelectItem value="24">Once a day</SelectItem>
                   <SelectItem value="30">Every 30 hours</SelectItem>
-                  <SelectItem value="48">Every 2 days</SelectItem>
+                  <SelectItem value="45">Every 45 hours</SelectItem>
                   <SelectItem value="60">Every 60 hours</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground mt-1">
                 How often should we check for updates from this calendar
-              </p>
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="edit-status">Connection Status</Label>
-              <Select
-                value={connection.status}
-                onValueChange={(value) => onConnectionChange({ ...connection, status: value as ConnectionStatus })}
-              >
-                <SelectTrigger id="edit-status">
-                  <SelectValue placeholder="Select Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ConnectionStatus.ACTIVE}>Active</SelectItem>
-                  <SelectItem value={ConnectionStatus.INACTIVE}>Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground mt-1">
-                Set to inactive to pause syncing with this calendar
               </p>
             </div>
           </div>

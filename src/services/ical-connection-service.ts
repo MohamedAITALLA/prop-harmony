@@ -16,8 +16,10 @@ export const icalConnectionService = {
     return api.put<UpdateConnectionResponse>(`/properties/${propertyId}/ical-connections/${connectionId}`, data);
   },
   
-  deleteConnection: (propertyId: string, connectionId: string) => {
-    return api.delete<DeleteConnectionResponse>(`/properties/${propertyId}/ical-connections/${connectionId}`);
+  deleteConnection: (propertyId: string, connectionId: string, preserveHistory: boolean = true) => {
+    return api.delete<DeleteConnectionResponse>(
+      `/properties/${propertyId}/ical-connections/${connectionId}?preserve_history=${preserveHistory}`
+    );
   },
   
   testConnection: (propertyId: string, connectionId: string) => {

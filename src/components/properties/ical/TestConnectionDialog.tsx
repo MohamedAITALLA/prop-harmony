@@ -63,6 +63,11 @@ export function TestConnectionDialog({
               handleTestConnection(connection._id);
             }
           }}
+          onRetry={() => {
+            if (connection) {
+              handleTestConnection(connection._id);
+            }
+          }}
           isLoading={isLoading}
         />
       </DialogContent>
