@@ -1,3 +1,4 @@
+
 // API response types with only _id fields
 import { 
   PropertyType, 
@@ -126,11 +127,11 @@ export interface ProfileResetResponse {
 
 // Property Responses
 export interface Address {
-  city: string;
-  stateProvince: string;
-  country: string;
   street?: string;
-  postalCode?: string;
+  city: string;
+  state_province?: string;
+  postal_code?: string;
+  country: string;
   coordinates?: {
     latitude: number;
     longitude: number;
@@ -141,6 +142,7 @@ export interface Property {
   _id: string;
   name: string;
   property_type: PropertyType;
+  desc?: string;
   address: Address;
   accommodates: number;
   bedrooms: number;
@@ -153,7 +155,6 @@ export interface Property {
   updated_at?: string;
   location?: string;
   days_since_creation?: number;
-  description?: string;
   bookings_count?: number;
   sync_status?: string;
   rating?: number | string;

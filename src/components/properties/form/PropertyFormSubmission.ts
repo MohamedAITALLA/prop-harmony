@@ -12,43 +12,43 @@ export const handleFormSubmission = async (
     // Prepare data for API
     const propertyData = {
       name: values.name,
+      desc: values.description, // Map description to desc
       property_type: values.property_type,
-      description: values.description,
       address: {
         street: values.street,
         city: values.city,
-        state_province: values.stateProvince || "", // Always ensure it's a string, default to empty string
-        postal_code: values.postalCode,
+        state_province: values.stateProvince || "", // Map stateProvince to state_province
+        postal_code: values.postalCode || "", // Map postalCode to postal_code
         country: values.country,
         coordinates: {
           latitude: values.latitude || 0,
           longitude: values.longitude || 0,
         }
       },
-      bedrooms: values.bedrooms,
-      bathrooms: values.bathrooms,
-      beds: values.beds || values.bedrooms,
-      accommodates: values.accommodates,
+      bedrooms: Number(values.bedrooms) || 0,
+      bathrooms: Number(values.bathrooms) || 0,
+      beds: Number(values.beds) || Number(values.bedrooms) || 0,
+      accommodates: Number(values.accommodates) || 1,
       amenities: {
-        wifi: values.wifi,
-        kitchen: values.kitchen,
-        ac: values.ac,
-        heating: values.heating,
-        tv: values.tv,
-        washer: values.washer,
-        dryer: values.dryer,
-        parking: values.parking,
-        elevator: values.elevator,
-        pool: values.pool,
+        wifi: Boolean(values.wifi),
+        kitchen: Boolean(values.kitchen),
+        ac: Boolean(values.ac),
+        heating: Boolean(values.heating),
+        tv: Boolean(values.tv),
+        washer: Boolean(values.washer),
+        dryer: Boolean(values.dryer),
+        parking: Boolean(values.parking),
+        elevator: Boolean(values.elevator),
+        pool: Boolean(values.pool),
       },
       policies: {
         check_in_time: values.checkInTime,
         check_out_time: values.checkOutTime,
-        minimum_stay: values.minimumStay,
-        pets_allowed: values.petsAllowed,
-        smoking_allowed: values.smokingAllowed,
+        minimum_stay: Number(values.minimumStay) || 1,
+        pets_allowed: Boolean(values.petsAllowed),
+        smoking_allowed: Boolean(values.smokingAllowed),
       },
-      images: values.images.map(img => img.value),
+      images: values.images.map(img => img.value).filter(url => url.trim() !== ""),
     };
 
     const response = await propertyService.createProperty(propertyData);

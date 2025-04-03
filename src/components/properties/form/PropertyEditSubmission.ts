@@ -8,7 +8,7 @@ export const handleEditFormSubmission = async (
   values: FormValues, 
   propertyId: string,
   navigate: NavigateFunction,
-  refetchProperty?: () => void
+  refetchProperty?: () => Promise<void>
 ) => {
   try {
     toast.info("Updating property...");
@@ -22,8 +22,8 @@ export const handleEditFormSubmission = async (
       address: {
         street: values.street,
         city: values.city,
-        state_province: values.stateProvince || "", // Always ensure it's a string, default to empty string
-        postal_code: values.postalCode,
+        state_province: values.stateProvince || "", // Map stateProvince to state_province
+        postal_code: values.postalCode || "", // Map postalCode to postal_code
         country: values.country,
         coordinates: {
           latitude: values.latitude || 0,
@@ -49,7 +49,7 @@ export const handleEditFormSubmission = async (
       policies: {
         check_in_time: values.checkInTime,
         check_out_time: values.checkOutTime,
-        minimum_stay: Number(values.minimumStay) || 1, // Keep this in API submission
+        minimum_stay: Number(values.minimumStay) || 1, 
         pets_allowed: Boolean(values.petsAllowed),
         smoking_allowed: Boolean(values.smokingAllowed),
       },
