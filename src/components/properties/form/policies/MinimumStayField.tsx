@@ -25,8 +25,8 @@ export function MinimumStayField({ form }: MinimumStayFieldProps) {
               type="number" 
               min="1"
               {...field}
-              // Ensure value is always a number, defaulting to 1
-              value={field.value ?? 1}
+              // Make sure value is properly handled as a number
+              value={field.value || 1}
               onChange={(e) => {
                 const value = e.target.value !== "" 
                   ? Number(e.target.value) 

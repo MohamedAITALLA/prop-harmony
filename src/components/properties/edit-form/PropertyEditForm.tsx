@@ -40,7 +40,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
     manualRetry
   } = usePropertyDetails(propertyId);
   
-  // Initialize form with default values that will be replaced once property loads
+  // Initialize form with default values
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -125,7 +125,7 @@ export function PropertyEditForm({ propertyId }: PropertyEditFormProps) {
         formData.pool = !!property.amenities.pool;
       }
       
-      // Reset form with new values
+      // Explicitly reset the form with new values to ensure the fields update
       form.reset(formData);
       
       // Set country to trigger city options loading

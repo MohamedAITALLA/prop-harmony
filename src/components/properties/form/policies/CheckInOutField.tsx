@@ -29,11 +29,7 @@ export function CheckInOutField({ form, name, label }: CheckInOutFieldProps) {
               type="time" 
               className="font-mono"
               {...field}
-              // Ensure the value is always defined with a proper fallback
               value={field.value || defaultValue}
-              onChange={(e) => {
-                field.onChange(e.target.value || defaultValue);
-              }}
             />
           </FormControl>
           <FormMessage />
