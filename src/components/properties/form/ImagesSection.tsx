@@ -17,8 +17,15 @@ export function ImagesSection({ form }: ImagesSectionProps) {
     name: "images"
   });
   
+  // Store the actual File objects for submission
   const [uploadedImages, setUploadedImages] = useState<{ [key: number]: File | null }>({});
   const [previewUrls, setPreviewUrls] = useState<{ [key: number]: string }>({});
+  
+  // Make uploadedImages available on the form element so we can access it during submission
+  React.useEffect(() => {
+    // @ts-ignore - adding a custom property to the form
+    form.uploadedImages = uploadedImages;
+  }, [uploadedImages, form]);
   
   const handleFileChange = (index: number, files: FileList | null) => {
     if (files && files.length > 0) {

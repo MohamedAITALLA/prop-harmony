@@ -42,10 +42,11 @@ export const formSchema = z.object({
   petsAllowed: z.boolean().default(false),
   smokingAllowed: z.boolean().default(false),
   
-  // Images - accept only blob URLs (for previews)
+  // Images - accept any string value for the form validation
+  // The actual file objects are handled separately
   images: z.array(
     z.object({
-      value: z.string().startsWith("blob:", "Preview image is required").or(z.string().startsWith("data:", "Preview image is required"))
+      value: z.string()
     })
   ).min(1, "At least one image is required"),
 });

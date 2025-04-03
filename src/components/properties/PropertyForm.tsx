@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
@@ -23,7 +23,6 @@ import { PropertyFormError } from "./form/PropertyFormError";
 
 export function PropertyForm() {
   const navigate = useNavigate();
-  const [uploadedImages, setUploadedImages] = useState<{ [key: number]: File | null }>({});
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -33,6 +32,8 @@ export function PropertyForm() {
   const { selectedCountry, availableCities, handleCountryChange } = useLocationSelector(form);
 
   const onSubmit = async (values: FormValues) => {
+    // @ts-ignore - accessing the custom property we added
+    const uploadedImages = form.uploadedImages || {};
     await handleFormSubmission(values, navigate, uploadedImages);
   };
 

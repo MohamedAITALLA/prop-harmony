@@ -19,6 +19,9 @@ export const handleFormSubmission = async (
       return;
     }
     
+    // Show toast indicating that data is being submitted
+    toast.info("Creating your property...");
+    
     // Prepare data for API
     const propertyData = {
       name: values.name,
@@ -82,13 +85,15 @@ export const handleFormSubmission = async (
 const uploadPropertyImages = async (uploadedImages: { [key: number]: File | null }): Promise<string[]> => {
   try {
     const imagePaths: string[] = [];
-    const imageIndices = Object.keys(uploadedImages);
+    const imageIndices = Object.keys(uploadedImages).filter(indexStr => uploadedImages[parseInt(indexStr)] !== null);
     
     if (imageIndices.length === 0) {
+      console.error("No images were found to upload");
       return imagePaths;
     }
     
     toast.info("Uploading images...");
+    console.log(`Uploading ${imageIndices.length} images`);
     
     // Create a FormData object to upload files
     for (const indexStr of imageIndices) {
@@ -99,15 +104,23 @@ const uploadPropertyImages = async (uploadedImages: { [key: number]: File | null
         const formData = new FormData();
         formData.append('image', file);
         
-        // Upload the image using the uploadImage service
-        const response = await propertyService.uploadImage(formData);
-        
-        if (response?.data?.imagePath) {
-          imagePaths.push(response.data.imagePath);
+        try {
+          // Upload the image using the uploadImage service
+          const response = await propertyService.uploadImage(formData);
+          
+          if (response?.data?.imagePath) {
+            imagePaths.push(response.data.imagePath);
+            console.log(`Successfully uploaded image: ${response.data.imagePath}`);
+          } else {
+            console.error("Image upload response missing imagePath:", response);
+          }
+        } catch (uploadError) {
+          console.error(`Error uploading image at index ${index}:`, uploadError);
         }
       }
     }
     
+    console.log(`Successfully uploaded ${imagePaths.length} images`);
     return imagePaths;
   } catch (error) {
     console.error("Error uploading images:", error);
