@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { 
   Table, 
@@ -39,6 +40,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AdvancedPagination } from "@/components/ui/advanced-pagination";
+import { propertyService } from "@/services/api-service";
+import { DeletePropertyDialog } from "./DeletePropertyDialog";
 
 export interface PropertyTableProps {
   properties: Property[];
@@ -50,6 +53,7 @@ export interface PropertyTableProps {
     pages: number;
   };
   onPageChange?: (page: number) => void;
+  onPropertyDeleted?: (propertyId: string) => void;
 }
 
 type SortField = "name" | "property_type" | "address.city" | "created_at" | "bookings_count";
@@ -59,7 +63,8 @@ export function PropertyTable({
   properties, 
   isLoading = false,
   pagination,
-  onPageChange
+  onPageChange,
+  onPropertyDeleted
 }: PropertyTableProps) {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,6 +72,8 @@ export function PropertyTable({
   const [cityFilter, setCityFilter] = useState("");
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [propertyToDelete, setPropertyToDelete] = useState<{id: string, name: string} | null>(null);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -121,22 +128,50 @@ export function PropertyTable({
     return matchesSearch && matchesType && matchesCity;
   }).sort(sortProperties);
 
-  const handleAction = (action: string, propertyId: string) => {
+  const handleAction = (action: string, property: Property) => {
     switch (action) {
       case "View":
-        navigate(`/properties/${propertyId}`);
+        navigate(`/properties/${property._id}`);
         break;
       case "Edit":
-        navigate(`/properties/${propertyId}/edit`);
+        navigate(`/properties/${property._id}/edit`);
         break;
       case "Sync Now":
-        toast.success(`Property ${propertyId} synced successfully`);
+        toast.success(`Property ${property.name} synced successfully`);
         break;
       case "Delete":
-        if (window.confirm("Are you sure you want to delete this property? This action cannot be undone.")) {
-          toast.success(`Property ${propertyId} deleted successfully`);
-        }
+        // Open delete confirmation dialog
+        setPropertyToDelete({
+          id: property._id,
+          name: property.name
+        });
+        setDeleteDialogOpen(true);
         break;
+    }
+  };
+  
+  const handleDeleteConfirm = async (preserveHistory: boolean) => {
+    if (!propertyToDelete) return;
+    
+    try {
+      await propertyService.deleteProperty(propertyToDelete.id, preserveHistory);
+      
+      toast.success(`Property ${propertyToDelete.name} deleted successfully`, {
+        description: preserveHistory 
+          ? "Historical data has been preserved for reporting purposes." 
+          : "All property data has been permanently deleted."
+      });
+      
+      // Call the callback to refresh the property list
+      if (onPropertyDeleted) {
+        onPropertyDeleted(propertyToDelete.id);
+      }
+    } catch (error) {
+      console.error("Error deleting property:", error);
+      toast.error(`Failed to delete property: ${(error as Error).message}`);
+    } finally {
+      setDeleteDialogOpen(false);
+      setPropertyToDelete(null);
     }
   };
 
@@ -302,17 +337,17 @@ export function PropertyTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleAction("View", property._id)}>
+                        <DropdownMenuItem onClick={() => handleAction("View", property)}>
                           <Eye className="h-4 w-4 mr-2" /> View
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleAction("Edit", property._id)}>
+                        <DropdownMenuItem onClick={() => handleAction("Edit", property)}>
                           <Edit className="h-4 w-4 mr-2" /> Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleAction("Sync Now", property._id)}>
+                        <DropdownMenuItem onClick={() => handleAction("Sync Now", property)}>
                           <RefreshCw className="h-4 w-4 mr-2" /> Sync Now
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleAction("Delete", property._id)}
+                          onClick={() => handleAction("Delete", property)}
                           className="text-destructive"
                         >
                           <Trash2 className="h-4 w-4 mr-2" /> Delete
@@ -341,6 +376,19 @@ export function PropertyTable({
         <div className="text-sm text-muted-foreground text-right">
           Showing {filteredProperties.length} of {properties.length} properties
         </div>
+      )}
+
+      {/* Delete property confirmation dialog */}
+      {propertyToDelete && (
+        <DeletePropertyDialog 
+          propertyName={propertyToDelete.name}
+          isOpen={deleteDialogOpen}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => {
+            setDeleteDialogOpen(false);
+            setPropertyToDelete(null);
+          }}
+        />
       )}
     </div>
   );

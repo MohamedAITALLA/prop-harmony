@@ -97,8 +97,10 @@ export const propertyService = {
   updateProperty: (id: string, data: any) => {
     return api.put(`/properties/${id}`, data);
   },
-  deleteProperty: (id: string) => {
-    return api.delete(`/properties/${id}`);
+  deleteProperty: (id: string, preserveHistory: boolean = true) => {
+    return api.delete(`/properties/${id}`, {
+      params: { preserve_history: preserveHistory }
+    });
   },
 };
 

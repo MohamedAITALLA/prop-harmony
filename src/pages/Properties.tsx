@@ -142,6 +142,11 @@ export default function Properties() {
     refetch();
     toast.success("Properties refreshed");
   };
+  
+  const handlePropertyDeleted = (propertyId: string) => {
+    // Refresh the properties list after deletion
+    refetch();
+  };
 
   const activeFiltersCount = [propertyType, city, sortOption].filter(Boolean).length;
 
@@ -274,7 +279,10 @@ export default function Properties() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="grid" className="mt-6">
-          <PropertyList properties={properties} isLoading={isLoading} />
+          <PropertyList 
+            properties={properties} 
+            isLoading={isLoading} 
+          />
           <div className="flex justify-center mt-4">
             <AdvancedPagination
               currentPage={pagination.page}
@@ -284,7 +292,13 @@ export default function Properties() {
           </div>
         </TabsContent>
         <TabsContent value="table" className="mt-6">
-          <PropertyTable properties={properties} isLoading={isLoading} />
+          <PropertyTable 
+            properties={properties} 
+            isLoading={isLoading} 
+            pagination={pagination}
+            onPageChange={handlePageChange}
+            onPropertyDeleted={handlePropertyDeleted}
+          />
           <div className="flex justify-center mt-4">
             <AdvancedPagination
               currentPage={pagination.page}
