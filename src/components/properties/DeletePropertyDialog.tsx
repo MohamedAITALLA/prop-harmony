@@ -14,7 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { AlertTriangle, Info } from "lucide-react";
+import { AlertTriangle, Info, Trash2, X, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface DeletePropertyDialogProps {
   propertyName: string;
@@ -31,16 +32,36 @@ export function DeletePropertyDialog({
 }: DeletePropertyDialogProps) {
   const [confirmText, setConfirmText] = useState("");
   const [preserveHistory, setPreserveHistory] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
   const expectedText = "delete";
   
-  const isConfirmDisabled = confirmText.toLowerCase() !== expectedText;
+  const isConfirmDisabled = confirmText.toLowerCase() !== expectedText || isDeleting;
+
+  const handleConfirmDelete = async () => {
+    if (confirmText.toLowerCase() !== expectedText) return;
+    
+    setIsDeleting(true);
+    
+    try {
+      onConfirm(preserveHistory);
+    } catch (error) {
+      console.error("Error in delete confirmation:", error);
+      toast({
+        title: "Delete failed",
+        description: "There was an error deleting the property. Please try again.",
+        variant: "destructive"
+      });
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
           <div className="flex items-center gap-2 text-destructive">
-            <AlertTriangle className="h-5 w-5" />
+            <Trash2 className="h-5 w-5" />
             <AlertDialogTitle>Delete Property</AlertDialogTitle>
           </div>
           <AlertDialogDescription className="pt-2">
@@ -59,6 +80,7 @@ export function DeletePropertyDialog({
               onChange={(e) => setConfirmText(e.target.value)}
               placeholder="delete"
               autoComplete="off"
+              disabled={isDeleting}
             />
           </div>
           
@@ -66,7 +88,8 @@ export function DeletePropertyDialog({
             <Checkbox 
               id="preserve-history" 
               checked={preserveHistory}
-              onCheckedChange={(checked) => setPreserveHistory(!!checked)} 
+              onCheckedChange={(checked) => setPreserveHistory(!!checked)}
+              disabled={isDeleting}
             />
             <div className="grid gap-1.5">
               <Label 
@@ -81,9 +104,9 @@ export function DeletePropertyDialog({
             </div>
           </div>
           
-          <div className="bg-amber-50 border border-amber-200 p-3 rounded-md flex gap-2">
-            <Info className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-            <p className="text-sm text-amber-800">
+          <div className={`p-3 rounded-md flex gap-2 ${preserveHistory ? "bg-amber-50 border border-amber-200" : "bg-red-50 border border-red-200"}`}>
+            <Info className={`h-5 w-5 shrink-0 mt-0.5 ${preserveHistory ? "text-amber-600" : "text-red-600"}`} />
+            <p className={`text-sm ${preserveHistory ? "text-amber-800" : "text-red-800"}`}>
               {preserveHistory 
                 ? "The property will be deactivated but historical data will be preserved for reporting." 
                 : "This will permanently delete all property data including historical bookings and sync records."}
@@ -93,15 +116,28 @@ export function DeletePropertyDialog({
         
         <AlertDialogFooter>
           <AlertDialogCancel asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline" disabled={isDeleting} className="flex items-center">
+              <X className="mr-2 h-4 w-4" /> Cancel
+            </Button>
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button 
               variant="destructive" 
               disabled={isConfirmDisabled}
-              onClick={() => onConfirm(preserveHistory)}
+              onClick={handleConfirmDelete}
+              className="flex items-center"
             >
-              Delete Property
+              {isDeleting ? (
+                <>
+                  <span className="inline-block h-4 w-4 mr-2 rounded-full border-2 border-t-transparent border-white animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Property
+                </>
+              )}
             </Button>
           </AlertDialogAction>
         </AlertDialogFooter>

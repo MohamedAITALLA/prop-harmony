@@ -12,12 +12,15 @@ import { PropertyDetailsError } from "@/components/properties/PropertyDetailsErr
 import { usePropertyDetails } from "@/hooks/properties/usePropertyDetails";
 import { usePropertyEvents } from "@/hooks/properties/usePropertyEvents";
 import { usePropertyConflicts } from "@/hooks/properties/usePropertyConflicts";
+import { DeletePropertyDialog } from "@/components/properties/DeletePropertyDialog";
+import { propertyService } from "@/services/property-service";
 
 export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isSyncDialogOpen, setIsSyncDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const initialTab = searchParams.get("tab") || "overview";
   const [activeTab, setActiveTab] = useState(initialTab);
 
@@ -51,13 +54,28 @@ export default function PropertyDetails() {
   };
 
   const handleDelete = () => {
-    if (window.confirm("Are you sure you want to delete this property? This action cannot be undone.")) {
-      try {
-        toast.success("Property deleted successfully");
-        navigate("/properties");
-      } catch (error) {
-        toast.error("Failed to delete property");
-      }
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async (preserveHistory: boolean) => {
+    try {
+      if (!id) throw new Error("Property ID not found");
+      
+      const result = await propertyService.deleteProperty(id, preserveHistory);
+      
+      const actionType = preserveHistory ? "deactivated" : "deleted";
+      toast.success(`Property ${property?.name} successfully ${actionType}`, {
+        description: preserveHistory 
+          ? "Historical data has been preserved for reporting purposes"
+          : "All property data has been permanently deleted"
+      });
+      
+      // Navigate back to properties list
+      navigate("/properties");
+    } catch (error) {
+      console.error("Error deleting property:", error);
+      toast.error(`Failed to delete property: ${(error as Error).message || "Unknown error"}`);
+      setIsDeleteDialogOpen(false);
     }
   };
 
@@ -130,6 +148,13 @@ export default function PropertyDetails() {
         onOpenChange={setIsSyncDialogOpen}
         propertyId={id}
         onSyncComplete={handleSyncComplete}
+      />
+
+      <DeletePropertyDialog
+        propertyName={property.name}
+        isOpen={isDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setIsDeleteDialogOpen(false)}
       />
     </div>
   );
