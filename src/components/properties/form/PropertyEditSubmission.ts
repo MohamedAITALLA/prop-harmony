@@ -43,9 +43,21 @@ export const handleEditFormSubmission = async (
     const imagesDeleted = response?.data?.meta?.images_deleted || 0;
     
     if (response?.success) {
-      // Refetch the property data if the update was successful
+      // Explicitly log the updated property data to confirm image updates
+      console.log("Updated property data:", response?.data?.property);
+      console.log("Updated images:", response?.data?.property?.images || []);
+      console.log("Original images count:", initialData.images?.length);
+      console.log("Updated images count:", response?.data?.property?.images?.length || 0);
+
+      // Force refetch the property data to ensure we have the latest data
       if (refetchProperty) {
-        await refetchProperty();
+        try {
+          console.log("Refetching property data after update...");
+          await refetchProperty();
+          console.log("Property data refetched successfully after update");
+        } catch (refetchError) {
+          console.error("Error refetching property after update:", refetchError);
+        }
       }
       
       // Show different toast messages based on the changes

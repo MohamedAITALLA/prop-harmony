@@ -6,16 +6,17 @@ import { toast } from "sonner";
 
 export function usePropertyDetails(id: string | undefined, include?: string) {
   const [retryAttempt, setRetryAttempt] = useState(0);
+  const [forceRefresh, setForceRefresh] = useState(0); // Add state for forcing a refresh
 
   const { 
     data: propertyResponse, 
     isLoading: propertyLoading, 
     error: propertyError, 
-    refetch: refetchProperty,
+    refetch: refetchPropertyInternal,
     isError,
     isRefetching
   } = useQuery({
-    queryKey: ["property", id, retryAttempt, include],
+    queryKey: ["property", id, retryAttempt, include, forceRefresh], // Add forceRefresh to queryKey
     queryFn: async () => {
       if (!id) throw new Error("Property ID is required");
       
@@ -57,11 +58,26 @@ export function usePropertyDetails(id: string | undefined, include?: string) {
     },
     retry: 3, // Retry failed requests up to 3 times
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 0, // Reduce stale time to always get fresh data for images
+    refetchOnWindowFocus: true, // Refresh when the window gets focus
   });
 
   const manualRetry = () => {
     setRetryAttempt(prev => prev + 1);
+  };
+
+  // Create a refetch function that forces a complete refresh
+  const refetchProperty = async () => {
+    console.log("Forcing property refetch...");
+    
+    // First invalidate the query by changing the forceRefresh key
+    setForceRefresh(prev => prev + 1);
+    
+    // Then trigger the refetch
+    const result = await refetchPropertyInternal();
+    console.log("Property refetch result:", result);
+    
+    return result;
   };
 
   // Extract property from response with proper fallbacks
