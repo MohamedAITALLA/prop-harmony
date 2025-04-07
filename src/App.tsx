@@ -6,7 +6,7 @@ import {
   Route,
   Navigate,
 } from 'react-router-dom';
-import { useAuth } from './hooks/useAuth';
+import { useAuth, AuthProvider } from './hooks/useAuth';
 import MainLayout from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Properties from './pages/Properties';
@@ -86,9 +86,11 @@ function AppRoutes() {
 function App() {
   return (
     <Router>
-      <Suspense fallback={<div>Loading...</div>}>
-        <AppRoutes />
-      </Suspense>
+      <AuthProvider>
+        <Suspense fallback={<div>Loading...</div>}>
+          <AppRoutes />
+        </Suspense>
+      </AuthProvider>
     </Router>
   );
 }
