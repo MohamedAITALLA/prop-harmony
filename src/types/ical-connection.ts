@@ -34,10 +34,10 @@ export interface UpdateConnectionResponse {
     status: string;
     // other connection properties
   };
-  meta?: {
+  meta: {
     action: string;
     platform: string;
-    updated_fields?: string[]; // Explicitly defined field
+    updated_fields?: string[]; // Explicitly defined as optional array
   };
   message: string;
 }

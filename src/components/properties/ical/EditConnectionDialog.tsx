@@ -52,9 +52,9 @@ export function EditConnectionDialog({
       queryClient.invalidateQueries({ queryKey: [`property-ical-connections-${propertyId}`] });
       onOpenChange(false);
       
-      // Safely access the updated_fields property if it exists
+      // Safely access the meta property and updated_fields if they exist
       const meta = response.data.meta || {};
-      const updatedFields = meta.updated_fields ? meta.updated_fields : [];
+      const updatedFields = meta.updated_fields || [];
       const fieldText = updatedFields.length > 0 
         ? `Updated ${updatedFields.join(', ')}` 
         : 'Connection updated';
