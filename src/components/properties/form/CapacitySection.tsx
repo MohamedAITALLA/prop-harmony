@@ -20,13 +20,28 @@ export function CapacitySection({ form }: CapacitySectionProps) {
 
   const handleIncrement = (field: keyof FormValues) => {
     const currentValue = form.getValues(field);
-    form.setValue(field, ensureInteger(String(currentValue)) + 1);
+    
+    // For bathrooms, allow 0.5 increments
+    if (field === 'bathrooms') {
+      const current = parseFloat(String(currentValue)) || 0;
+      form.setValue(field, Math.round((current + 0.5) * 2) / 2);
+    } else {
+      form.setValue(field, ensureInteger(String(currentValue)) + 1);
+    }
   };
 
   const handleDecrement = (field: keyof FormValues) => {
     const currentValue = form.getValues(field);
-    const newValue = Math.max(0, ensureInteger(String(currentValue)) - 1);
-    form.setValue(field, newValue);
+    
+    // For bathrooms, allow 0.5 decrements
+    if (field === 'bathrooms') {
+      const current = parseFloat(String(currentValue)) || 0;
+      const newValue = Math.max(0, Math.round((current - 0.5) * 2) / 2);
+      form.setValue(field, newValue);
+    } else {
+      const newValue = Math.max(0, ensureInteger(String(currentValue)) - 1);
+      form.setValue(field, newValue);
+    }
   };
 
   return (
@@ -82,14 +97,14 @@ export function CapacitySection({ form }: CapacitySectionProps) {
           )}
         />
 
-          {/* Bathrooms - Can have decimal values */}
-          <FormField
+        {/* Bathrooms - Can have decimal values */}
+        <FormField
           control={form.control}
           name="bathrooms"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="flex items-center gap-1">
-                <Bed className="h-4 w-4" /> Bathrooms
+                <Bath className="h-4 w-4" /> Bathrooms
               </FormLabel>
               <FormControl>
                 <div className="flex items-center">
@@ -105,11 +120,12 @@ export function CapacitySection({ form }: CapacitySectionProps) {
                   <Input 
                     type="number" 
                     min="0" 
-                    step="1"
+                    step="0.5"
                     className="mx-2 text-center" 
                     {...field} 
                     onChange={(e) => {
-                      field.onChange(ensureInteger(e.target.value));
+                      const value = parseFloat(e.target.value);
+                      field.onChange(isNaN(value) ? 0 : value);
                     }}
                   />
                   <Button 
