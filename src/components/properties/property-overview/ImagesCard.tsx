@@ -30,7 +30,7 @@ export function ImagesCard({ property }: ImagesCardProps) {
       }
       
       return imageUrl;
-    });
+    }).filter(url => url); // Filter out any empty URLs
     
     console.log("Processed image URLs:", processedUrls);
     setImageUrls(processedUrls);

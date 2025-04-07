@@ -32,6 +32,10 @@ export const handleEditFormSubmission = async (
     // Send empty object to API as requested
     const propertyData = {};
     
+    // Log initial image count for comparison
+    console.log("Initial image count:", initialData.images?.length);
+    console.log("Initial images:", initialData.images);
+    
     console.log("Submitting update with data:", propertyData);
     const response = await propertyService.updateProperty(propertyId, propertyData, newImageFiles, imagesToDelete);
     console.log("Update response:", response);

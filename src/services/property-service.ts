@@ -97,6 +97,7 @@ export const propertyService = {
   updateProperty: async (id: string, data: any = {}, newImages?: File[], deleteImages?: string[]) => {
     try {
       console.log(`Updating property ${id} with data:`, data);
+      console.log(`Images to delete:`, deleteImages);
       
       // Always use multipart/form-data for consistency with API specs
       const formData = new FormData();
@@ -115,7 +116,13 @@ export const propertyService = {
       
       // Add image URLs to delete if any
       if (deleteImages && deleteImages.length > 0) {
-        formData.append('deleteImages', JSON.stringify(deleteImages));
+        // Make sure we're sending the full URLs without any leading slash
+        const formattedDeleteImages = deleteImages.map(url => {
+          return url.startsWith('/') ? url.substring(1) : url;
+        });
+        
+        console.log("Formatted deleteImages:", formattedDeleteImages);
+        formData.append('deleteImages', JSON.stringify(formattedDeleteImages));
       }
       
       const response = await api.put(`/properties/${id}`, formData, {
