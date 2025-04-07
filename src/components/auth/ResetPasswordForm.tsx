@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { authService } from "@/services/api-service";
 import { toast } from "sonner";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Home, Loader2, Lock, Eye, EyeOff, AlertCircle, Check } from "lucide-react";
+import { Home, Loader2, Lock, Eye, EyeOff, AlertCircle, Check, Info } from "lucide-react";
 import { z } from "zod";
 
 const passwordSchema = z.object({
@@ -32,11 +32,49 @@ export default function ResetPasswordForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isValidating, setIsValidating] = useState(true);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [tokenInfo, setTokenInfo] = useState<{
+    email: string;
+    validUntil: Date | null;
+  } | null>(null);
   
   const token = searchParams.get("token");
   
+  useEffect(() => {
+    if (!token) {
+      setIsValidating(false);
+      return;
+    }
+
+    const validateToken = async () => {
+      try {
+        setIsValidating(true);
+        const response = await authService.validateResetToken(token);
+        
+        if (response.success && response.data) {
+          setTokenInfo({
+            email: response.data.email,
+            validUntil: new Date(response.data.token_valid_until)
+          });
+          setErrorMessage("");
+        } else {
+          setErrorMessage(response.message || "Invalid or expired reset token");
+          toast.error(response.message || "Invalid reset link");
+        }
+      } catch (error) {
+        console.error("Error validating token:", error);
+        setErrorMessage("This reset link is invalid or has expired");
+        toast.error("Invalid reset link");
+      } finally {
+        setIsValidating(false);
+      }
+    };
+
+    validateToken();
+  }, [token]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -87,8 +125,30 @@ export default function ResetPasswordForm() {
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
+
+  // Show loading state while validating token
+  if (isValidating) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1 flex flex-col items-center text-center">
+          <div className="flex items-center gap-2 mb-2">
+            <Home className="h-6 w-6 text-primary" />
+            <span className="font-semibold text-xl">PropertySync</span>
+          </div>
+          <CardTitle className="text-2xl">Verifying Reset Link</CardTitle>
+          <CardDescription>
+            Please wait while we verify your reset link
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </CardContent>
+      </Card>
+    );
+  }
   
-  if (!token) {
+  // Show invalid token state
+  if (!token || errorMessage.includes("invalid") || errorMessage.includes("expired")) {
     return (
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 flex flex-col items-center text-center">
@@ -105,7 +165,7 @@ export default function ResetPasswordForm() {
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              The password reset token is missing. Please request a new password reset link.
+              {errorMessage || "The password reset token is missing or invalid. Please request a new password reset link."}
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -132,7 +192,7 @@ export default function ResetPasswordForm() {
         <CardDescription>
           {isSuccess 
             ? "Your password has been reset successfully"
-            : "Create a new password for your account"}
+            : tokenInfo ? `Create a new password for ${tokenInfo.email}` : "Create a new password for your account"}
         </CardDescription>
       </CardHeader>
       
@@ -147,7 +207,20 @@ export default function ResetPasswordForm() {
             </Alert>
           ) : (
             <>
-              {errorMessage && (
+              {tokenInfo && tokenInfo.validUntil && (
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    This reset link is valid until{" "}
+                    {new Intl.DateTimeFormat("en-US", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    }).format(tokenInfo.validUntil)}
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {errorMessage && !errorMessage.includes("invalid") && !errorMessage.includes("expired") && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>{errorMessage}</AlertDescription>

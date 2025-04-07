@@ -1,5 +1,6 @@
 
 import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
+import { Card } from "@/components/ui/card";
 
 export default function ResetPassword() {
   return (

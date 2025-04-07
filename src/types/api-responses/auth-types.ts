@@ -64,6 +64,20 @@ export interface ForgotPasswordResponse {
   };
 }
 
+export interface ValidateResetTokenResponse {
+  success: boolean;
+  data?: {
+    email: string;
+    token_valid_until: string;
+  };
+  message: string;
+  timestamp: string;
+  error?: {
+    code: string;
+    details: string;
+  };
+}
+
 export interface ResetPasswordResponse {
   success: boolean;
   message: string;

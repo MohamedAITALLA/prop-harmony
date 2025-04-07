@@ -6,7 +6,8 @@ import {
   EmailConfirmationResponse, 
   ResendConfirmationResponse,
   ForgotPasswordResponse,
-  ResetPasswordResponse
+  ResetPasswordResponse,
+  ValidateResetTokenResponse
 } from "@/types/api-responses/auth-types";
 
 export const authService = {
@@ -71,6 +72,18 @@ export const authService = {
       return response.data;
     } catch (error) {
       console.error("Forgot password service error:", error);
+      throw error;
+    }
+  },
+
+  validateResetToken: async (token: string) => {
+    try {
+      console.log("Auth service validate reset token attempt");
+      const response = await api.get<ValidateResetTokenResponse>(`/auth/validate-reset-token/${token}`);
+      console.log("Auth service validate reset token response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Validate reset token service error:", error);
       throw error;
     }
   },
