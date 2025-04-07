@@ -14,6 +14,10 @@ export const getEventColor = (platform?: Platform, eventType?: EventType): strin
       return "#003580";
     case Platform.MANUAL:
       return "#10b981";
+    case Platform.EXPEDIA:
+      return "#ffc439";
+    case Platform.TRIPADVISOR:
+      return "#00aa6c";
     default:
       return "#6366f1";
   }

@@ -8,6 +8,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { AlertTriangle } from "lucide-react";
 import { Platform, EventType } from "@/types/enums";
 import { cn } from "@/lib/utils";
+import { PlatformIcon } from '@/components/ui/platform-icon';
 
 interface FullCalendarWrapperProps {
   events: any[];
@@ -56,7 +57,7 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
   const eventsWithColors = events.map(event => {
     const platform = event.extendedProps?.platform;
     const eventType = event.extendedProps?.event_type;
-    const color = getEventColor(platform, eventType);
+    const color = getEventColor(platform as Platform, eventType as EventType);
     
     return {
       ...event,
@@ -133,6 +134,31 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
           z-index: 2;
         }
 
+        /* Platform-specific colors */
+        .platform-airbnb {
+          border-left: 3px solid #ff5a5f !important;
+        }
+        
+        .platform-booking {
+          border-left: 3px solid #003580 !important;
+        }
+        
+        .platform-vrbo {
+          border-left: 3px solid #3b5998 !important;
+        }
+        
+        .platform-expedia {
+          border-left: 3px solid #ffc439 !important;
+        }
+        
+        .platform-tripadvisor {
+          border-left: 3px solid #00aa6c !important;
+        }
+        
+        .platform-manual {
+          border-left: 3px solid #10b981 !important;
+        }
+
         /* Responsive adjustments */
         @media (max-width: 640px) {
           .fc-toolbar-title {
@@ -180,8 +206,9 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
                   {hasConflict && <AlertTriangle className="h-3 w-3 flex-shrink-0" />}
                   <span className="truncate">{info.event.title}</span>
                 </div>
-                <div className="text-[10px] opacity-90 truncate">
-                  {platform}
+                <div className="text-[10px] opacity-90 truncate flex items-center gap-1">
+                  <PlatformIcon platform={platform} size={10} />
+                  <span>{platform}</span>
                 </div>
               </div>
             </div>
