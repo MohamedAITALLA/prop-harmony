@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -28,8 +27,19 @@ export function ImageUploadSection({
   const [showFileInputs, setShowFileInputs] = useState(false);
   
   const addImageUpload = () => {
-    append({ value: "" });
-    setShowFileInputs(true);
+    // If already showing inputs, just add one more
+    // Otherwise initialize with a single input
+    if (!showFileInputs) {
+      // If we're not showing inputs yet, don't append to existing fields
+      // Just initialize with a single field
+      if (fields.length === 0) {
+        append({ value: "" });
+      }
+      setShowFileInputs(true);
+    } else {
+      // Add another input when already showing inputs
+      append({ value: "" });
+    }
   };
   
   const removeNewImage = (index: number) => {
