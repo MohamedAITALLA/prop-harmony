@@ -43,7 +43,7 @@ export default function SyncLogs() {
   });
 
   // Safely extract logs and pagination from the response
-  // ApiResponse has a 'data' property which contains the SyncLogsResponse
+  // The SyncLogsResponse structure has these fields nested inside the 'data' property
   const syncLogs: SyncLog[] = data?.data?.logs || [];
   const pagination = data?.data?.pagination || { 
     total: 0, 
