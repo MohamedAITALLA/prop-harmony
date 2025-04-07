@@ -10,15 +10,6 @@ export const handleFormSubmission = async (
   uploadedImages: { [key: number]: File | null } = {}
 ) => {
   try {
-    // First, upload any images that are files and collect their paths
-    const imagePaths = await uploadPropertyImages(uploadedImages);
-    
-    // If no images were uploaded successfully, show an error
-    if (imagePaths.length === 0) {
-      toast.error("Please upload at least one image for your property.");
-      return;
-    }
-    
     // Show toast indicating that data is being submitted
     toast.info("Creating your property...");
     
@@ -60,71 +51,37 @@ export const handleFormSubmission = async (
         minimum_stay: Number(values.minimumStay) || 1,
         pets_allowed: Boolean(values.petsAllowed),
         smoking_allowed: Boolean(values.smokingAllowed),
-      },
-      // Use the uploaded images paths
-      images: imagePaths,
+      }
     };
 
-    const response = await propertyService.createProperty(propertyData);
+    // Extract image files from the uploadedImages object
+    const imageFiles: File[] = [];
+    Object.values(uploadedImages).forEach(file => {
+      if (file) {
+        imageFiles.push(file);
+      }
+    });
+
+    // If no images were uploaded successfully, show an error
+    if (imageFiles.length === 0) {
+      toast.error("Please upload at least one image for your property.");
+      return;
+    }
+
+    // Create property with images
+    const response = await propertyService.createProperty(propertyData, imageFiles);
     
     toast.success("Property created successfully!");
     
     // Navigate to the property details page
-    if (response?.data?.property?._id) {
-      navigate(`/properties/${response.data.property._id}`);
+    if (response?.data?.property?._id || response?.data?.property?.id) {
+      const propertyId = response.data.property._id || response.data.property.id;
+      navigate(`/properties/${propertyId}`);
     } else {
       navigate("/properties");
     }
   } catch (error) {
     console.error("Error creating property:", error);
     toast.error("Failed to create property. Please try again.");
-  }
-};
-
-// Helper function to upload images to the server
-const uploadPropertyImages = async (uploadedImages: { [key: number]: File | null }): Promise<string[]> => {
-  try {
-    const imagePaths: string[] = [];
-    const imageIndices = Object.keys(uploadedImages).filter(indexStr => uploadedImages[parseInt(indexStr)] !== null);
-    
-    if (imageIndices.length === 0) {
-      console.error("No images were found to upload");
-      return imagePaths;
-    }
-    
-    toast.info("Uploading images...");
-    console.log(`Uploading ${imageIndices.length} images`);
-    
-    // Create a FormData object to upload files
-    for (const indexStr of imageIndices) {
-      const index = parseInt(indexStr);
-      const file = uploadedImages[index];
-      
-      if (file) {
-        const formData = new FormData();
-        formData.append('image', file);
-        
-        try {
-          // Upload the image using the uploadImage service
-          const response = await propertyService.uploadImage(formData);
-          
-          if (response?.data?.imagePath) {
-            imagePaths.push(response.data.imagePath);
-            console.log(`Successfully uploaded image: ${response.data.imagePath}`);
-          } else {
-            console.error("Image upload response missing imagePath:", response);
-          }
-        } catch (uploadError) {
-          console.error(`Error uploading image at index ${index}:`, uploadError);
-        }
-      }
-    }
-    
-    console.log(`Successfully uploaded ${imagePaths.length} images`);
-    return imagePaths;
-  } catch (error) {
-    console.error("Error uploading images:", error);
-    toast.error("Failed to upload one or more images.");
-    return [];
   }
 };

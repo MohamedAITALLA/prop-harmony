@@ -18,6 +18,12 @@ interface PropertyViewProps {
     has_next_page: boolean;
     has_previous_page: boolean;
   };
+  summary?: {
+    total_properties: number;
+    by_property_type: Record<string, number>;
+    by_city: Record<string, number>;
+    applied_filters: Record<string, any>;
+  };
   onPageChange: (page: number) => void;
   onPropertyDeleted: (propertyId: string) => void;
   viewMode: "grid" | "table";
@@ -28,6 +34,7 @@ export function PropertyView({
   properties,
   isLoading,
   pagination,
+  summary,
   onPageChange,
   onPropertyDeleted,
   viewMode,

@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Image, Upload, X } from "lucide-react";
+import { Image, Upload, X, FileCheck } from "lucide-react";
 import { UseFormReturn, useFieldArray } from "react-hook-form";
 import { FormValues } from "./PropertyFormSchema";
 
@@ -72,11 +72,24 @@ export function ImagesSection({ form }: ImagesSectionProps) {
     remove(index);
   };
 
+  // Count how many images are actually selected
+  const selectedImagesCount = Object.values(uploadedImages).filter(img => img !== null).length;
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium flex items-center gap-2">
         <Image className="h-4 w-4" /> Property Images
       </h3>
+      
+      <div className="bg-muted/30 p-3 rounded-md">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <FileCheck className="h-4 w-4" />
+          <span>
+            {selectedImagesCount} {selectedImagesCount === 1 ? 'image' : 'images'} selected
+            {selectedImagesCount === 0 && ' (at least one image is required)'}
+          </span>
+        </div>
+      </div>
       
       {fields.map((field, index) => (
         <div key={field.id} className="space-y-2">

@@ -30,16 +30,17 @@ export const usePropertiesPage = () => {
       params.city = city;
     }
 
+    // Map sortOption to API-compliant sort format (field:direction)
     if (sortOption === "newest") {
-      params.sort = "-created_at";
+      params.sort = "created_at:desc";
     } else if (sortOption === "oldest") {
-      params.sort = "created_at";
+      params.sort = "created_at:asc";
     } else if (sortOption === "name_asc") {
-      params.sort = "name";
+      params.sort = "name:asc";
     } else if (sortOption === "name_desc") {
-      params.sort = "-name";
+      params.sort = "name:desc";
     } else if (sortOption === "most_bookings") {
-      params.sort = "-bookings_count";
+      params.sort = "bookings_count:desc";
     }
 
     return params;
@@ -96,6 +97,14 @@ export const usePropertiesPage = () => {
     has_previous_page: false,
   };
 
+  // Get summary data, if available
+  const summary = data?.data?.summary || {
+    total_properties: properties.length,
+    by_property_type: {},
+    by_city: {},
+    applied_filters: { property_type: propertyType, city }
+  };
+
   // Get property type label
   const getPropertyTypeLabel = useCallback((type: string) => {
     switch (type) {
@@ -109,6 +118,10 @@ export const usePropertiesPage = () => {
         return "Condo";
       case PropertyType.HOUSE:
         return "House";
+      case PropertyType.HOTEL:
+        return "Hotel";
+      case PropertyType.ROOM:
+        return "Room";
       case PropertyType.OTHER:
         return "Other";
       default:
@@ -119,6 +132,7 @@ export const usePropertiesPage = () => {
   return {
     properties,
     pagination,
+    summary,
     isLoading,
     error,
     viewMode,

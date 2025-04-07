@@ -9,6 +9,7 @@ export default function Properties() {
   const {
     properties,
     pagination,
+    summary,
     isLoading,
     error,
     viewMode,
@@ -44,12 +45,14 @@ export default function Properties() {
         onRefresh={handleRefresh}
         isFilterOpen={isFilterOpen}
         setIsFilterOpen={setIsFilterOpen}
+        summary={summary}
       />
       
       <PropertyView 
         properties={properties}
         isLoading={isLoading}
         pagination={pagination}
+        summary={summary}
         onPageChange={handlePageChange}
         onPropertyDeleted={handlePropertyDeleted}
         viewMode={viewMode}

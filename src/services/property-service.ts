@@ -1,3 +1,4 @@
+
 import api from "@/lib/base-api";
 import { ApiResponse } from "@/types/api-responses";
 
@@ -16,7 +17,9 @@ export const propertyService = {
   },
   getAllProperties: async (params?: PropertyQueryParams) => {
     try {
+      console.log("Fetching properties with params:", params);
       const response = await api.get("/properties", { params });
+      console.log("Properties API response:", response.data);
       return response.data; // Return the data portion directly
     } catch (error) {
       console.error("Error fetching properties:", error);
@@ -90,8 +93,40 @@ export const propertyService = {
       throw error;
     }
   },
-  createProperty: (data: any) => {
-    return api.post("/properties", data);
+  createProperty: async (propertyData: any, images?: File[]) => {
+    try {
+      console.log("Creating property with data:", propertyData);
+      
+      // If we have images, use multipart/form-data
+      if (images && images.length > 0) {
+        const formData = new FormData();
+        
+        // Add property data as JSON string
+        formData.append('property', JSON.stringify(propertyData));
+        
+        // Add each image to the form data
+        images.forEach((image, index) => {
+          formData.append(`images`, image);
+        });
+        
+        const response = await api.post("/properties", formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        
+        console.log("Create property response:", response.data);
+        return response.data;
+      } else {
+        // If no images, just send JSON
+        const response = await api.post("/properties", { property: propertyData });
+        console.log("Create property response:", response.data);
+        return response.data;
+      }
+    } catch (error) {
+      console.error("Error creating property:", error);
+      throw error;
+    }
   },
   updateProperty: async (id: string, data: any) => {
     try {

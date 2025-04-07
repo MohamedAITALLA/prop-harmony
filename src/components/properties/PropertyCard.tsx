@@ -1,34 +1,31 @@
 
-import { Badge } from "@/components/ui/badge";
+import React from "react";
+import { Home, MapPin, Bed, Bath, Users } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Bed, Bath, Users, MapPin } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { Property } from "@/types/api-responses";
 
-interface PropertyCardProps {
+export interface PropertyCardProps {
   property: Property;
+  className?: string;
 }
 
-export function PropertyCard({ property }: PropertyCardProps) {
+export function PropertyCard({ property, className, ...props }: PropertyCardProps & React.HTMLAttributes<HTMLDivElement>) {
   const navigate = useNavigate();
   
   const defaultImage = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
-  
-  // Get the first image from the property or use default
-  let imageUrl = defaultImage;
-  if (property.images && property.images.length > 0) {
-    const firstImage = property.images[0];
-    const imagePath = typeof firstImage === 'string' ? firstImage : (firstImage as any)?.value || '';
+  const imageUrl = property.images && property.images.length > 0 
+    ? property.images[0] 
+    : defaultImage;
     
-    // If imagePath starts with '/' it's a server path, otherwise it's an external URL
-    imageUrl = imagePath.startsWith('/') 
-      ? `${import.meta.env.VITE_API_URL || ''}${imagePath}`
-      : imagePath || defaultImage;
-  }
+  // Handle both _id and id property formats
+  const propertyId = property._id || property.id;
 
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-md">
+    <Card className={cn("overflow-hidden transition-all hover:shadow-md", className)} {...props}>
       <div 
         className="h-48 bg-cover bg-center" 
         style={{ backgroundImage: `url(${imageUrl})` }}
@@ -69,7 +66,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
         <Button 
           variant="default" 
           className="w-full"
-          onClick={() => navigate(`/properties/${property._id}`)}
+          onClick={() => navigate(`/properties/${propertyId}`)}
         >
           View Details
         </Button>
