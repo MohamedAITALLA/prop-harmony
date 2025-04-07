@@ -34,7 +34,7 @@ export default function SyncLogs() {
       
       try {
         const response = await syncService.getSyncLogs(params);
-        return response.data; // Ensure we're accessing the data property
+        return response.data; // This returns the ApiResponse<SyncLogsResponse>
       } catch (err) {
         console.error('Error fetching sync logs:', err);
         throw err;
@@ -43,8 +43,9 @@ export default function SyncLogs() {
   });
 
   // Safely extract logs and pagination from the response
-  const syncLogs: SyncLog[] = data?.logs || [];
-  const pagination = data?.pagination || { 
+  // ApiResponse has a 'data' property which contains the SyncLogsResponse
+  const syncLogs: SyncLog[] = data?.data?.logs || [];
+  const pagination = data?.data?.pagination || { 
     total: 0, 
     page: 1, 
     limit: 10, 
