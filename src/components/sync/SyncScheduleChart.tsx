@@ -1,89 +1,85 @@
 
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { syncService } from "@/services/api-service";
-import { toast } from "sonner";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, TooltipProps } from "recharts";
+import { format, parseISO, isValid } from "date-fns";
+import { Card } from "@/components/ui/card";
 
-export function SyncScheduleChart() {
-  // Fetch sync schedule data
-  const { data: scheduleData, isLoading } = useQuery({
-    queryKey: ["sync", "schedule"],
-    queryFn: async () => {
-      try {
-        // In a real app, this would use the actual API
-        //const response = await syncService.getSyncSchedule();
-        //return response.data.schedule;
-        
-        // For development purposes, return mock data
-        return getMockSyncSchedule();
-      } catch (error) {
-        console.error("Error fetching sync schedule:", error);
-        toast.error("Failed to load sync schedule");
-        return [];
-      }
+interface SyncHistoryItem {
+  date: string;
+  count: number;
+}
+
+interface SyncScheduleChartProps {
+  data?: SyncHistoryItem[];
+}
+
+export function SyncScheduleChart({ data }: SyncScheduleChartProps) {
+  // If no data is provided, generate mock data
+  const chartData = data || generateMockData();
+  
+  const formatDate = (dateString: string) => {
+    try {
+      const date = parseISO(dateString);
+      return isValid(date) ? format(date, "MMM dd") : dateString;
+    } catch (error) {
+      return dateString;
     }
-  });
+  };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+    if (active && payload && payload.length) {
+      return (
+        <Card className="bg-background border shadow-md p-2 text-sm">
+          <p className="font-medium">{formatDate(label)}</p>
+          <p>{`Syncs: ${payload[0].value}`}</p>
+        </Card>
+      );
+    }
+    return null;
+  };
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={scheduleData || []} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}>
-        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+      <BarChart
+        data={chartData}
+        margin={{
+          top: 5,
+          right: 30,
+          left: 20,
+          bottom: 5,
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
         <XAxis 
-          dataKey="time" 
-          tick={{ fontSize: 12 }} 
-          tickMargin={10}
+          dataKey="date" 
+          tickFormatter={formatDate}
+          tick={{ fontSize: 12 }}
         />
-        <YAxis allowDecimals={false} />
-        <Tooltip 
-          formatter={(value: number, name: string) => [`${value} properties`, 'Scheduled Syncs']}
-          labelFormatter={(label) => `Time: ${label}`}
+        <YAxis 
+          tick={{ fontSize: 12 }}
+          allowDecimals={false}
         />
-        <Bar 
-          dataKey="count" 
-          name="Scheduled Syncs" 
-          fill="#8884d8" 
-          radius={[4, 4, 0, 0]}
-        />
+        <Tooltip content={<CustomTooltip />} />
+        <Bar dataKey="count" fill="#3b82f6" barSize={24} radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
 }
 
-// Mock data function for development purposes
-function getMockSyncSchedule() {
-  const hours = [];
-  const now = new Date();
-  const currentHour = now.getHours();
+// Generate mock data if real data is not available
+function generateMockData(): SyncHistoryItem[] {
+  const data: SyncHistoryItem[] = [];
+  const today = new Date();
   
-  for (let i = 0; i < 24; i++) {
-    const hour = (currentHour + i) % 24;
-    const hourFormatted = hour === 0 ? '12 AM' : 
-                          hour === 12 ? '12 PM' : 
-                          hour > 12 ? `${hour - 12} PM` : `${hour} AM`;
+  for (let i = 9; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
     
-    // Generate random count with some pattern (more syncs during business hours)
-    let count;
-    if (hour >= 9 && hour <= 17) {
-      count = Math.floor(Math.random() * 3) + 1; // 1-3 during business hours
-    } else {
-      count = Math.random() > 0.7 ? 1 : 0; // Occasional syncs outside business hours
-    }
-    
-    hours.push({
-      hour,
-      time: hourFormatted,
-      count
+    data.push({
+      date: date.toISOString().split('T')[0],
+      count: Math.floor(Math.random() * 10) + 1
     });
   }
   
-  return hours;
+  return data;
 }

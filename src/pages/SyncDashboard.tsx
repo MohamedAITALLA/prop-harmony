@@ -2,13 +2,18 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { 
+  Activity, AlertTriangle, BarChart2, Calendar, Check, Clock, 
+  Info, Loader2, PieChart, RefreshCw, Server
+} from "lucide-react";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { format, parseISO, formatDistanceToNow } from "date-fns";
+import { syncService } from "@/services/sync-service";
 import { SyncStatusTable } from "@/components/dashboard/SyncStatusTable";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { SyncScheduleChart } from "@/components/sync/SyncScheduleChart";
-import { syncService } from "@/services/api-service";
+import { GlobalSyncStatusResponse } from "@/types/api-responses/sync-types";
 
 export default function SyncDashboard() {
   const queryClient = useQueryClient();
@@ -19,13 +24,25 @@ export default function SyncDashboard() {
     mutationFn: async () => {
       return await syncService.syncAll();
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       setSyncProgress(100);
-      toast.success("Synchronization of all properties completed");
+      
+      if (response.data?.success && response.data?.data) {
+        const result = response.data.data;
+        toast.success(
+          `Synchronization completed successfully`, 
+          { description: `Synced ${result.summary.successful_syncs} of ${result.summary.total_connections} connections` }
+        );
+      } else {
+        toast.success("Synchronization of all properties completed");
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["sync", "status"] });
     },
-    onError: () => {
-      toast.error("Failed to complete synchronization");
+    onError: (error) => {
+      toast.error("Failed to complete synchronization", {
+        description: (error as Error)?.message || "An unknown error occurred"
+      });
     }
   });
 
@@ -52,29 +69,43 @@ export default function SyncDashboard() {
   }, [syncAllMutation.isPending]);
 
   // Fetch sync status data
-  const { data: syncStatus, isLoading: isStatusLoading, refetch: refetchStatus } = useQuery({
+  const { data: syncStatusResponse, isLoading: isStatusLoading, refetch: refetchStatus } = useQuery({
     queryKey: ["sync", "status"],
     queryFn: async () => {
       try {
         const response = await syncService.getSyncStatus();
         if (response.data?.success && response.data?.data) {
-          return response.data.data; // Return the data property from the API response
-        } else if (response.data) {
-          return response.data; // Return whatever data is available
+          return response.data.data as GlobalSyncStatusResponse;
         }
-        return getMockSyncStatus(); // Return mock data if no valid data
+        throw new Error("Invalid response format");
       } catch (error) {
         console.error("Error fetching sync status:", error);
-        toast.error("Failed to load synchronization status");
-        
-        // Return mock data for development
-        return getMockSyncStatus();
+        throw error;
       }
     }
   });
 
   const handleSyncAll = () => {
     syncAllMutation.mutate();
+  };
+
+  const formatDateTime = (dateString?: string) => {
+    if (!dateString) return "N/A";
+    try {
+      return format(parseISO(dateString), "MMM d, yyyy HH:mm");
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  const formatRelativeFromNow = (dateString?: string) => {
+    if (!dateString) return "Never";
+    try {
+      const date = parseISO(dateString);
+      return formatDistanceToNow(date, { addSuffix: true });
+    } catch (e) {
+      return "Unknown";
+    }
   };
 
   return (
@@ -84,7 +115,7 @@ export default function SyncDashboard() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Synchronization Dashboard</h1>
           <p className="text-muted-foreground">
-            Monitor and manage property synchronization status
+            Monitor and manage property synchronization status across all platforms
           </p>
         </div>
         
@@ -132,140 +163,254 @@ export default function SyncDashboard() {
         </Card>
       )}
 
-      {/* Overall Status Section */}
-      <div className="grid gap-4 md:grid-cols-4">
+      {isStatusLoading ? (
+        // Loading state
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <div className="h-4 w-24 bg-gray-200 animate-pulse rounded"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : !syncStatusResponse ? (
+        // Error state
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Properties</CardTitle>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-muted-foreground">
-              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {isStatusLoading ? (
-                <div className="h-8 w-16 rounded animate-pulse bg-muted" />
-              ) : (
-                syncStatus?.total_properties || 0
-              )}
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3 justify-center">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              <h3 className="text-red-600">Unable to load synchronization status</h3>
             </div>
+            <Button onClick={() => refetchStatus()} className="mt-4 mx-auto block">
+              Retry
+            </Button>
           </CardContent>
         </Card>
+      ) : (
+        <>
+          {/* Overall Status Section */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Properties</CardTitle>
+                <Server className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {syncStatusResponse.summary.total_properties}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {syncStatusResponse.summary.properties_with_errors > 0 && 
+                    `${syncStatusResponse.summary.properties_with_errors} with errors`}
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Connections</CardTitle>
+                <Activity className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {syncStatusResponse.summary.active_connections} 
+                  <span className="text-sm font-normal text-muted-foreground ml-1">
+                    / {syncStatusResponse.summary.total_connections}
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {syncStatusResponse.summary.error_connections > 0 && 
+                    <span className="text-red-500">{syncStatusResponse.summary.error_connections} with errors</span>}
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Health Status</CardTitle>
+                <div>
+                  {syncStatusResponse.summary.health_percentage >= 90 ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : syncStatusResponse.summary.health_percentage >= 70 ? (
+                    <Info className="h-4 w-4 text-yellow-500" />
+                  ) : (
+                    <AlertTriangle className="h-4 w-4 text-red-500" />
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {syncStatusResponse.summary.health_percentage}%
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {syncStatusResponse.summary.health_status}
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Last Global Sync</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-xl font-medium">
+                  {formatRelativeFromNow(syncStatusResponse.summary.last_system_sync)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {formatDateTime(syncStatusResponse.summary.last_system_sync)}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Synced Successfully</CardTitle>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-green-500">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-              <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {isStatusLoading ? (
-                <div className="h-8 w-16 rounded animate-pulse bg-muted" />
-              ) : (
-                syncStatus?.synced_count || 0
+          {/* Recent Failures Section */}
+          {syncStatusResponse.recent_failures.length > 0 && (
+            <Card className="border-red-100">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-red-500" />
+                  Recent Sync Failures
+                </CardTitle>
+                <CardDescription>
+                  Connections that failed during recent synchronization attempts
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {syncStatusResponse.recent_failures.slice(0, 3).map((failure, index) => (
+                    <div key={index} className="flex items-start gap-3 pb-3 border-b last:border-0">
+                      <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium">{failure.platform} connection failed for property {failure.property_id}</p>
+                        <p className="text-sm text-muted-foreground">{failure.error_message}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {formatRelativeFromNow(failure.last_error_time)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+              {syncStatusResponse.recent_failures.length > 3 && (
+                <CardFooter className="pt-0">
+                  <Button variant="link" className="ml-auto" onClick={() => window.location.href = '/sync/logs'}>
+                    View all {syncStatusResponse.recent_failures.length} failures
+                  </Button>
+                </CardFooter>
               )}
-            </div>
-          </CardContent>
-        </Card>
+            </Card>
+          )}
 
-        {(syncStatus?.failed_count > 0 || isStatusLoading) && (
+          {/* Platforms Overview */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Sync Failures</CardTitle>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-red-500">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <BarChart2 className="h-5 w-5 text-muted-foreground" />
+                Platforms Overview
+              </CardTitle>
+              <CardDescription>
+                Connection status across different calendar platforms
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">
-                {isStatusLoading ? (
-                  <div className="h-8 w-16 rounded animate-pulse bg-muted" />
-                ) : (
-                  syncStatus?.failed_count || 0
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.entries(syncStatusResponse.platforms).map(([platform, stats]) => (
+                  <div key={platform} className="bg-muted/30 p-4 rounded-lg">
+                    <h3 className="font-medium capitalize mb-2">{platform}</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Total Connections:</span>
+                        <span>{stats.total}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Active:</span>
+                        <span className="text-green-600">{stats.active}</span>
+                      </div>
+                      {stats.error > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span>Errors:</span>
+                          <span className="text-red-600">{stats.error}</span>
+                        </div>
+                      )}
+                      <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                        <div 
+                          className="bg-green-500 h-1.5 rounded-full" 
+                          style={{ width: `${(stats.active / stats.total) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
-        )}
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Last Global Sync</CardTitle>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-muted-foreground">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl font-medium">
-              {isStatusLoading ? (
-                <div className="h-6 w-32 rounded animate-pulse bg-muted" />
+          {/* Upcoming Syncs */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-muted-foreground" />
+                Upcoming Syncs
+              </CardTitle>
+              <CardDescription>
+                The next scheduled synchronization tasks
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {syncStatusResponse.upcoming_syncs.length === 0 ? (
+                <p className="text-center text-muted-foreground py-4">No upcoming scheduled syncs</p>
               ) : (
-                formatRelativeTime(syncStatus?.last_sync)
+                <div className="space-y-4">
+                  {syncStatusResponse.upcoming_syncs.slice(0, 5).map((sync, index) => (
+                    <div key={index} className="flex justify-between items-center pb-3 border-b last:border-0">
+                      <div>
+                        <p className="font-medium capitalize">{sync.platform}</p>
+                        <p className="text-sm text-muted-foreground">Property: {sync.property_id}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className={`font-medium ${sync.minutes_until_next_sync < 30 ? 'text-blue-600' : ''}`}>
+                          In {sync.minutes_until_next_sync} minutes
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDateTime(sync.next_sync)}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
 
-      {/* Property Sync Status Table */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Property Sync Status</h2>
-        <SyncStatusTable action="Sync All Properties" />
-      </div>
-
-      {/* Sync Schedule Chart */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Sync Schedule</h2>
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-muted-foreground mb-4">Visualization of upcoming synchronization tasks</p>
-            <div className="h-[300px]">
-              <SyncScheduleChart />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          {/* Sync History Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <PieChart className="h-5 w-5 text-muted-foreground" />
+                Sync Activity
+              </CardTitle>
+              <CardDescription>
+                Historical synchronization activity over time
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <SyncScheduleChart 
+                  data={syncStatusResponse.sync_history.map(item => ({
+                    date: item._id,
+                    count: item.count
+                  }))}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
-}
-
-// Helper function to format relative time
-function formatRelativeTime(dateString?: string) {
-  if (!dateString) return "Never";
-  
-  try {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins} minutes ago`;
-    
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours} hours ago`;
-    
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} days ago`;
-  } catch (error) {
-    return "Unknown";
-  }
-}
-
-// Mock data function for development purposes
-function getMockSyncStatus() {
-  return {
-    total_properties: 12,
-    synced_count: 9,
-    failed_count: 2,
-    last_sync: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
-    sync_in_progress: 1
-  };
 }

@@ -10,7 +10,7 @@ import { LogDetailsModal } from '@/components/sync/LogDetailsModal';
 import { LogActionButton } from '@/components/sync/LogActionButton';
 import { syncService } from '@/services/sync-service';
 import { SyncStatus, Platform } from '@/types/enums';
-import { SyncLog, SyncLogsResponse } from '@/types/api-responses/sync-types';
+import { SyncLog } from '@/types/api-responses/sync-types';
 import { Search, Filter, DownloadCloud } from 'lucide-react';
 
 export default function SyncLogs() {
@@ -35,22 +35,36 @@ export default function SyncLogs() {
       try {
         const response = await syncService.getSyncLogs(params);
         if (response.data?.success && response.data?.data) {
-          return response.data.data as SyncLogsResponse['data'];
-        } else if (response.data) {
-          return response.data as SyncLogsResponse['data'];
-        }
+          return response.data.data;
+        } 
         // Return empty data if nothing valid is found
-        return { logs: [], pagination: { total: 0, pages: 1, page: 1, limit: 10, has_next_page: false, has_previous_page: false } };
+        return { 
+          logs: [], 
+          pagination: { 
+            total: 0, 
+            page: 1,
+            limit: 10, 
+            pages: 1, 
+            has_next_page: false, 
+            has_previous_page: false 
+          } 
+        };
       } catch (err) {
         console.error('Error fetching sync logs:', err);
-        return { logs: [], pagination: { total: 0, pages: 1, page: 1, limit: 10, has_next_page: false, has_previous_page: false } };
+        throw err;
       }
     }
   });
 
   const syncLogs = data?.logs || [];
-  const total = data?.pagination?.total || 0;
-  const pages = data?.pagination?.pages || 1;
+  const pagination = data?.pagination || { 
+    total: 0, 
+    page: 1, 
+    limit: 10, 
+    pages: 1, 
+    has_next_page: false, 
+    has_previous_page: false 
+  };
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -163,17 +177,17 @@ export default function SyncLogs() {
           <div className="flex justify-between items-center mt-4">
             <Button
               variant="outline"
-              disabled={page === 1}
+              disabled={page === 1 || !pagination.has_previous_page}
               onClick={() => handlePageChange(page - 1)}
             >
               Previous
             </Button>
             <span>
-              Page {page} of {pages}
+              Page {pagination.page} of {pagination.pages}
             </span>
             <Button
               variant="outline"
-              disabled={page === pages}
+              disabled={page === pagination.pages || !pagination.has_next_page}
               onClick={() => handlePageChange(page + 1)}
             >
               Next

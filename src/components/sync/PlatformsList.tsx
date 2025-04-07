@@ -1,54 +1,108 @@
 
 import React from "react";
-import { PlatformIcon } from "@/components/ui/platform-icon";
+import { format, formatDistanceToNow, parseISO } from "date-fns";
+import { PropertySyncConnection } from "@/types/api-responses/sync-types";
+import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
+import { CalendarDays, Clock, AlertTriangle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface PlatformsListProps {
-  platforms: string[];
+  connections: PropertySyncConnection[];
 }
 
-export function PlatformsList({ platforms }: PlatformsListProps) {
-  if (!platforms || platforms.length === 0) {
-    return <span className="text-muted-foreground text-sm">None</span>;
+export function PlatformsList({ connections }: PlatformsListProps) {
+  if (!connections || connections.length === 0) {
+    return (
+      <div className="text-center py-4 text-muted-foreground">
+        No connections configured
+      </div>
+    );
   }
 
-  // Show max 3 platforms in the list, the rest are shown in the tooltip
-  const displayPlatforms = platforms.slice(0, 3);
-  const remainingCount = platforms.length - displayPlatforms.length;
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return null;
+    try {
+      return format(parseISO(dateString), "MMM d, yyyy HH:mm");
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  const formatRelativeTime = (dateString: string | null) => {
+    if (!dateString) return "Never";
+    try {
+      return formatDistanceToNow(parseISO(dateString), { addSuffix: true });
+    } catch (e) {
+      return "Unknown";
+    }
+  };
 
   return (
-    <div className="flex items-center gap-2">
-      {displayPlatforms.map((platform, index) => (
-        <TooltipProvider key={index}>
-          <Tooltip>
-            <TooltipTrigger>
-              <PlatformIcon platform={platform} size={20} />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="capitalize">{platform}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+    <div className="space-y-4">
+      {connections.map((connection, index) => (
+        <div 
+          key={connection.id} 
+          className={`p-3 rounded-md ${
+            connection.status === 'error' 
+              ? 'bg-red-50 border border-red-100' 
+              : connection.status === 'active' 
+                ? 'bg-green-50 border border-green-100' 
+                : 'bg-gray-50 border border-gray-100'
+          }`}
+        >
+          <div className="flex justify-between mb-2">
+            <h3 className="font-medium capitalize">{connection.platform}</h3>
+            <SyncStatusBadge 
+              status={connection.status} 
+              lastSync={connection.last_synced}
+              message={connection.error_message}
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>Last Sync: </span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="font-medium">
+                      {formatRelativeTime(connection.last_synced)}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {formatDate(connection.last_synced) || "Never synced"}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            
+            <div className="flex items-center gap-1.5">
+              <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>Next Sync: </span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="font-medium">
+                      {formatRelativeTime(connection.next_sync)}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {formatDate(connection.next_sync) || "No scheduled sync"}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            
+            {connection.status === 'error' && connection.error_message && (
+              <div className="flex items-start gap-1.5 col-span-2 mt-1 text-red-600">
+                <AlertTriangle className="h-3.5 w-3.5 mt-0.5" />
+                <span>{connection.error_message}</span>
+              </div>
+            )}
+          </div>
+        </div>
       ))}
-      
-      {remainingCount > 0 && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger>
-              <div className="rounded-full bg-muted w-6 h-6 flex items-center justify-center text-xs">
-                +{remainingCount}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <div className="space-y-1">
-                {platforms.slice(3).map((platform, index) => (
-                  <p key={index} className="capitalize">{platform}</p>
-                ))}
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
     </div>
   );
 }
