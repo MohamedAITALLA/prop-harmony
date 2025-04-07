@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,29 +13,26 @@ interface PropertyCardProps {
 }
 
 function PropertyCard({ property, onClick }: PropertyCardProps) {
-  // Determine if we have an image to display
+  const defaultImage = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
+  
+  // Always use the first image if available, otherwise use the default
   const hasImage = property.images && property.images.length > 0;
+  const imageUrl = hasImage ? property.images[0] : defaultImage;
   
   return (
     <Card onClick={onClick} className="cursor-pointer hover:shadow-md transition-shadow duration-200">
       <div className="relative">
-        {hasImage ? (
-          <div className="h-32 w-full overflow-hidden">
-            <img 
-              src={property.images[0]} 
-              alt={`${property.name}`}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                // Fallback if image fails to load
-                (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
-              }}
-            />
-          </div>
-        ) : (
-          <div className="h-32 w-full bg-muted flex items-center justify-center">
-            <Image className="h-10 w-10 text-muted-foreground" />
-          </div>
-        )}
+        <div className="h-32 w-full overflow-hidden">
+          <img 
+            src={imageUrl} 
+            alt={`${property.name}`}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Fallback to default image if image fails to load
+              (e.target as HTMLImageElement).src = defaultImage;
+            }}
+          />
+        </div>
       </div>
       <CardHeader>
         <CardTitle>{property.name}</CardTitle>
