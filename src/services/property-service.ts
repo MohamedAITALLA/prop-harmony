@@ -1,16 +1,4 @@
-
 import api from "@/lib/base-api";
-import { ApiResponse } from "@/types/api-responses";
-
-interface PropertyQueryParams {
-  page?: number;
-  limit?: number;
-  property_type?: string;
-  city?: string;
-  sort?: string;
-  status?: string;
-  include?: string;
-}
 
 export const propertyService = {
   getProperties: (params?: PropertyQueryParams) => {
@@ -116,13 +104,15 @@ export const propertyService = {
       
       // Add image URLs to delete if any
       if (deleteImages && deleteImages.length > 0) {
-        // Make sure we're sending the full URLs without any leading slash
-        const formattedDeleteImages = deleteImages.map(url => {
-          return url.startsWith('/') ? url.substring(1) : url;
-        });
+        // Ensure full URLs without leading slash and JSON stringified
+        const formattedDeleteImages = deleteImages.map(url => 
+          url.startsWith('/') ? url.substring(1) : url
+        );
         
         console.log("Formatted deleteImages:", formattedDeleteImages);
-        formData.append('deleteImages', JSON.stringify(formattedDeleteImages));
+        
+        // Double JSON stringify to ensure correct format
+        formData.append('deleteImages', JSON.stringify(JSON.stringify(formattedDeleteImages)));
       }
       
       const response = await api.put(`/properties/${id}`, formData, {
