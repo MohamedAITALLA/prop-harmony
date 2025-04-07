@@ -3,9 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "@/services/api-service";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ensureMongoId } from "@/lib/mongo-helpers";
 
-export function usePropertyDetails(id: string | undefined) {
+export function usePropertyDetails(id: string | undefined, include?: string) {
   const [retryAttempt, setRetryAttempt] = useState(0);
 
   const { 
@@ -16,17 +15,14 @@ export function usePropertyDetails(id: string | undefined) {
     isError,
     isRefetching
   } = useQuery({
-    queryKey: ["property", id, retryAttempt],
+    queryKey: ["property", id, retryAttempt, include],
     queryFn: async () => {
       if (!id) throw new Error("Property ID is required");
       
       try {
         console.log("Fetching property details for ID:", id);
         
-        // Use ID as-is and let the API handle validation
-        const validId = id;
-        
-        const response = await propertyService.getProperty(validId);
+        const response = await propertyService.getProperty(id, include);
         
         // Enhanced validation to ensure we have property data
         if (!response?.data?.property && !response?.property && !(response?.success && response?.data)) {

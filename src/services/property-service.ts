@@ -9,6 +9,7 @@ interface PropertyQueryParams {
   city?: string;
   sort?: string;
   status?: string;
+  include?: string;
 }
 
 export const propertyService = {
@@ -26,43 +27,16 @@ export const propertyService = {
       throw error;
     }
   },
-  getProperty: async (id: string) => {
+  getProperty: async (id: string, include?: string) => {
     try {
       console.log("Fetching property with ID:", id);
       
-      // For testing non-ObjectId formats, we can handle special cases
-      // In production, you might want to implement a proper ID validation/conversion
-      if (id.startsWith('prop-')) {
-        // This is a temporary solution to handle non-MongoDB ID formats for demo purposes
-        // In a real app, you'd likely have a mapping service or use different API endpoints
-        console.log("Using special demo property ID format");
-        
-        // Simulate a successful response for demo IDs
-        return {
-          success: true,
-          data: {
-            property: {
-              _id: id,
-              name: "Demo Property",
-              description: "This is a demo property with a non-ObjectID format",
-              property_type: "Apartment",
-              address: {
-                street: "123 Demo Street",
-                city: "Demo City",
-                state: "Demo State",
-                zip: "12345",
-                country: "Demoland"
-              },
-              amenities: ["WiFi", "Kitchen", "Parking"],
-              status: "active",
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }
-          }
-        };
+      const params: PropertyQueryParams = {};
+      if (include) {
+        params.include = include;
       }
       
-      const response = await api.get(`/properties/${id}`);
+      const response = await api.get(`/properties/${id}`, { params });
       console.log("Property API response:", response.data);
       
       // Check if the response is an error response
@@ -71,23 +45,7 @@ export const propertyService = {
         throw new Error(response.data.details?.message || response.data.error);
       }
       
-      // Check if the response has the expected structure
-      if (response?.data?.success && response?.data?.data?.property) {
-        console.log("Property data found:", response.data.data.property);
-        return response.data;
-      } else if (response?.data?.property) {
-        // Alternative response structure
-        console.log("Property data found in alternative format:", response.data.property);
-        return {
-          success: true,
-          data: {
-            property: response.data.property
-          }
-        };
-      } else {
-        console.error("Unexpected API response structure:", response.data);
-        throw new Error("Property data not found in the API response");
-      }
+      return response.data;
     } catch (error) {
       console.error(`Error fetching property ${id}:`, error);
       throw error;
@@ -118,8 +76,16 @@ export const propertyService = {
         console.log("Create property response:", response.data);
         return response.data;
       } else {
-        // If no images, just send JSON
-        const response = await api.post("/properties", { property: propertyData });
+        // If no images, still use multipart/form-data with property as JSON string
+        const formData = new FormData();
+        formData.append('property', JSON.stringify(propertyData));
+        
+        const response = await api.post("/properties", formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        
         console.log("Create property response:", response.data);
         return response.data;
       }
@@ -128,10 +94,36 @@ export const propertyService = {
       throw error;
     }
   },
-  updateProperty: async (id: string, data: any) => {
+  updateProperty: async (id: string, data: any, newImages?: File[], deleteImages?: string[]) => {
     try {
       console.log(`Updating property ${id} with data:`, data);
-      const response = await api.put(`/properties/${id}`, data);
+      
+      // Always use multipart/form-data for consistency with API specs
+      const formData = new FormData();
+      
+      // Add property data as JSON string
+      formData.append('property', JSON.stringify(data));
+      
+      // Add new images if any
+      if (newImages && newImages.length > 0) {
+        newImages.forEach((image) => {
+          if (image) {
+            formData.append('images', image);
+          }
+        });
+      }
+      
+      // Add image URLs to delete if any
+      if (deleteImages && deleteImages.length > 0) {
+        formData.append('deleteImages', JSON.stringify(deleteImages));
+      }
+      
+      const response = await api.put(`/properties/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
       console.log("Update property response:", response.data);
       return response.data;
     } catch (error) {

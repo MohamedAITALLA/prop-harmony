@@ -3,7 +3,8 @@
 import { PropertyType } from "@/types/enums";
 
 export interface Property {
-  _id: string;
+  _id?: string;
+  id?: string;
   name: string;
   desc: string;
   property_type: PropertyType;
@@ -32,8 +33,10 @@ export interface Property {
     smoking_allowed?: boolean;
   };
   images: string[];
+  user_id?: string;
   created_at: string;
   updated_at: string;
+  is_active?: boolean;
   sync_status?: string;
   bookings_count?: number;
   location?: string;
@@ -60,12 +63,15 @@ export interface PropertyResponse {
   data: {
     property: Property;
     meta?: {
-      included_relations: string[];
+      included_relations?: string[];
       property_id: string;
       property_type: string;
       last_updated: string;
       updated_fields?: string[];
       changes_count?: number;
+      images_count?: number;
+      images_added?: number;
+      images_deleted?: number;
     };
   };
   message: string;
@@ -81,6 +87,14 @@ export interface PropertiesResponse {
       page: number;
       limit: number;
       pages: number;
+      has_next_page: boolean;
+      has_previous_page: boolean;
+    };
+    summary?: {
+      total_properties: number;
+      by_property_type: Record<string, number>;
+      by_city: Record<string, number>;
+      applied_filters: Record<string, any>;
     };
   };
   message: string;

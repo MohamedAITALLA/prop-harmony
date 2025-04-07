@@ -15,24 +15,19 @@ export const handleEditFormSubmission = async (
     toast.info("Updating property...");
     console.log("Submitting property update with values:", values);
     
-    // First, upload any new images
-    const newImagePaths = await uploadPropertyImages(uploadedImages);
+    // Prepare new image files
+    const newImageFiles: File[] = [];
+    Object.values(uploadedImages).forEach(file => {
+      if (file) {
+        newImageFiles.push(file);
+      }
+    });
     
-    // Get existing image paths that are being kept
-    const existingImagePaths = values.images
-      .filter((img, index) => !uploadedImages[index] && img.value.startsWith('/'))
-      .map(img => img.value);
+    // Get existing image paths that should be deleted (no longer in the form)
+    const imagesToDelete: string[] = [];
+    // Logic to determine which images should be deleted would go here
     
-    // Combine all images
-    const finalImagePaths = [...existingImagePaths, ...newImagePaths];
-    
-    // Ensure we have at least one image
-    if (finalImagePaths.length === 0) {
-      toast.error("Please upload at least one image for your property.");
-      return;
-    }
-    
-    // Prepare data for API - include only the specified fields
+    // Prepare data for API
     const propertyData = {
       name: values.name,
       desc: values.description, // Map description to desc
@@ -70,17 +65,18 @@ export const handleEditFormSubmission = async (
         minimum_stay: Number(values.minimumStay) || 1, 
         pets_allowed: Boolean(values.petsAllowed),
         smoking_allowed: Boolean(values.smokingAllowed),
-      },
-      images: finalImagePaths,
+      }
     };
 
     console.log("Submitting update with data:", propertyData);
-    const response = await propertyService.updateProperty(propertyId, propertyData);
+    const response = await propertyService.updateProperty(propertyId, propertyData, newImageFiles, imagesToDelete);
     console.log("Update response:", response);
     
     // Get updated fields from response if available
     const updatedFields = response?.data?.meta?.updated_fields || [];
     const changesCount = response?.data?.meta?.changes_count || 0;
+    const imagesAdded = response?.data?.meta?.images_added || 0;
+    const imagesDeleted = response?.data?.meta?.images_deleted || 0;
     
     if (response?.success) {
       // Refetch the property data if the update was successful
@@ -88,11 +84,32 @@ export const handleEditFormSubmission = async (
         await refetchProperty();
       }
       
-      // Show different toast messages based on the number of changes
-      if (changesCount === 0) {
+      // Show different toast messages based on the changes
+      if (changesCount === 0 && imagesAdded === 0 && imagesDeleted === 0) {
         toast.info("No changes were made to the property.");
       } else {
-        toast.success(`Property updated successfully! (${changesCount} change${changesCount > 1 ? 's' : ''})`);
+        let successMessage = `Property updated successfully!`;
+        
+        // Add details about changes
+        if (changesCount > 0) {
+          successMessage += ` (${changesCount} field${changesCount > 1 ? 's' : ''} updated)`;
+        }
+        
+        // Add details about image changes
+        if (imagesAdded > 0 || imagesDeleted > 0) {
+          const imageChanges = [];
+          if (imagesAdded > 0) {
+            imageChanges.push(`${imagesAdded} image${imagesAdded > 1 ? 's' : ''} added`);
+          }
+          if (imagesDeleted > 0) {
+            imageChanges.push(`${imagesDeleted} image${imagesDeleted > 1 ? 's' : ''} deleted`);
+          }
+          if (imageChanges.length > 0) {
+            successMessage += ` (${imageChanges.join(', ')})`;
+          }
+        }
+        
+        toast.success(successMessage);
       }
       
       // Navigate to the property details page
@@ -103,41 +120,5 @@ export const handleEditFormSubmission = async (
   } catch (error) {
     console.error("Error updating property:", error);
     toast.error("Failed to update property. Please try again.");
-  }
-};
-
-// Helper function to upload images to the server
-const uploadPropertyImages = async (uploadedImages: { [key: number]: File | null }): Promise<string[]> => {
-  try {
-    const imagePaths: string[] = [];
-    const imageIndices = Object.keys(uploadedImages);
-    
-    if (imageIndices.length === 0) {
-      return imagePaths;
-    }
-    
-    // Create a FormData object to upload files
-    for (const indexStr of imageIndices) {
-      const index = parseInt(indexStr);
-      const file = uploadedImages[index];
-      
-      if (file) {
-        const formData = new FormData();
-        formData.append('image', file);
-        
-        // Upload the image using the uploadImage service
-        const response = await propertyService.uploadImage(formData);
-        
-        if (response?.data?.imagePath) {
-          imagePaths.push(response.data.imagePath);
-        }
-      }
-    }
-    
-    return imagePaths;
-  } catch (error) {
-    console.error("Error uploading images:", error);
-    toast.error("Failed to upload one or more images.");
-    return [];
   }
 };

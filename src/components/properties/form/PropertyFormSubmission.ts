@@ -1,6 +1,6 @@
 
 import { FormValues } from "./PropertyFormSchema";
-import { propertyService } from "@/services/property-service";
+import { propertyService } from "@/services/api-service";
 import { toast } from "sonner";
 import { NavigateFunction } from "react-router-dom";
 
