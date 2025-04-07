@@ -28,3 +28,9 @@ export interface ICalConnectionsResponse {
   message: string;
   timestamp: string;
 }
+
+export interface CreateICalConnectionDto {
+  platform: string;
+  ical_url: string;
+  sync_frequency?: number;
+}

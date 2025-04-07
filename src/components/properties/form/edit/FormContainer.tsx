@@ -9,9 +9,9 @@ interface FormContainerProps {
 
 export function FormContainer({ children }: FormContainerProps) {
   return (
-    <Card>
+    <Card className="shadow-md border-primary/10">
       <FormHeader />
-      <CardContent>
+      <CardContent className="p-6">
         {children}
       </CardContent>
     </Card>
