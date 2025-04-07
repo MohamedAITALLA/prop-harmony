@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ImagePlus, X, Upload, Image as ImageIcon } from "lucide-react";
+import { ImagePlus, X, Upload, ImageIcon } from "lucide-react";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { FormValues } from "../PropertyFormSchema";
 
@@ -26,16 +27,19 @@ export function ImageUploadSection({
   
   const [showFileInputs, setShowFileInputs] = useState(false);
   
+  // Ensure fields are properly initialized when showFileInputs is toggled
+  useEffect(() => {
+    if (showFileInputs && fields.length === 0) {
+      append({ value: "" });
+    }
+  }, [showFileInputs, fields.length, append]);
+  
   const addImageUpload = () => {
     // If already showing inputs, just add one more
     // Otherwise initialize with a single input
     if (!showFileInputs) {
-      // If we're not showing inputs yet, don't append to existing fields
-      // Just initialize with a single field
-      if (fields.length === 0) {
-        append({ value: "" });
-      }
       setShowFileInputs(true);
+      // Fields will be initialized in the useEffect
     } else {
       // Add another input when already showing inputs
       append({ value: "" });
