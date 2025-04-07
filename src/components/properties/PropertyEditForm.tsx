@@ -19,7 +19,7 @@ import { editFormSchema, FormValues } from "./form/PropertyFormSchema";
 import { useLocationSelector } from "./form/useLocationSelector";
 import { PropertyFormError } from "./form/PropertyFormError";
 import { Property } from "@/types/api-responses";
-import { handleEditFormSubmission } from "./form/PropertyEditSubmission";
+import { handleEditFormSubmission } from "./form/submission";
 import { toast } from "sonner";
 import { PropertyType } from "@/types/enums";
 
