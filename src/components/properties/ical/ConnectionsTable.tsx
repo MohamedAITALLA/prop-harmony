@@ -86,8 +86,8 @@ export function ConnectionsTable({
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
                 {connection.sync_frequency === 1 
-                  ? 'Every hour' 
-                  : `Every ${connection.sync_frequency} hours`}
+                  ? 'Every minute' 
+                  : `Every ${connection.sync_frequency} minutes`}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-1">

@@ -20,7 +20,7 @@ export function useConnectionTest(propertyId: string) {
     onSuccess: (response) => {
       setTestResult({
         data: response.data.data,
-        meta: response.data.data.meta,
+        meta: response.data.data,  // Use data instead of meta
         message: response.data.message,
         timestamp: response.data.timestamp
       });
