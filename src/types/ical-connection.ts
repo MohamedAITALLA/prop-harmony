@@ -37,7 +37,7 @@ export interface UpdateConnectionResponse {
   meta?: {
     action: string;
     platform: string;
-    updated_fields?: string[]; // Added this field
+    updated_fields?: string[]; // Explicitly defined field
   };
   message: string;
 }

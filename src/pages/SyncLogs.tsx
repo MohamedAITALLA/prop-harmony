@@ -34,21 +34,7 @@ export default function SyncLogs() {
       
       try {
         const response = await syncService.getSyncLogs(params);
-        if (response.data?.success && response.data?.data) {
-          return response.data.data;
-        } 
-        // Return empty data if nothing valid is found
-        return { 
-          logs: [], 
-          pagination: { 
-            total: 0, 
-            page: 1,
-            limit: 10, 
-            pages: 1, 
-            has_next_page: false, 
-            has_previous_page: false 
-          } 
-        };
+        return response.data;
       } catch (err) {
         console.error('Error fetching sync logs:', err);
         throw err;
@@ -56,8 +42,9 @@ export default function SyncLogs() {
     }
   });
 
-  const syncLogs = data?.logs || [];
-  const pagination = data?.pagination || { 
+  // Safely extract logs and pagination from the response
+  const syncLogs: SyncLog[] = data?.data?.logs || [];
+  const pagination = data?.data?.pagination || { 
     total: 0, 
     page: 1, 
     limit: 10, 
