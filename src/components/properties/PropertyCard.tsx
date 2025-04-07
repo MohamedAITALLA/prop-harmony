@@ -17,6 +17,8 @@ export function PropertyCard({ property, className, ...props }: PropertyCardProp
   const navigate = useNavigate();
   
   const defaultImage = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
+  
+  // Always use the first image if available, otherwise use the default
   const imageUrl = property.images && property.images.length > 0 
     ? property.images[0] 
     : defaultImage;
@@ -28,7 +30,15 @@ export function PropertyCard({ property, className, ...props }: PropertyCardProp
     <Card className={cn("overflow-hidden transition-all hover:shadow-md", className)} {...props}>
       <div 
         className="h-48 bg-cover bg-center" 
-        style={{ backgroundImage: `url(${imageUrl})` }}
+        style={{ 
+          backgroundImage: `url(${imageUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+        onError={(e) => {
+          // Fallback to default image if first image fails to load
+          (e.target as HTMLDivElement).style.backgroundImage = `url(${defaultImage})`;
+        }}
       />
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-2">
@@ -74,3 +84,4 @@ export function PropertyCard({ property, className, ...props }: PropertyCardProp
     </Card>
   );
 }
+
