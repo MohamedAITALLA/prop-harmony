@@ -94,15 +94,15 @@ export const propertyService = {
       throw error;
     }
   },
-  updateProperty: async (id: string, data: any, newImages?: File[], deleteImages?: string[]) => {
+  updateProperty: async (id: string, data: any = {}, newImages?: File[], deleteImages?: string[]) => {
     try {
       console.log(`Updating property ${id} with data:`, data);
       
       // Always use multipart/form-data for consistency with API specs
       const formData = new FormData();
       
-      // Add property data as JSON string
-      formData.append('property', JSON.stringify(data));
+      // Add property data as JSON string (pass an empty object if no data is provided)
+      formData.append('property', JSON.stringify(data || {}));
       
       // Add new images if any
       if (newImages && newImages.length > 0) {

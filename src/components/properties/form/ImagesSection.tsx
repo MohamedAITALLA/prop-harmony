@@ -1,17 +1,18 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Image, Upload, X, FileCheck } from "lucide-react";
+import { Image, Upload, X, FileCheck, Trash2 } from "lucide-react";
 import { UseFormReturn, useFieldArray } from "react-hook-form";
 import { FormValues } from "./PropertyFormSchema";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ImagesSectionProps {
   form: UseFormReturn<FormValues>;
+  isEditMode?: boolean;
 }
 
-export function ImagesSection({ form }: ImagesSectionProps) {
+export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) {
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "images"
@@ -21,11 +22,30 @@ export function ImagesSection({ form }: ImagesSectionProps) {
   const [uploadedImages, setUploadedImages] = useState<{ [key: number]: File | null }>({});
   const [previewUrls, setPreviewUrls] = useState<{ [key: number]: string }>({});
   
+  // For tracking existing images to be deleted
+  const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
+  
+  // Initialize preview URLs for existing images
+  useEffect(() => {
+    const existingImages = form.getValues("images") || [];
+    const initialPreviews: { [key: number]: string } = {};
+    
+    existingImages.forEach((img, index) => {
+      if (img.value) {
+        initialPreviews[index] = img.value;
+      }
+    });
+    
+    setPreviewUrls(initialPreviews);
+  }, []);
+  
   // Make uploadedImages available on the form element so we can access it during submission
   React.useEffect(() => {
     // @ts-ignore - adding a custom property to the form
     form.uploadedImages = uploadedImages;
-  }, [uploadedImages, form]);
+    // @ts-ignore - adding a custom property for images to delete
+    form.imagesToDelete = imagesToDelete;
+  }, [uploadedImages, imagesToDelete, form]);
   
   const handleFileChange = (index: number, files: FileList | null) => {
     if (files && files.length > 0) {
@@ -45,7 +65,7 @@ export function ImagesSection({ form }: ImagesSectionProps) {
       }));
       
       // Update the form value to include the preview URL
-      const values = [...form.getValues("images")];
+      const values = [...form.getValues("images") || []];
       values[index] = { value: previewUrl };
       form.setValue("images", values);
     }
@@ -56,9 +76,22 @@ export function ImagesSection({ form }: ImagesSectionProps) {
   };
   
   const removeImage = (index: number) => {
+    // If this is an existing image (not a new upload), add it to the delete list
+    const imageValue = form.getValues(`images.${index}.value`) || "";
+    
+    // Check if it looks like a URL (existing image) and not a blob URL (new upload)
+    if (imageValue && 
+        (imageValue.startsWith('http') || imageValue.startsWith('/')) && 
+        !imageValue.startsWith('blob:')) {
+      setImagesToDelete(prev => [...prev, imageValue]);
+    }
+    
     // Clean up preview URL if it exists
     if (previewUrls[index]) {
-      URL.revokeObjectURL(previewUrls[index]);
+      // Only revoke if it's a blob URL (new image)
+      if (previewUrls[index].startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrls[index]);
+      }
       
       const newPreviewUrls = { ...previewUrls };
       delete newPreviewUrls[index];
@@ -72,8 +105,19 @@ export function ImagesSection({ form }: ImagesSectionProps) {
     remove(index);
   };
 
+  // Remove an image from the delete list (keep it)
+  const keepImage = (imageUrl: string) => {
+    setImagesToDelete(prev => prev.filter(url => url !== imageUrl));
+  };
+
   // Count how many images are actually selected
   const selectedImagesCount = Object.values(uploadedImages).filter(img => img !== null).length;
+  const existingImagesCount = fields.filter(field => {
+    const value = field.value;
+    return value && (value.startsWith('http') || value.startsWith('/')) && !imagesToDelete.includes(value);
+  }).length;
+  
+  const totalImagesCount = selectedImagesCount + existingImagesCount;
 
   return (
     <div className="space-y-4">
@@ -85,11 +129,43 @@ export function ImagesSection({ form }: ImagesSectionProps) {
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <FileCheck className="h-4 w-4" />
           <span>
-            {selectedImagesCount} {selectedImagesCount === 1 ? 'image' : 'images'} selected
-            {selectedImagesCount === 0 && ' (at least one image is required)'}
+            {totalImagesCount} {totalImagesCount === 1 ? 'image' : 'images'} selected
+            {!isEditMode && totalImagesCount === 0 && ' (at least one image is required)'}
           </span>
         </div>
       </div>
+      
+      {/* Existing images that are marked for deletion */}
+      {imagesToDelete.length > 0 && (
+        <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 p-3 rounded-md">
+          <h4 className="text-sm font-medium flex items-center gap-2 text-red-700 dark:text-red-400 mb-2">
+            <Trash2 className="h-4 w-4" /> Images to delete ({imagesToDelete.length})
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+            {imagesToDelete.map((imageUrl, idx) => (
+              <div key={`delete-${idx}`} className="flex items-center gap-2 bg-white dark:bg-gray-800 p-2 rounded-md">
+                <img 
+                  src={imageUrl} 
+                  alt={`Delete ${idx}`} 
+                  className="h-10 w-10 object-cover rounded"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
+                  }}
+                />
+                <span className="text-xs truncate flex-1">{imageUrl.split('/').pop()}</span>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => keepImage(imageUrl)}
+                >
+                  Keep
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       
       {fields.map((field, index) => (
         <div key={field.id} className="space-y-2">

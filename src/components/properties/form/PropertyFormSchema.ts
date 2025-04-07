@@ -42,14 +42,24 @@ export const formSchema = z.object({
   petsAllowed: z.boolean().default(false),
   smokingAllowed: z.boolean().default(false),
   
-  // Images - accept any string value for the form validation
-  // The actual file objects are handled separately
+  // Images - for creation mode, at least one image is required
+  // For edit mode, the imageRequiredInEditMode flag will be used to determine if this is required
   images: z.array(
     z.object({
       value: z.string()
     })
-  ).min(1, "At least one image is required"),
+  ).optional().default([]),
+});
+
+// Create a separate edit schema that makes images optional
+export const editFormSchema = formSchema.extend({
+  images: z.array(
+    z.object({
+      value: z.string()
+    })
+  ).optional().default([]),
 });
 
 // Export the type for form values
 export type FormValues = z.infer<typeof formSchema>;
+

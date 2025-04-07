@@ -15,7 +15,7 @@ import { AmenitiesSection } from "./form/AmenitiesSection";
 import { PoliciesSection } from "./form/PoliciesSection";
 import { ImagesSection } from "./form/ImagesSection";
 import { PropertyFormActions } from "./form/PropertyFormActions";
-import { formSchema, FormValues } from "./form/PropertyFormSchema";
+import { editFormSchema, FormValues } from "./form/PropertyFormSchema";
 import { useLocationSelector } from "./form/useLocationSelector";
 import { PropertyFormError } from "./form/PropertyFormError";
 import { Property } from "@/types/api-responses";
@@ -31,7 +31,6 @@ interface PropertyEditFormProps {
 
 export function PropertyEditForm({ propertyId, initialData, refetchProperty }: PropertyEditFormProps) {
   const navigate = useNavigate();
-  const [uploadedImages, setUploadedImages] = useState<{ [key: number]: File | null }>({});
   
   console.log("Initial property data:", initialData);
   
@@ -70,7 +69,7 @@ export function PropertyEditForm({ propertyId, initialData, refetchProperty }: P
   };
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(editFormSchema), // Use edit form schema
     defaultValues: transformedInitialData,
     mode: "onChange",
   });
@@ -86,7 +85,20 @@ export function PropertyEditForm({ propertyId, initialData, refetchProperty }: P
 
   const onSubmit = async (values: FormValues) => {
     try {
-      await handleEditFormSubmission(values, propertyId, navigate, refetchProperty, uploadedImages);
+      // @ts-ignore - accessing custom properties
+      const uploadedImages = form.uploadedImages || {};
+      // @ts-ignore - accessing custom properties
+      const imagesToDelete = form.imagesToDelete || [];
+
+      await handleEditFormSubmission(
+        values, 
+        propertyId, 
+        navigate, 
+        initialData,
+        refetchProperty, 
+        uploadedImages,
+        imagesToDelete
+      );
     } catch (error) {
       console.error("Error updating property:", error);
       toast.error("Failed to update property. Please try again.");
@@ -139,7 +151,7 @@ export function PropertyEditForm({ propertyId, initialData, refetchProperty }: P
               <Separator />
 
               {/* Images Section */}
-              <ImagesSection form={form} />
+              <ImagesSection form={form} isEditMode={true} />
             </div>
 
             {/* Form Actions */}
