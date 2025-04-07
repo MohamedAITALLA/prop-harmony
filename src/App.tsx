@@ -1,131 +1,100 @@
+import React, { Suspense } from 'react';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
+import { useAuth } from './hooks/useAuth';
+import { MainLayout } from './layouts/MainLayout';
+import { Dashboard } from './pages/Dashboard';
+import { Properties } from './pages/Properties';
+import { NewProperty } from './pages/NewProperty';
+import { PropertyDetails } from './pages/PropertyDetails';
+import { EditProperty } from './pages/EditProperty';
+import { PropertyAnalytics } from './pages/PropertyAnalytics';
+import { Calendar } from './pages/Calendar';
+import { Conflicts } from './pages/Conflicts';
+import { EventManagement } from './pages/EventManagement';
+import { SyncLogs } from './pages/SyncLogs';
+import { SyncDashboard } from './pages/SyncDashboard';
+import { Notifications } from './pages/Notifications';
+import { ProfileSettings } from './pages/ProfileSettings';
+import { UserManagement } from './pages/admin/UserManagement';
+import { UserProfiles } from './pages/admin/UserProfiles';
+import { UserProfileDetails } from './pages/admin/UserProfileDetails';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
+import { ResendConfirmation } from './pages/ResendConfirmation';
+import { EmailConfirmation } from './pages/EmailConfirmation';
+import { ComponentsDemo } from './pages/ComponentsDemo';
+import { NotFound } from './pages/NotFound';
+import { Toaster } from "@/components/ui/toaster"
+import { Index } from './pages/Index';
+import GlobalSync from './pages/GlobalSync';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "@/hooks/auth/useAuth";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import EmailConfirmation from "./pages/EmailConfirmation";
-import ResendConfirmation from "./pages/ResendConfirmation";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import Dashboard from "./pages/Dashboard";
-import Properties from "./pages/Properties";
-import NewProperty from "./pages/NewProperty";
-import PropertyDetails from "./pages/PropertyDetails";
-import EditProperty from "./pages/EditProperty";
-import Calendar from "./pages/Calendar";
-import EventManagement from "./pages/EventManagement";
-import Notifications from "./pages/Notifications";
-import ProfileSettings from "./pages/ProfileSettings";
-import UserManagement from "./pages/UserManagement";
-import UserProfiles from "./pages/UserProfiles";
-import SyncDashboard from "./pages/SyncDashboard";
-import SyncLogs from "./pages/SyncLogs";
-import Conflicts from "./pages/Conflicts";
-import NotFound from "./pages/NotFound";
-import MainLayout from "./components/layout/MainLayout";
-import ComponentsDemo from "./pages/ComponentsDemo";
-import UserProfileDetails from "./pages/UserProfileDetails";
-import { ensureMongoId } from "./lib/mongo-helpers";
+function AppRoutes() {
+  const { isAuthenticated, isLoading } = useAuth();
 
-const queryClient = new QueryClient();
-
-const DEV_MODE = true;
-
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
-  
-  if (DEV_MODE) {
-    return <MainLayout>{children}</MainLayout>;
-  }
-  
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-  
-  if (!user) {
-    return <Navigate to="/login" />;
+    return <div>Loading...</div>;
   }
 
-  return <MainLayout>{children}</MainLayout>;
-};
+  const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+    return isAuthenticated ? (
+      children
+    ) : (
+      <Navigate to="/login" replace />
+    );
+  };
 
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
-  
-  if (DEV_MODE) {
-    return <MainLayout>{children}</MainLayout>;
-  }
-  
-  if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
-  }
-  
-  if (!user || !user.is_admin) {
-    return <Navigate to="/dashboard" />;
-  }
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<Index />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="properties" element={<Properties />} />
+          <Route path="properties/new" element={<NewProperty />} />
+          <Route path="properties/:id" element={<PropertyDetails />} />
+          <Route path="properties/:id/edit" element={<EditProperty />} />
+          <Route path="properties/:id/analytics" element={<PropertyAnalytics />} />
+          <Route path="calendar" element={<Calendar />} />
+          <Route path="conflicts" element={<Conflicts />} />
+          <Route path="events" element={<EventManagement />} />
+          <Route path="sync" element={<GlobalSync />} />
+          <Route path="sync/logs" element={<SyncLogs />} />
+          <Route path="sync/dashboard" element={<SyncDashboard />} />
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="settings/profile" element={<ProfileSettings />} />
+          <Route path="admin/users" element={<UserManagement />} />
+          <Route path="admin/profiles" element={<UserProfiles />} />
+          <Route path="admin/profiles/:id" element={<UserProfileDetails />} />
+          <Route path="components" element={<ComponentsDemo />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/resend-confirmation" element={<ResendConfirmation />} />
+        <Route path="/confirm-email" element={<EmailConfirmation />} />
+      </Routes>
+      <Toaster />
+    </>
+  );
+}
 
-  return <MainLayout>{children}</MainLayout>;
-};
-
-const PlaceholderPage = ({ title }: { title: string }) => (
-  <div className="flex flex-col items-center justify-center py-12">
-    <h1 className="text-2xl font-bold mb-4">{title}</h1>
-    <p className="text-muted-foreground mb-6">This page is under construction.</p>
-  </div>
-);
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/confirm-email" element={<EmailConfirmation />} />
-            <Route path="/resend-confirmation" element={<ResendConfirmation />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/components" element={<ComponentsDemo />} />
-            
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/properties" element={<ProtectedRoute><Properties /></ProtectedRoute>} />
-            <Route path="/properties/new" element={<ProtectedRoute><NewProperty /></ProtectedRoute>} />
-            <Route path="/properties/:id" element={<ProtectedRoute><PropertyDetails /></ProtectedRoute>} />
-            <Route path="/properties/:id/edit" element={<ProtectedRoute><EditProperty /></ProtectedRoute>} />
-            <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-            <Route path="/events" element={<ProtectedRoute><EventManagement /></ProtectedRoute>} />
-            <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
-            <Route path="/conflicts" element={<ProtectedRoute><Conflicts /></ProtectedRoute>} />
-            <Route path="/sync" element={<ProtectedRoute><SyncDashboard /></ProtectedRoute>} />
-            <Route path="/sync/logs" element={<ProtectedRoute><SyncLogs /></ProtectedRoute>} />
-            <Route path="/analytics" element={<ProtectedRoute><PlaceholderPage title="Analytics" /></ProtectedRoute>} />
-            <Route path="/preferences" element={<ProtectedRoute><PlaceholderPage title="Preferences" /></ProtectedRoute>} />
-            
-            <Route path="/admin/users" element={<AdminRoute><UserManagement /></AdminRoute>} />
-            <Route path="/admin/user-profiles" element={<AdminRoute><UserProfiles /></AdminRoute>} />
-            <Route path="/admin" element={<AdminRoute><PlaceholderPage title="Admin" /></AdminRoute>} />
-            <Route path="/user-profiles/:userId" element={
-              <MainLayout>
-                <UserProfileDetails />
-              </MainLayout>
-            } />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </TooltipProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <Router>
+      <Suspense fallback={<div>Loading...</div>}>
+        <AppRoutes />
+      </Suspense>
+    </Router>
+  );
+}
 
 export default App;

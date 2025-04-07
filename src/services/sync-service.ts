@@ -30,8 +30,32 @@ export const syncService = {
   },
   
   // Sync logs
-  getSyncLogs: (params?: any) => {
+  getSyncLogs: (params?: {
+    search?: string;
+    platform?: string;
+    status?: string;
+    property_id?: string;
+    page?: number;
+    limit?: number;
+    start_date?: string;
+    end_date?: string;
+  }) => {
     return api.get<ApiResponse<SyncLogsResponse>>('/sync/logs', { params });
+  },
+
+  // Download sync logs in various formats
+  downloadSyncLogs: (format: 'csv' | 'json' | 'excel', params?: {
+    search?: string;
+    platform?: string;
+    status?: string;
+    property_id?: string;
+    start_date?: string;
+    end_date?: string;
+  }) => {
+    return api.get<Blob>(`/sync/logs/download/${format}`, { 
+      params,
+      responseType: 'blob'
+    });
   }
 };
 

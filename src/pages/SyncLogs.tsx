@@ -43,9 +43,9 @@ export default function SyncLogs() {
   });
 
   // Safely extract logs and pagination from the response
-  // The SyncLogsResponse structure has these fields nested inside the 'data' property
-  const syncLogs: SyncLog[] = data?.data?.logs || [];
-  const pagination = data?.data?.pagination || { 
+  // Access the nested data structure: data (ApiResponse) -> data (SyncLogsResponse) -> data (actual data object containing logs)
+  const syncLogs: SyncLog[] = data?.data?.data?.logs || [];
+  const pagination = data?.data?.data?.pagination || { 
     total: 0, 
     page: 1, 
     limit: 10, 
