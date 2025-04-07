@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Home } from 'lucide-react';
+import { Home, Image } from 'lucide-react';
 import { Property } from '@/types/api-responses';
 import { useQuery } from '@tanstack/react-query';
 import { propertyService } from '@/services/api-service';
@@ -14,8 +14,30 @@ interface PropertyCardProps {
 }
 
 function PropertyCard({ property, onClick }: PropertyCardProps) {
+  // Determine if we have an image to display
+  const hasImage = property.images && property.images.length > 0;
+  
   return (
     <Card onClick={onClick} className="cursor-pointer hover:shadow-md transition-shadow duration-200">
+      <div className="relative">
+        {hasImage ? (
+          <div className="h-32 w-full overflow-hidden">
+            <img 
+              src={property.images[0]} 
+              alt={`${property.name}`}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback if image fails to load
+                (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
+              }}
+            />
+          </div>
+        ) : (
+          <div className="h-32 w-full bg-muted flex items-center justify-center">
+            <Image className="h-10 w-10 text-muted-foreground" />
+          </div>
+        )}
+      </div>
       <CardHeader>
         <CardTitle>{property.name}</CardTitle>
         <CardDescription>
@@ -58,7 +80,7 @@ export function PropertyCards({ properties, isLoading, error, limit, action }: P
           {
             id: '1',
             name: 'Beach House',
-            property_type: 'House',
+            property_type: 'House' as any, // Type assertion to avoid PropertyType enum constraint
             desc: 'A beautiful beach house',
             accommodates: 6,
             bedrooms: 3,
@@ -78,7 +100,7 @@ export function PropertyCards({ properties, isLoading, error, limit, action }: P
           {
             id: '2',
             name: 'Mountain Cabin',
-            property_type: 'Cabin',
+            property_type: 'Cabin' as any, // Type assertion to avoid PropertyType enum constraint
             desc: 'Cozy mountain retreat',
             accommodates: 4,
             bedrooms: 2,
@@ -98,7 +120,7 @@ export function PropertyCards({ properties, isLoading, error, limit, action }: P
           {
             id: '3',
             name: 'Downtown Loft',
-            property_type: 'Apartment',
+            property_type: 'Apartment' as any, // Type assertion to avoid PropertyType enum constraint
             desc: 'Modern downtown loft',
             accommodates: 2,
             bedrooms: 1,
@@ -136,6 +158,9 @@ export function PropertyCards({ properties, isLoading, error, limit, action }: P
       {isLoadingData ? (
         <>
           <Card>
+            <div className="h-32 w-full bg-muted">
+              <Skeleton className="h-full w-full" />
+            </div>
             <CardHeader>
               <CardTitle><Skeleton className="h-5 w-40" /></CardTitle>
               <CardDescription><Skeleton className="h-4 w-60" /></CardDescription>
@@ -145,6 +170,9 @@ export function PropertyCards({ properties, isLoading, error, limit, action }: P
             </CardContent>
           </Card>
           <Card>
+            <div className="h-32 w-full bg-muted">
+              <Skeleton className="h-full w-full" />
+            </div>
             <CardHeader>
               <CardTitle><Skeleton className="h-5 w-40" /></CardTitle>
               <CardDescription><Skeleton className="h-4 w-60" /></CardDescription>
@@ -154,6 +182,9 @@ export function PropertyCards({ properties, isLoading, error, limit, action }: P
             </CardContent>
           </Card>
           <Card>
+            <div className="h-32 w-full bg-muted">
+              <Skeleton className="h-full w-full" />
+            </div>
             <CardHeader>
               <CardTitle><Skeleton className="h-5 w-40" /></CardTitle>
               <CardDescription><Skeleton className="h-4 w-60" /></CardDescription>
