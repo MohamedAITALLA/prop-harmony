@@ -94,16 +94,16 @@ export const propertyService = {
   },
   updateProperty: async (id: string, data: any = {}, newImages?: File[], deleteImages?: string[]) => {
     try {
-      console.log(`Updating property ${id} with data:`, data);
-      console.log(`Images to delete (raw array):`, deleteImages);
-      
-      // Always use multipart/form-data for consistency with API specs
+      // Normalize delete images array by removing leading slash
+      const normalizedDeleteImages = deleteImages?.map(url => 
+        url.startsWith('/https://') ? url.substring(1) : url
+      ) || [];
+
+      console.log("Normalized images to delete:", normalizedDeleteImages);
+
       const formData = new FormData();
-      
-      // Add property data as JSON string (pass an empty object if no data is provided)
       formData.append('property', JSON.stringify(data || {}));
-      
-      // Add new images if any
+
       if (newImages && newImages.length > 0) {
         newImages.forEach((image) => {
           if (image) {
@@ -111,35 +111,13 @@ export const propertyService = {
           }
         });
       }
-      
-      // Add image URLs to delete if any
-      if (deleteImages && deleteImages.length > 0) {
-        // Ensure full URLs without leading slash
-        const formattedDeleteImages = deleteImages.map(url => 
-          url.startsWith('/') ? url.substring(1) : url
-        );
-        
-        console.log("Formatted deleteImages array:", formattedDeleteImages);
-        
-        // Convert to JSON string in the exact format required by the API
-        const deleteImagesJson = JSON.stringify(formattedDeleteImages);
-        console.log("First JSON.stringify result:", deleteImagesJson);
-        
-        // Double stringify as required by the API
-        const finalDeleteImagesJson = JSON.stringify(deleteImagesJson);
-        console.log("Final double-stringified JSON:", finalDeleteImagesJson);
-        console.log("Expected format example: \"[\\\"https://example.com/image.jpg\\\"]\"");
-        
-        // Append to form data
-        formData.append('deleteImages', finalDeleteImagesJson);
-        
-        // Log all form data keys and values for debugging
-        console.log("FormData keys:");
-        for (const pair of formData.entries()) {
-          console.log(pair[0], ':', typeof pair[1] === 'string' ? pair[1] : '[File or non-string value]');
-        }
+
+      // Use normalized delete images
+      if (normalizedDeleteImages.length > 0) {
+        const deleteImagesJson = JSON.stringify(normalizedDeleteImages);
+        formData.append('deleteImages', JSON.stringify(deleteImagesJson));
       }
-      
+
       console.log("About to send request to update property...");
       
       const response = await api.put(`/properties/${id}`, formData, {

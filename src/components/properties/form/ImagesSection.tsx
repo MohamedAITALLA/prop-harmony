@@ -30,13 +30,19 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
   const existingImageUrls = React.useMemo(() => {
     if (!isEditMode) return [];
     
-    // Get the initial values that were loaded into the form
     const allFormImages = form.getValues("images") || [];
     return allFormImages
-      .filter(img => img.value && (img.value.startsWith('http') || img.value.startsWith('/')) && !img.value.startsWith('blob:'))
-      .map(img => img.value);
+      .filter(img => img.value)
+      .map(img => {
+        // Remove leading slash from image URLs
+        let imageUrl = img.value;
+        if (imageUrl.startsWith('/https://')) {
+          imageUrl = imageUrl.substring(1);
+        }
+        return imageUrl;
+      });
   }, [isEditMode, form]);
-  
+
   // Make uploadedImages and imagesToDelete available on the form element
   React.useEffect(() => {
     // @ts-ignore - adding custom properties to the form
@@ -90,12 +96,13 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
 
   // Toggle an image for deletion
   const toggleImageForDeletion = (imageUrl: string) => {
-    if (imagesToDelete.includes(imageUrl)) {
-      // Remove from delete list if already there
-      setImagesToDelete(prev => prev.filter(url => url !== imageUrl));
+    // Remove leading slash if present
+    let normalizedUrl = imageUrl.startsWith('/https://') ? imageUrl.substring(1) : imageUrl;
+    
+    if (imagesToDelete.includes(normalizedUrl)) {
+      setImagesToDelete(prev => prev.filter(url => url !== normalizedUrl));
     } else {
-      // Add to delete list
-      setImagesToDelete(prev => [...prev, imageUrl]);
+      setImagesToDelete(prev => [...prev, normalizedUrl]);
     }
   };
   
@@ -127,13 +134,10 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
           <h4 className="text-sm font-medium mb-3">Select images to delete:</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {existingImageUrls.map((imageUrl, idx) => {
-              // Fix image URL if it starts with a slash or contains double paths
-              let finalImageUrl = imageUrl;
-              if (imageUrl.startsWith('/https://')) {
-                finalImageUrl = imageUrl.substring(1);
-              }
+              // Ensure URL is normalized
+              let finalImageUrl = imageUrl.startsWith('/https://') ? imageUrl.substring(1) : imageUrl;
               
-              const isMarkedForDeletion = imagesToDelete.includes(imageUrl);
+              const isMarkedForDeletion = imagesToDelete.includes(finalImageUrl);
               
               return (
                 <div 
@@ -194,10 +198,7 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {imagesToDelete.map((imageUrl, idx) => {
               // Fix image URL for display
-              let finalImageUrl = imageUrl;
-              if (imageUrl.startsWith('/https://')) {
-                finalImageUrl = imageUrl.substring(1);
-              }
+              let finalImageUrl = imageUrl.startsWith('/https://') ? imageUrl.substring(1) : imageUrl;
               
               return (
                 <div key={`delete-${idx}`} className="flex items-center gap-2 bg-white dark:bg-gray-800 p-2 rounded-md">

@@ -1,9 +1,7 @@
-
 import React, { useEffect, useState } from "react";
-import { GalleryHorizontal, RefreshCw } from "lucide-react";
+import { GalleryHorizontal } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Property } from "@/types/api-responses";
-import { Button } from "@/components/ui/button";
 
 interface ImagesCardProps {
   property: Property;
@@ -12,31 +10,28 @@ interface ImagesCardProps {
 export function ImagesCard({ property }: ImagesCardProps) {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   
-  // Use effect to process images whenever property changes
   useEffect(() => {
     if (!property.images || property.images.length === 0) {
       setImageUrls([]);
       return;
     }
     
-    // Process image URLs
+    // Process image URLs to remove leading slash
     const processedUrls = property.images.map(image => {
-      // Handle both string and object with value property
       let imageUrl = typeof image === 'string' ? image : (image as any)?.value || '';
       
-      // Fix image URL if it starts with a slash or contains double paths
+      // Remove leading slash from URLs starting with '/https://'
       if (imageUrl.startsWith('/https://')) {
         imageUrl = imageUrl.substring(1);
       }
       
       return imageUrl;
-    }).filter(url => url); // Filter out any empty URLs
+    }).filter(url => url);
     
     console.log("Processed image URLs:", processedUrls);
     setImageUrls(processedUrls);
   }, [property.images]);
   
-  // Only render if images exist
   if (!imageUrls || imageUrls.length === 0) {
     return (
       <Card className="shadow-sm border-border/40">
