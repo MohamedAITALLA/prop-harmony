@@ -1,7 +1,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { BarChart3 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { dashboardConfig } from "@/config/dashboard.config";
@@ -9,7 +8,6 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { PropertyCards } from "@/components/dashboard/PropertyCards";
 import { MiniCalendar } from "@/components/dashboard/MiniCalendar";
 import { RecentNotifications } from "@/components/dashboard/RecentNotifications";
-import { SyncStatusTable } from "@/components/dashboard/SyncStatusTable";
 
 interface DashboardStats {
   totalProperties: number;
@@ -94,9 +92,9 @@ export default function Dashboard() {
                     variant={card.variant}
                     action={card.action}
                     onClick={() => card.action && navigate(
-                      card.title === "Pending Conflicts" ? "/conflicts" :
+                      card.title === "Pending Conflicts" ? "/properties" :
                       card.title === "Total Properties" ? "/properties" :
-                      card.title === "Active Bookings" ? "/calendar" :
+                      card.title === "Active Bookings" ? "/properties" :
                       "/"
                     )}
                     isLoading={isLoading}
@@ -127,10 +125,6 @@ export default function Dashboard() {
               limit={section.limit || 5}
               action={section.action}
             />
-          )}
-          
-          {section.component === "SyncStatusTable" && (
-            <SyncStatusTable action={section.action} />
           )}
         </div>
       ))}

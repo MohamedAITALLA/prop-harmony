@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { 
-  Airbnb, 
   BookOpen, 
   Calendar, 
   ExternalLink, 
@@ -22,7 +21,7 @@ export function PlatformIcon({ platform, size = 16, className = '' }: PlatformIc
   
   switch (platformLower) {
     case 'airbnb':
-      return <Airbnb size={size} className={`text-red-500 ${className}`} />;
+      return <Home size={size} className={`text-red-500 ${className}`} />;
     case 'booking':
     case 'booking.com':
       return <BookOpen size={size} className={`text-blue-500 ${className}`} />;

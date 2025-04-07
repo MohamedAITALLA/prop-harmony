@@ -41,7 +41,6 @@ export function GlobalSyncButton({
       
       // Invalidate queries to refresh UI
       queryClient.invalidateQueries({ queryKey: ["sync", "status"] });
-      queryClient.invalidateQueries({ queryKey: ["syncLogs"] });
       
       if (onSyncComplete) {
         onSyncComplete();

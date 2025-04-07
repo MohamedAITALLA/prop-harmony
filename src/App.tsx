@@ -7,6 +7,7 @@ import {
   Navigate,
 } from 'react-router-dom';
 import { useAuth, AuthProvider } from './hooks/auth/useAuth';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import MainLayout from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Properties from './pages/Properties';
@@ -28,6 +29,9 @@ import NotFound from './pages/NotFound';
 import { Toaster } from "@/components/ui/toaster";
 import Index from './pages/Index';
 import { Loader2 } from 'lucide-react';
+
+// Create a client
+const queryClient = new QueryClient();
 
 // Loading spinner component for suspense fallback
 const LoadingSpinner = () => (
@@ -90,11 +94,13 @@ function AppRoutes() {
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <Suspense fallback={<LoadingSpinner />}>
-          <AppRoutes />
-        </Suspense>
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <Suspense fallback={<LoadingSpinner />}>
+            <AppRoutes />
+          </Suspense>
+        </AuthProvider>
+      </QueryClientProvider>
     </Router>
   );
 }
