@@ -1,90 +1,132 @@
 
 export enum PropertyType {
-  APARTMENT = "APARTMENT",
-  HOUSE = "HOUSE",
-  ROOM = "ROOM",
-  HOTEL = "HOTEL",
-  CABIN = "CABIN",
-  VILLA = "VILLA",
-  CONDO = "CONDO",
-  OTHER = "OTHER"
+  APARTMENT = 'apartment',
+  HOUSE = 'house',
+  VILLA = 'villa',
+  CONDO = 'condo',
+  CABIN = 'cabin',
+  ROOM = 'room',
+  HOTEL = 'hotel',
+  OTHER = 'other'
 }
 
 export enum EventType {
-  BOOKING = "BOOKING",
-  MAINTENANCE = "MAINTENANCE",
-  CLEANING = "CLEANING",
-  BLOCKED = "BLOCKED",
-  OTHER = "OTHER"
+  BOOKING = 'booking',
+  BLOCKED = 'blocked',
+  MAINTENANCE = 'maintenance',
+  CLEANING = 'cleaning',
+  OTHER = 'other'
 }
 
-export enum EventSource {
-  MANUAL = "MANUAL",
-  AIRBNB = "AIRBNB",
-  BOOKING = "BOOKING",
-  VRBO = "VRBO",
-  EXPEDIA = "EXPEDIA",
-  GOOGLE = "GOOGLE",
-  OTHER = "OTHER",
+export enum EventStatus {
+  CONFIRMED = 'confirmed',
+  CANCELLED = 'cancelled',
+  TENTATIVE = 'tentative'
 }
 
 export enum ConflictType {
-  OVERLAP = "OVERLAP",
-  BACK_TO_BACK = "BACK_TO_BACK",
-  MISSING_CLEANING = "MISSING_CLEANING",
-  DUPLICATE_BOOKING = "DUPLICATE_BOOKING",
-  OTHER = "OTHER"
-}
-
-export enum ConflictStatus {
-  UNRESOLVED = "UNRESOLVED",
-  RESOLVED = "RESOLVED",
-  IGNORED = "IGNORED"
+  OVERLAP = 'overlap',
+  ADJACENT = 'adjacent',
+  TURNOVER = 'turnover',
+  BACK_TO_BACK = 'back_to_back',
+  MISSING_CLEANING = 'missing_cleaning',
+  DUPLICATE_BOOKING = 'duplicate_booking',
+  OTHER = 'other'
 }
 
 export enum ConflictSeverity {
-  LOW = "LOW",
-  MEDIUM = "MEDIUM",
-  HIGH = "HIGH",
-  CRITICAL = "CRITICAL"
+  HIGH = 'high',
+  MEDIUM = 'medium',
+  LOW = 'low',
+  CRITICAL = 'critical'
+}
+
+export enum ConflictStatus {
+  NEW = 'new',
+  ACKNOWLEDGED = 'acknowledged',
+  RESOLVED = 'resolved',
+  UNRESOLVED = 'unresolved',
+  IGNORED = 'ignored'
 }
 
 export enum NotificationType {
-  INFO = "INFO",
-  WARNING = "WARNING",
-  ERROR = "ERROR",
-  SUCCESS = "SUCCESS"
+  NEW_BOOKING = 'new_booking',
+  MODIFIED_BOOKING = 'modified_booking',
+  CANCELLED_BOOKING = 'cancelled_booking',
+  BOOKING_CONFLICT = 'booking_conflict',
+  SYNC_FAILURE = 'sync_failure',
+  ICAL_REMOVED = 'ical_removed',
+  INFO = 'info',
+  WARNING = 'warning',
+  ERROR = 'error',
+  SUCCESS = 'success'
+}
+
+export enum NotificationSeverity {
+  CRITICAL = 'critical',
+  WARNING = 'warning',
+  INFO = 'info',
+  HIGH = 'high',
+  MEDIUM = 'medium',
+  LOW = 'low'
 }
 
 export enum SyncStatus {
-  PENDING = "PENDING",
-  SYNCING = "SYNCING",
-  SUCCESS = "SUCCESS",
-  PARTIAL = "PARTIAL",
-  FAILED = "FAILED"
+  PENDING = 'pending',
+  SYNCING = 'syncing',
+  SUCCESS = 'success',
+  PARTIAL = 'partial',
+  FAILED = 'failed'
 }
 
 export enum UserRole {
-  ADMIN = "ADMIN",
-  OWNER = "OWNER",
-  MANAGER = "MANAGER",
-  STAFF = "STAFF",
-  GUEST = "GUEST"
+  ADMIN = 'admin',
+  OWNER = 'owner',
+  MANAGER = 'manager',
+  STAFF = 'staff',
+  GUEST = 'guest'
 }
 
 export enum UserStatus {
-  ACTIVE = "ACTIVE",
-  INACTIVE = "INACTIVE",
-  PENDING = "PENDING",
-  SUSPENDED = "SUSPENDED"
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  PENDING = 'pending',
+  SUSPENDED = 'suspended'
+}
+
+export enum Platform {
+  AIRBNB = 'Airbnb',
+  BOOKING = 'Booking',
+  EXPEDIA = 'Expedia',
+  TRIPADVISOR = 'TripAdvisor',
+  VRBO = 'Vrbo',
+  MANUAL = 'manual',
+  GOOGLE = 'Google',
+  OTHER = 'other'
+}
+
+export enum ConnectionStatus {
+  ACTIVE = 'active',
+  ERROR = 'error',
+  INACTIVE = 'inactive'
+}
+
+export enum EventSource {
+  MANUAL = 'manual',
+  AIRBNB = 'airbnb',
+  BOOKING = 'booking',
+  VRBO = 'vrbo',
+  EXPEDIA = 'expedia',
+  GOOGLE = 'google',
+  OTHER = 'other'
 }
 
 export enum PlatformType {
-  AIRBNB = "AIRBNB",
-  BOOKING = "BOOKING",
-  VRBO = "VRBO",
-  EXPEDIA = "EXPEDIA",
-  TRIPADVISOR = "TRIPADVISOR",
-  GOOGLE = "GOOGLE",
-  OTHER = "OTHER"
+  AIRBNB = 'airbnb',
+  BOOKING = 'booking',
+  VRBO = 'vrbo',
+  EXPEDIA = 'expedia',
+  TRIPADVISOR = 'tripadvisor',
+  GOOGLE = 'google',
+  OTHER = 'other'
 }

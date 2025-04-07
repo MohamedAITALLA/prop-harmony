@@ -55,14 +55,19 @@ export default function PropertyDetails() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async (preserveHistory: boolean) => {
     try {
       if (!id) throw new Error("Property ID not found");
       
-      const result = await propertyService.deleteProperty(id);
+      const result = await propertyService.deleteProperty(id, preserveHistory);
       
-      toast.success(`Property ${property?.name} successfully deleted`, {
-        description: "All property data has been permanently deleted"
+      const actionText = preserveHistory ? "archived" : "deleted";
+      const descriptionText = preserveHistory 
+        ? "The property has been made inactive but historical data is preserved"
+        : "All property data has been permanently deleted";
+      
+      toast.success(`Property ${property?.name} successfully ${actionText}`, {
+        description: descriptionText
       });
       
       navigate("/properties");

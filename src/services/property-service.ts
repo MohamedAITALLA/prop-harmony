@@ -131,13 +131,14 @@ export const propertyService = {
       throw error;
     }
   },
-  deleteProperty: async (id: string) => {
+  deleteProperty: async (id: string, preserveHistory: boolean = true) => {
     try {
-      console.log(`Deleting property ${id}`);
-      // Always set preserve_history to true by default
+      console.log(`Deleting property ${id}, preserve history: ${preserveHistory}`);
+      
       const response = await api.delete(`/properties/${id}`, {
-        params: { preserve_history: true }
+        params: { preserve_history: preserveHistory }
       });
+      
       console.log("Delete property response:", response.data);
       return response.data;
     } catch (error) {

@@ -13,13 +13,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2, X } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Trash2, X, Archive } from "lucide-react";
+import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface DeletePropertyDialogProps {
   propertyName: string;
   isOpen: boolean;
-  onConfirm: () => void;
+  onConfirm: (preserveHistory: boolean) => void;
   onCancel: () => void;
 }
 
@@ -31,7 +32,7 @@ export function DeletePropertyDialog({
 }: DeletePropertyDialogProps) {
   const [confirmText, setConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
-  const { toast } = useToast();
+  const [preserveHistory, setPreserveHistory] = useState(true);
   const expectedText = "delete";
   
   const isConfirmDisabled = confirmText.toLowerCase() !== expectedText || isDeleting;
@@ -42,14 +43,10 @@ export function DeletePropertyDialog({
     setIsDeleting(true);
     
     try {
-      onConfirm();
+      onConfirm(preserveHistory);
     } catch (error) {
       console.error("Error in delete confirmation:", error);
-      toast({
-        title: "Delete failed",
-        description: "There was an error deleting the property. Please try again.",
-        variant: "destructive"
-      });
+      toast.error("Delete failed. There was an error deleting the property. Please try again.");
       setIsDeleting(false);
     }
   };
@@ -82,9 +79,30 @@ export function DeletePropertyDialog({
             />
           </div>
           
-          <div className="p-3 rounded-md flex gap-2 bg-red-50 border border-red-200">
-            <AlertDialogDescription className="text-red-800">
-              This will permanently delete all property data including historical bookings and sync records.
+          <div className="flex items-start space-x-2">
+            <Checkbox 
+              id="preserve-history" 
+              checked={preserveHistory} 
+              onCheckedChange={(checked) => setPreserveHistory(checked === true)}
+            />
+            <div className="grid gap-1.5 leading-none">
+              <Label
+                htmlFor="preserve-history"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Preserve historical data
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Keep historical booking data for reporting while making the property inactive.
+              </p>
+            </div>
+          </div>
+          
+          <div className={`p-3 rounded-md flex gap-2 ${preserveHistory ? 'bg-amber-50 border border-amber-200' : 'bg-red-50 border border-red-200'}`}>
+            <AlertDialogDescription className={preserveHistory ? 'text-amber-800' : 'text-red-800'}>
+              {preserveHistory 
+                ? "The property will be made inactive but historical data will be preserved for reporting purposes."
+                : "This will permanently delete all property data including historical bookings and sync records."}
             </AlertDialogDescription>
           </div>
         </div>
@@ -109,8 +127,12 @@ export function DeletePropertyDialog({
                 </>
               ) : (
                 <>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Property
+                  {preserveHistory ? (
+                    <Archive className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Trash2 className="mr-2 h-4 w-4" />
+                  )}
+                  {preserveHistory ? 'Archive Property' : 'Delete Property'}
                 </>
               )}
             </Button>
