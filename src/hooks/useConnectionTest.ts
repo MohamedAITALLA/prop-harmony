@@ -20,7 +20,14 @@ export function useConnectionTest(propertyId: string) {
     onSuccess: (response) => {
       setTestResult({
         data: response.data.data,
-        meta: response.data.data,  // Use data instead of meta
+        meta: {
+          url: response.data.data.connection?.ical_url || '',
+          status_code: response.data.meta?.status_code,
+          content_type: response.data.meta?.content_type,
+          content_length: response.data.meta?.content_length,
+          response_time_ms: response.data.meta?.response_time_ms,
+          tested_at: response.data.meta?.tested_at || response.data.timestamp
+        },
         message: response.data.message,
         timestamp: response.data.timestamp
       });
