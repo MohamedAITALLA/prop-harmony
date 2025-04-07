@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { icalConnectionService } from '@/services/ical-connection-service';
 import { Button } from "@/components/ui/button";
@@ -34,19 +35,20 @@ export function DeleteConnectionDialog({
   onDeleted
 }: DeleteConnectionDialogProps) {
   const queryClient = useQueryClient();
-  const eventAction = 'keep';
+  const [eventAction, setEventAction] = useState<'keep' | 'convert' | 'deactivate'>('keep');
   
   // Delete connection mutation
   const deleteMutation = useMutation({
-    mutationFn: ({ connectionId }: {
+    mutationFn: ({ connectionId, eventAction }: {
       connectionId: string;
+      eventAction: 'keep' | 'convert' | 'deactivate';
     }) => {
-      // Always use preserve history true and keep events
+      // Always use preserve history true
       return icalConnectionService.deleteConnection(
         propertyId, 
         connectionId, 
         true, // Always preserve history
-        'keep' // Always keep events
+        eventAction
       );
     },
     onSuccess: (response) => {
@@ -73,7 +75,8 @@ export function DeleteConnectionDialog({
   const handleDeleteConnection = () => {
     if (!connection) return;
     deleteMutation.mutate({
-      connectionId: connection._id
+      connectionId: connection._id,
+      eventAction
     });
   };
   
@@ -88,7 +91,7 @@ export function DeleteConnectionDialog({
             Delete Calendar Connection
           </AlertDialogTitle>
           <AlertDialogDescription>
-            This will remove the connection while preserving related events. All synced events will be kept in your calendar.
+            This will remove the connection while preserving related events. Choose how you want to handle existing events.
           </AlertDialogDescription>
         </AlertDialogHeader>
         
@@ -112,16 +115,27 @@ export function DeleteConnectionDialog({
             <Label className="text-sm font-medium">
               Event Handling
             </Label>
-            <RadioGroup value="keep" disabled>
+            <RadioGroup value={eventAction} onValueChange={(value) => setEventAction(value as 'keep' | 'convert' | 'deactivate')}>
               <div className="flex items-center space-x-2 rounded-md border p-2">
                 <RadioGroupItem value="keep" id="keep" />
                 <Label htmlFor="keep" className="flex-1 cursor-pointer">Keep all events</Label>
               </div>
+              
+              <div className="flex items-center space-x-2 rounded-md border p-2">
+                <RadioGroupItem value="convert" id="convert" />
+                <Label htmlFor="convert" className="flex-1 cursor-pointer">Convert to manual events</Label>
+              </div>
+              
+              <div className="flex items-center space-x-2 rounded-md border p-2">
+                <RadioGroupItem value="deactivate" id="deactivate" />
+                <Label htmlFor="deactivate" className="flex-1 cursor-pointer">Deactivate events</Label>
+              </div>
             </RadioGroup>
             
             <p className="text-xs text-muted-foreground mt-2">
-              All existing events from this connection will be preserved in your calendar. 
-              Future updates from this source will no longer be synced.
+              {eventAction === 'keep' && "All existing events from this connection will be preserved in your calendar. Future updates from this source will no longer be synced."}
+              {eventAction === 'convert' && "Existing events will be converted to manual events, disconnecting them from the original calendar source."}
+              {eventAction === 'deactivate' && "Events will be marked as inactive but preserved in the system for historical reference."}
             </p>
           </div>
         </div>
