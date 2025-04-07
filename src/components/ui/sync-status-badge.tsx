@@ -26,7 +26,7 @@ interface BadgeConfig {
 export function getSyncBadgeConfig(status: string): BadgeConfig {
   const statusLower = status.toLowerCase();
   
-  if (statusLower === "active" || statusLower === "success" || statusLower === "synced") {
+  if (statusLower === "active" || statusLower === "success" || statusLower === "synced" || statusLower === "healthy") {
     return {
       icon: <CheckCircle className="h-3 w-3" />,
       variant: "outline",
@@ -53,12 +53,30 @@ export function getSyncBadgeConfig(status: string): BadgeConfig {
     };
   }
   
-  if (statusLower === "pending" || statusLower === "processing") {
+  if (statusLower === "pending" || statusLower === "processing" || statusLower === "syncing") {
     return {
       icon: <Clock className="h-3 w-3" />,
       variant: "outline",
       className: "border-blue-500 text-blue-500 bg-blue-50",
-      text: "Pending"
+      text: "Processing"
+    };
+  }
+  
+  if (statusLower === "inactive") {
+    return {
+      icon: <Clock className="h-3 w-3" />,
+      variant: "outline",
+      className: "border-gray-500 text-gray-500 bg-gray-50",
+      text: "Inactive"
+    };
+  }
+  
+  if (statusLower === "no_connections") {
+    return {
+      icon: <AlertCircle className="h-3 w-3" />,
+      variant: "outline",
+      className: "border-gray-500 text-gray-500 bg-gray-50",
+      text: "No Connections"
     };
   }
   

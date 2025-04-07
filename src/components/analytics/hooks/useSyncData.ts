@@ -2,36 +2,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { syncService } from "@/services/api-service";
+import { PropertySyncStatusResponse } from "@/types/api-responses/sync-types";
 import React from "react";
-
-export interface PropertySyncStatus {
-  property_id: string;
-  connections: Array<{
-    _id: string;
-    platform: string;
-    status: string;
-    last_synced: string;
-    next_sync: string | null;
-    error_message: string | null;
-    last_error_time: string | null;
-    sync_frequency_minutes: number;
-    url_hash: string | null;
-  }>;
-  event_counts: Array<{
-    platform: string;
-    total_events: number;
-    active_events: number;
-  }>;
-  summary: {
-    last_sync: string | null;
-    next_sync: string | null;
-    overall_status: string;
-    total_connections: number;
-    active_connections: number;
-    error_connections: number;
-    health_percentage: number;
-  };
-}
 
 export function useSyncData(propertyId?: string) {
   const [retryAttempt, setRetryAttempt] = React.useState(0);
@@ -129,7 +101,7 @@ export function useSyncData(propertyId?: string) {
   }, [syncLogs]);
 
   return {
-    syncStatus,
+    syncStatus: syncStatus as PropertySyncStatusResponse | null,
     syncLogs,
     isLoadingSyncStatus,
     isLoadingSyncLogs,

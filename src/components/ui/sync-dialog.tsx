@@ -16,42 +16,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { PlatformIcon } from "@/components/ui/platform-icon";
 import { format } from "date-fns";
+import { PropertySyncResponse, PropertySyncResult } from "@/types/api-responses/sync-types";
 
 interface SyncDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   propertyId?: string;
   onSyncComplete?: () => void;
-}
-
-interface SyncPlatformResult {
-  platform: string;
-  success: boolean;
-  events_synced: number;
-  events_created: number;
-  events_updated: number;
-  events_cancelled: number;
-  sync_duration_ms: number;
-  conflicts: any[];
-  last_synced: string;
-  error?: string;
-}
-
-interface SyncResult {
-  property_id: string;
-  sync_results: SyncPlatformResult[];
-  summary?: {
-    total_connections?: number;
-    successful_syncs?: number;
-    failed_syncs?: number;
-    total_events_synced?: number;
-    events_created?: number;
-    events_updated?: number;
-    events_cancelled?: number;
-    conflicts_detected?: number;
-    sync_completion_time?: string;
-  };
-  next_sync?: string;
 }
 
 export function SyncDialog({ 
@@ -64,7 +35,7 @@ export function SyncDialog({
   const [syncComplete, setSyncComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
-  const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
+  const [syncResult, setSyncResult] = useState<PropertySyncResponse | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [syncProgress, setSyncProgress] = useState(0);
   const [syncMessage, setSyncMessage] = useState<string>("Initializing sync...");
@@ -256,7 +227,7 @@ export function SyncDialog({
               <span className="text-muted-foreground">Total events synced:</span>{" "}
               <span className="font-medium">{syncResult.summary?.total_events_synced || 0}</span>
             </div>
-            {syncResult.summary?.conflicts_detected && syncResult.summary.conflicts_detected > 0 && (
+            {syncResult.summary?.conflicts_detected > 0 && (
               <div className="col-span-2">
                 <span className="text-muted-foreground">Conflicts detected:</span>{" "}
                 <Badge variant="destructive" className="ml-1">

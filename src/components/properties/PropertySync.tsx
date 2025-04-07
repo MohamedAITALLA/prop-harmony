@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Platform } from "@/types/enums";
 import { CircularProgress } from "@/components/ui/circular-progress";
+import { PropertySyncStatusResponse } from "@/types/api-responses/sync-types";
 
 interface PropertySyncProps {
   propertyId: string;
@@ -97,7 +98,7 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
   });
 
   // Extract the sync status from the API response
-  const syncStatus = syncData?.summary ? syncData : null;
+  const syncStatus: PropertySyncStatusResponse | null = syncData || null;
 
   const handleSync = async () => {
     if (isSyncing) return;
@@ -171,7 +172,7 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center gap-3 text-red-500">
-            {syncStatusError.message && (syncStatusError.message.includes("Network") || 
+            {syncStatusError instanceof Error && (syncStatusError.message.includes("Network") || 
                syncStatusError.message.includes("internet")) ? (
               <WifiOff className="h-5 w-5" />
             ) : (
@@ -366,7 +367,7 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
                   <h3 className="font-medium mb-2">Connected Platforms</h3>
                   <div className="flex flex-wrap gap-2">
                     {syncStatus.connections.map(connection => (
-                      <div key={connection._id} className="flex items-center">
+                      <div key={connection.id} className="flex items-center">
                         {renderPlatformIcon(connection.platform)}
                       </div>
                     ))}

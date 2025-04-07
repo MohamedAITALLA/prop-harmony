@@ -1,41 +1,7 @@
-
-import { ICalConnection } from "./api-responses";
-
-// Add to existing types
-export interface UpdateConnectionResponse {
-  success: boolean;
-  data: ICalConnection;
-  meta: {
-    property_id: string;
-    connection_id: string;
-    platform: string;
-    status: string;
-    updated_fields: string[];
-    updated_at: string;
-  };
-  message: string;
-  timestamp: string;
-}
-
-export interface DeleteConnectionResponse {
-  success: boolean;
-  data: ICalConnection;
-  meta: {
-    property_id: string;
-    connection_id: string;
-    platform: string;
-    preserve_history: boolean;
-    action: "deactivated" | "permanently deleted";
-    events_action?: string;
-    events_affected?: number;
-    conflicts_processed?: number;
-  };
-  message: string;
-  timestamp: string;
-}
+// Types related to iCal connection functionality
 
 export interface TestResult {
-  data: TestConnectionResponse | null;
+  data: any | null;
   meta: TestConnectionMeta | null;
   message: string | null;
   timestamp: string | null;
@@ -52,17 +18,40 @@ export interface TestConnectionMeta {
 
 export interface TestConnectionResponse {
   valid: boolean;
-  events_found?: number;
-  parse_time_ms?: number;
   error?: string;
+  events_found?: number;
   connection?: {
+    ical_url: string;
+    // other connection properties
+  };
+}
+
+export interface UpdateConnectionResponse {
+  connection: {
     _id: string;
-    property_id: string;
     platform: string;
     ical_url: string;
-    sync_frequency: number;
     status: string;
-    last_synced?: string;
-    error_message?: string | null;
+    // other connection properties
   };
+  meta?: {
+    action: string;
+    platform: string;
+  };
+  message: string;
+}
+
+export interface DeleteConnectionResponse {
+  success: boolean;
+  data: {
+    connection_id: string;
+    platform: string;
+    status: string;
+  };
+  meta?: {
+    action: string;
+    platform: string;
+    events_affected?: number;
+  };
+  message: string;
 }
