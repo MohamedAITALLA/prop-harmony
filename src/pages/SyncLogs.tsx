@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,7 +34,7 @@ export default function SyncLogs() {
       
       try {
         const response = await syncService.getSyncLogs(params);
-        return response.data;
+        return response.data; // Ensure we're accessing the data property
       } catch (err) {
         console.error('Error fetching sync logs:', err);
         throw err;
@@ -42,8 +43,8 @@ export default function SyncLogs() {
   });
 
   // Safely extract logs and pagination from the response
-  const syncLogs: SyncLog[] = data?.data?.logs || [];
-  const pagination = data?.data?.pagination || { 
+  const syncLogs: SyncLog[] = data?.logs || [];
+  const pagination = data?.pagination || { 
     total: 0, 
     page: 1, 
     limit: 10, 
