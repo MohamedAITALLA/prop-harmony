@@ -3,12 +3,10 @@
 import propertyService from "./property-service";
 import icalConnectionService from "./ical-connection-service";
 import { syncService } from "./sync-service";
-import conflictService from "./conflict-service";
 import authService from "./auth-service";
 import profileService from "./profile-service";
 import adminUserService from "./admin-user-service";
 import adminProfileService from "./admin-profile-service";
-import calendarService from "./calendar-service";
 import eventService from "./event-service";
 import notificationService from "./notification-service";
 
@@ -17,12 +15,10 @@ export {
   propertyService,
   icalConnectionService,
   syncService,
-  conflictService,
   authService,
   profileService,
   adminUserService,
   adminProfileService,
-  calendarService,
   eventService,
   notificationService
 };

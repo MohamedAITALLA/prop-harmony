@@ -3,7 +3,6 @@
 export * from './admin-types';
 export * from './auth-types';
 export * from './common-types';
-export * from './conflict-types';
 export * from './event-types';
 export * from './ical-types';
 export * from './notification-types';

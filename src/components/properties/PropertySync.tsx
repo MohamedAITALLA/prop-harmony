@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { syncService } from "@/services/sync-service";
-import { Loader2, RefreshCw, AlertTriangle, Check } from "lucide-react";
+import { Loader2, RefreshCw, AlertTriangle } from "lucide-react";
 import { PropertySyncStatusResponse, PropertySyncResponse } from "@/types/api-responses/sync-types";
 import { format, parseISO } from "date-fns";
 import { SyncStatusBadge } from "@/components/ui/sync-status-badge";

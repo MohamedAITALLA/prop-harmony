@@ -7,5 +7,9 @@ interface SyncTabContentProps {
 }
 
 export function SyncTabContent({ propertyId }: SyncTabContentProps) {
-  return <PropertySync propertyId={propertyId} />;
+  return (
+    <div className="space-y-6">
+      <PropertySync propertyId={propertyId} />
+    </div>
+  );
 }

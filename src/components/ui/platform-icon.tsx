@@ -17,7 +17,7 @@ interface PlatformIconProps {
 }
 
 export function PlatformIcon({ platform, size = 16, className = '' }: PlatformIconProps) {
-  const platformLower = platform.toLowerCase();
+  const platformLower = platform?.toLowerCase() || '';
   
   switch (platformLower) {
     case 'airbnb':

@@ -14,7 +14,6 @@ import Properties from './pages/Properties';
 import NewProperty from './pages/NewProperty';
 import PropertyDetails from './pages/PropertyDetails';
 import EditProperty from './pages/EditProperty';
-import EventManagement from './pages/EventManagement';
 import GlobalSync from './pages/GlobalSync';
 import Notifications from './pages/Notifications';
 import ProfileSettings from './pages/ProfileSettings';
@@ -72,7 +71,6 @@ function AppRoutes() {
           <Route path="properties/new" element={<PrivateRoute><NewProperty /></PrivateRoute>} />
           <Route path="properties/:id" element={<PrivateRoute><PropertyDetails /></PrivateRoute>} />
           <Route path="properties/:id/edit" element={<PrivateRoute><EditProperty /></PrivateRoute>} />
-          <Route path="events" element={<PrivateRoute><EventManagement /></PrivateRoute>} />
           <Route path="sync" element={<PrivateRoute><GlobalSync /></PrivateRoute>} />
           <Route path="notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
           <Route path="settings/profile" element={<PrivateRoute><ProfileSettings /></PrivateRoute>} />
