@@ -13,6 +13,7 @@ interface ImagesSectionProps {
 }
 
 export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) {
+  // Field array for new images only
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "images"
@@ -25,25 +26,22 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
   // For tracking existing images to be deleted
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
   
-  // Initialize preview URLs for existing images
-  useEffect(() => {
-    const existingImages = form.getValues("images") || [];
-    const initialPreviews: { [key: number]: string } = {};
+  // Get existing images from form values
+  const existingImageUrls = React.useMemo(() => {
+    if (!isEditMode) return [];
     
-    existingImages.forEach((img, index) => {
-      if (img.value) {
-        initialPreviews[index] = img.value;
-      }
-    });
-    
-    setPreviewUrls(initialPreviews);
-  }, []);
+    // Get the initial values that were loaded into the form
+    const allFormImages = form.getValues("images") || [];
+    return allFormImages
+      .filter(img => img.value && (img.value.startsWith('http') || img.value.startsWith('/')) && !img.value.startsWith('blob:'))
+      .map(img => img.value);
+  }, [isEditMode, form]);
   
-  // Make uploadedImages available on the form element so we can access it during submission
+  // Make uploadedImages and imagesToDelete available on the form element
   React.useEffect(() => {
-    // @ts-ignore - adding a custom property to the form
+    // @ts-ignore - adding custom properties to the form
     form.uploadedImages = uploadedImages;
-    // @ts-ignore - adding a custom property for images to delete
+    // @ts-ignore - adding custom properties for images to delete
     form.imagesToDelete = imagesToDelete;
   }, [uploadedImages, imagesToDelete, form]);
   
@@ -63,11 +61,6 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
         ...prev,
         [index]: previewUrl
       }));
-      
-      // Update the form value to include the preview URL
-      const values = [...form.getValues("images") || []];
-      values[index] = { value: previewUrl };
-      form.setValue("images", values);
     }
   };
   
@@ -75,17 +68,7 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
     append({ value: "" });
   };
   
-  const removeImage = (index: number) => {
-    // If this is an existing image (not a new upload), add it to the delete list
-    const imageValue = form.getValues(`images.${index}.value`) || "";
-    
-    // Check if it looks like a URL (existing image) and not a blob URL (new upload)
-    if (imageValue && 
-        (imageValue.startsWith('http') || imageValue.startsWith('/')) && 
-        !imageValue.startsWith('blob:')) {
-      setImagesToDelete(prev => [...prev, imageValue]);
-    }
-    
+  const removeNewImage = (index: number) => {
     // Clean up preview URL if it exists
     if (previewUrls[index]) {
       // Only revoke if it's a blob URL (new image)
@@ -115,23 +98,12 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
       setImagesToDelete(prev => [...prev, imageUrl]);
     }
   };
-
-  // Get existing images that aren't in the delete list
-  const existingImages = fields
-    .filter(field => {
-      const value = field.value;
-      return value && (value.startsWith('http') || value.startsWith('/')) && !value.startsWith('blob:');
-    })
-    .map(field => field.value);
   
   // Count how many images are actually selected
-  const selectedImagesCount = Object.values(uploadedImages).filter(img => img !== null).length;
-  const existingImagesCount = fields.filter(field => {
-    const value = field.value;
-    return value && (value.startsWith('http') || value.startsWith('/')) && !imagesToDelete.includes(value);
-  }).length;
+  const selectedNewImagesCount = Object.values(uploadedImages).filter(img => img !== null).length;
+  const existingImagesCount = existingImageUrls.length - imagesToDelete.length;
   
-  const totalImagesCount = selectedImagesCount + existingImagesCount;
+  const totalImagesCount = selectedNewImagesCount + existingImagesCount;
 
   return (
     <div className="space-y-4">
@@ -149,12 +121,12 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
         </div>
       </div>
       
-      {/* Existing images gallery with deletion controls */}
-      {isEditMode && existingImages.length > 0 && (
+      {/* Existing images gallery with deletion controls - only shown in edit mode */}
+      {isEditMode && existingImageUrls.length > 0 && (
         <div className="bg-muted/20 p-4 rounded-md border border-border/50">
           <h4 className="text-sm font-medium mb-3">Select images to delete:</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {existingImages.map((imageUrl, idx) => {
+            {existingImageUrls.map((imageUrl, idx) => {
               // Fix image URL if it starts with a slash or contains double paths
               let finalImageUrl = imageUrl;
               if (imageUrl.startsWith('/https://')) {
@@ -253,7 +225,7 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
         </div>
       )}
       
-      {/* Add new images section */}
+      {/* Add new images section - completely separate from existing images */}
       <div className="border-t pt-4 mt-6">
         <h4 className="text-sm font-medium mb-3">Add new images:</h4>
         {fields.map((field, index) => (
@@ -262,7 +234,7 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
               <FormField
                 control={form.control}
                 name={`images.${index}.value`}
-                render={({ field: formField }) => (
+                render={() => (
                   <FormItem className="flex-1">
                     <FormControl>
                       <div className="flex flex-col gap-2">
@@ -284,7 +256,7 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
                 type="button" 
                 variant="destructive"
                 size="icon"
-                onClick={() => removeImage(index)}
+                onClick={() => removeNewImage(index)}
                 className="mt-1"
               >
                 <X className="h-4 w-4" />

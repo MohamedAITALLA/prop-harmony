@@ -29,10 +29,8 @@ export const handleEditFormSubmission = async (
     console.log("Images to delete:", imagesToDelete);
     console.log("New image files:", newImageFiles.length);
     
-    // Only include changed fields in the update payload
+    // Send empty object to API as requested
     const propertyData = {};
-    
-    // No need to send empty object, API will handle it
     
     console.log("Submitting update with data:", propertyData);
     const response = await propertyService.updateProperty(propertyId, propertyData, newImageFiles, imagesToDelete);
