@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from "react";
 import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Image, Upload, X, FileCheck, Trash2 } from "lucide-react";
+import { Image, Upload, X, FileCheck, Trash2, Plus } from "lucide-react";
 import { UseFormReturn, useFieldArray } from "react-hook-form";
 import { FormValues } from "./PropertyFormSchema";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,6 +26,9 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
   
   // For tracking existing images to be deleted
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
+  
+  // State to control visibility of file inputs
+  const [showFileInputs, setShowFileInputs] = useState(false);
   
   // Get existing images from form values
   const existingImageUrls = React.useMemo(() => {
@@ -72,6 +76,7 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
   
   const addImageUpload = () => {
     append({ value: "" });
+    setShowFileInputs(true);
   };
   
   const removeNewImage = (index: number) => {
@@ -92,6 +97,11 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
     }
     
     remove(index);
+    
+    // Hide the inputs if there are no more fields
+    if (fields.length <= 1) {
+      setShowFileInputs(false);
+    }
   };
 
   // Toggle an image for deletion
@@ -229,7 +239,9 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
       {/* Add new images section - completely separate from existing images */}
       <div className="border-t pt-4 mt-6">
         <h4 className="text-sm font-medium mb-3">Add new images:</h4>
-        {fields.map((field, index) => (
+        
+        {/* Only show file inputs when showFileInputs is true */}
+        {showFileInputs && fields.map((field, index) => (
           <div key={field.id} className="space-y-2 mb-4">
             <div className="flex items-start gap-2">
               <FormField
