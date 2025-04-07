@@ -10,6 +10,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import ResendConfirmation from "./pages/ResendConfirmation";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Properties from "./pages/Properties";
 import NewProperty from "./pages/NewProperty";
@@ -90,6 +92,8 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/confirm-email" element={<EmailConfirmation />} />
             <Route path="/resend-confirmation" element={<ResendConfirmation />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/components" element={<ComponentsDemo />} />
             
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
