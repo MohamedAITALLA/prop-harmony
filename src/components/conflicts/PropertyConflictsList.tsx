@@ -66,7 +66,7 @@ interface PropertyConflictsListProps {
 }
 
 export function PropertyConflictsList({ propertyId }: PropertyConflictsListProps) {
-  const [status, setStatus] = useState<string>("all");
+  const [status, setStatus] = useState<string>("all_statuses");
   const [selectedSeverity, setSelectedSeverity] = useState<ConflictSeverity | "all">("all");
   const [selectedConflict, setSelectedConflict] = useState<Conflict | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
@@ -82,7 +82,7 @@ export function PropertyConflictsList({ propertyId }: PropertyConflictsListProps
     queryFn: async () => {
       try {
         const params = { 
-          ...(status !== "all" ? { status } : {}),
+          ...(status !== "all_statuses" ? { status } : {}),
           page: currentPage,
           limit: pageSize
         };

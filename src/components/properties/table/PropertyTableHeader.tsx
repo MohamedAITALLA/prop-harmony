@@ -55,7 +55,7 @@ export function PropertyTableHeader({
             <SelectValue placeholder="Property Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All types</SelectItem>
+            <SelectItem value="all_types">All types</SelectItem>
             <SelectItem value={PropertyType.APARTMENT}>Apartment</SelectItem>
             <SelectItem value={PropertyType.HOUSE}>House</SelectItem>
             <SelectItem value={PropertyType.VILLA}>Villa</SelectItem>

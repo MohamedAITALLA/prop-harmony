@@ -7,11 +7,11 @@ import { PropertyType } from "@/types/enums";
 
 export const usePropertiesPage = () => {
   // State for filters
-  const [propertyType, setPropertyType] = useState<string>("all");
+  const [propertyType, setPropertyType] = useState<string>("all_types");
   const [city, setCity] = useState<string>("");
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
-  const [sortOption, setSortOption] = useState<string>("newest");
+  const [sortOption, setSortOption] = useState<string>("default");
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
@@ -22,7 +22,7 @@ export const usePropertiesPage = () => {
       limit,
     };
 
-    if (propertyType !== "all") {
+    if (propertyType !== "all_types") {
       params.property_type = propertyType;
     }
 
@@ -31,7 +31,9 @@ export const usePropertiesPage = () => {
     }
 
     // Map sortOption to API-compliant sort format (field:direction)
-    if (sortOption === "newest") {
+    if (sortOption === "default") {
+      // No sorting specified
+    } else if (sortOption === "newest") {
       params.sort = "created_at:desc";
     } else if (sortOption === "oldest") {
       params.sort = "created_at:asc";
@@ -62,9 +64,9 @@ export const usePropertiesPage = () => {
 
   // Reset filters
   const handleFilterReset = useCallback(() => {
-    setPropertyType("all");
+    setPropertyType("all_types");
     setCity("");
-    setSortOption("newest");
+    setSortOption("default");
     setIsFilterOpen(false);
     setPage(1);
   }, []);

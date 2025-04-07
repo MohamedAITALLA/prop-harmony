@@ -69,7 +69,7 @@ export function PropertyFilters({
                     <SelectValue placeholder="All Types" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Types</SelectItem>
+                    <SelectItem value="all_types">All Types</SelectItem>
                     {Object.values(PropertyType).map((type) => (
                       <SelectItem key={type} value={type}>
                         {type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()}
@@ -99,7 +99,7 @@ export function PropertyFilters({
                     <SelectValue placeholder="Default" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Default</SelectItem>
+                    <SelectItem value="default">Default</SelectItem>
                     <SelectItem value="name_asc">Name (A-Z)</SelectItem>
                     <SelectItem value="name_desc">Name (Z-A)</SelectItem>
                     <SelectItem value="created_desc">Newest First</SelectItem>

@@ -74,7 +74,7 @@ export function PlatformSelect({
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="all">
+        <SelectItem value="all_platforms">
           <div className="flex items-center gap-2">
             <span className="h-4 w-4" />
             <span>All Platforms</span>

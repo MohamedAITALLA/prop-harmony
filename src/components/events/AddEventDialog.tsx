@@ -24,7 +24,7 @@ export const AddEventDialog: React.FC<AddEventDialogProps> = ({
     title: "",
     startDate: "",
     endDate: "",
-    eventType: "",
+    eventType: "booking", // Default value
     status: "confirmed",
     description: ""
   });
@@ -169,4 +169,4 @@ export const AddEventDialog: React.FC<AddEventDialogProps> = ({
       </DialogContent>
     </Dialog>
   );
-};
+}
