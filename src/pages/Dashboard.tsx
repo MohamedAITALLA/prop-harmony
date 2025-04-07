@@ -110,6 +110,8 @@ export default function Dashboard() {
             <PropertyCards 
               limit={section.columns || 3} 
               action={section.action}
+              isLoading={false}
+              error={null}
             />
           )}
           

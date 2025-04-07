@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Home } from 'lucide-react';
 import { Property } from '@/types/api-responses';
+import { useQuery } from '@tanstack/react-query';
 
 interface PropertyCardProps {
   property: Property;
@@ -41,12 +42,48 @@ export interface PropertyCardsProps {
 export function PropertyCards({ properties, isLoading, error, limit, action }: PropertyCardsProps) {
   const navigate = useNavigate();
 
+  // If no properties are provided, fetch them
+  const { data: fetchedProperties = [], isLoading: isFetching, error: fetchError } = useQuery({
+    queryKey: ['properties', 'dashboard'],
+    queryFn: async () => {
+      // Mock data for now
+      return [
+        {
+          id: '1',
+          name: 'Beach House',
+          property_type: 'House',
+          address: { city: 'Miami', state_province: 'FL' }
+        },
+        {
+          id: '2',
+          name: 'Mountain Cabin',
+          property_type: 'Cabin',
+          address: { city: 'Aspen', state_province: 'CO' }
+        },
+        {
+          id: '3',
+          name: 'Downtown Loft',
+          property_type: 'Apartment',
+          address: { city: 'New York', state_province: 'NY' }
+        }
+      ] as Property[];
+    },
+    enabled: !properties && !isLoading // Only fetch if properties aren't provided
+  });
+
+  // Use provided properties or fetched properties
+  const displayProperties = properties || fetchedProperties;
+  
   // If limit is specified, slice the properties array
-  const displayProperties = limit && properties ? properties.slice(0, limit) : properties;
+  const limitedProperties = limit && displayProperties ? displayProperties.slice(0, limit) : displayProperties;
+  
+  // Combined loading and error states
+  const isLoadingData = isLoading || isFetching;
+  const errorData = error || fetchError;
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {isLoading ? (
+      {isLoadingData ? (
         <>
           <Card>
             <CardHeader>
@@ -76,10 +113,10 @@ export function PropertyCards({ properties, isLoading, error, limit, action }: P
             </CardContent>
           </Card>
         </>
-      ) : error ? (
+      ) : errorData ? (
         <div className="text-red-500">Error loading properties.</div>
-      ) : displayProperties && displayProperties.length > 0 ? (
-        displayProperties.map((property) => (
+      ) : limitedProperties && limitedProperties.length > 0 ? (
+        limitedProperties.map((property) => (
           <PropertyCard 
             key={property.id || property._id} 
             property={property}

@@ -8,33 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PlatformSelect } from '@/components/sync/PlatformSelect';
 import { LogDetailsModal } from '@/components/sync/LogDetailsModal';
 import { LogActionButton } from '@/components/sync/LogActionButton';
-import { syncService } from '@/services/api-service';
+import { syncService } from '@/services/sync-service';
 import { SyncStatus, Platform } from '@/types/enums';
+import { SyncLog } from '@/types/api-responses';
 import { Search, Filter, DownloadCloud } from 'lucide-react';
-
-interface SyncLog {
-  id: string;
-  _id?: string;
-  property_id: string;
-  platform: Platform;
-  status: SyncStatus;
-  start_time: string;
-  end_time: string;
-  details: any;
-  action?: string;
-  timestamp?: string;
-  duration?: number;
-}
-
-// Assuming PlatformSelectProps interface
-interface PlatformSelectProps {
-  onChange: (value: any) => void;
-}
-
-// Assuming LogActionButtonProps interface
-interface LogActionButtonProps {
-  onOpenDetails: (log: SyncLog) => void;
-}
 
 export default function SyncLogs() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,14 +31,20 @@ export default function SyncLogs() {
         page: page,
         limit: limit,
       };
-      // Add type checking for getSyncLogs or implement it if needed
-      return syncService.getSyncLogs ? syncService.getSyncLogs(params) : { data: { sync_logs: [], pagination: { total: 0, pages: 1 } } };
+      
+      try {
+        const response = await syncService.getSyncLogs(params);
+        return response.data;
+      } catch (err) {
+        console.error('Error fetching sync logs:', err);
+        return { logs: [], pagination: { total: 0, pages: 1 } };
+      }
     }
   });
 
-  const syncLogs: SyncLog[] = data?.data?.sync_logs || [];
-  const total = data?.data?.pagination?.total || 0;
-  const pages = data?.data?.pagination?.pages || 1;
+  const syncLogs = data?.logs || [];
+  const total = data?.pagination?.total || 0;
+  const pages = data?.pagination?.pages || 1;
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -128,7 +111,7 @@ export default function SyncLogs() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Property ID
+                      Property
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Platform
@@ -137,26 +120,31 @@ export default function SyncLogs() {
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Start Time
+                      Time
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      End Time
+                      Action
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
+                      Details
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {syncLogs.map((log) => (
-                    <tr key={log.id || log._id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.property_id}</td>
+                    <tr key={log._id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {log.property?.name || log.property_id || 'All Properties'}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.platform}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.status}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.start_time}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.end_time}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {log.created_at ? new Date(log.created_at).toLocaleString() : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.action || '-'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <LogActionButton 
+                          log={log}
                           onOpenDetails={handleOpenLogDetails} 
                         />
                       </td>
@@ -187,7 +175,13 @@ export default function SyncLogs() {
           </div>
         </CardContent>
       </Card>
-      <LogDetailsModal open={!!selectedLog} onClose={handleCloseLogDetails} />
+      {selectedLog && (
+        <LogDetailsModal 
+          log={selectedLog} 
+          open={!!selectedLog} 
+          onClose={handleCloseLogDetails} 
+        />
+      )}
     </div>
   );
 }

@@ -36,6 +36,9 @@ export function LogDetailsModal({ log, open, onClose, onOpenChange }: LogDetails
     return null;
   }
 
+  // Use appropriate properties from SyncLog type
+  const propertyName = log.property?.name || "All Properties";
+  const logId = log._id?.substring(0, 8) || 'Unknown';
   const timeAgo = log.created_at 
     ? formatDistanceToNow(new Date(log.created_at), { addSuffix: true })
     : 'Unknown time';
@@ -46,10 +49,10 @@ export function LogDetailsModal({ log, open, onClose, onOpenChange }: LogDetails
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <PlatformIcon platform={log.platform} className="h-5 w-5" />
-            {log.property_name || 'Sync Log Details'}
+            {propertyName}
           </DialogTitle>
           <DialogDescription className="flex items-center justify-between">
-            <span>Log ID: {log.id?.substring(0, 8) || 'Unknown'}</span>
+            <span>Log ID: {logId}</span>
             <SyncStatusBadge status={log.status} />
           </DialogDescription>
         </DialogHeader>
@@ -60,13 +63,13 @@ export function LogDetailsModal({ log, open, onClose, onOpenChange }: LogDetails
             <div className="col-span-3">{log.platform}</div>
             
             <div className="font-medium">Property:</div>
-            <div className="col-span-3">{log.property_name || 'All Properties'}</div>
+            <div className="col-span-3">{propertyName}</div>
             
             <div className="font-medium">Sync Time:</div>
             <div className="col-span-3">{timeAgo}</div>
             
-            <div className="font-medium">Execution Time:</div>
-            <div className="col-span-3">{log.execution_time ? `${log.execution_time}ms` : 'Unknown'}</div>
+            <div className="font-medium">Duration:</div>
+            <div className="col-span-3">{log.duration ? `${log.duration}ms` : 'Unknown'}</div>
           </div>
 
           {log.message && (

@@ -2,7 +2,7 @@
 // Re-export individual services for backward compatibility
 import propertyService from "./property-service";
 import icalConnectionService from "./ical-connection-service";
-import syncService from "./sync-service";
+import { syncService } from "./sync-service";
 import conflictService from "./conflict-service";
 import authService from "./auth-service";
 import profileService from "./profile-service";
