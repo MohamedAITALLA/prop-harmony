@@ -1,3 +1,4 @@
+
 // Types related to iCal connection functionality
 
 export interface TestResult {
@@ -37,7 +38,7 @@ export interface UpdateConnectionResponse {
   meta: {
     action: string;
     platform: string;
-    updated_fields?: string[]; // Explicitly defined as optional array
+    updated_fields: string[]; // Changed to required with defined default empty array
   };
   message: string;
 }
