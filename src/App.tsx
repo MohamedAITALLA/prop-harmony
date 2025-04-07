@@ -29,16 +29,30 @@ import ResendConfirmation from './pages/ResendConfirmation';
 import EmailConfirmation from './pages/EmailConfirmation';
 import ComponentsDemo from './pages/ComponentsDemo';
 import NotFound from './pages/NotFound';
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
 import Index from './pages/Index';
 import GlobalSync from './pages/GlobalSync';
+import { Loader2 } from 'lucide-react';
+
+// Loading spinner component for suspense fallback
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center h-screen">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    <span className="ml-2">Loading application...</span>
+  </div>
+);
 
 function AppRoutes() {
   const { user, isLoading } = useAuth();
   const isAuthenticated = !!user;
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Checking authentication...</span>
+      </div>
+    );
   }
 
   const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -87,7 +101,7 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<LoadingSpinner />}>
           <AppRoutes />
         </Suspense>
       </AuthProvider>

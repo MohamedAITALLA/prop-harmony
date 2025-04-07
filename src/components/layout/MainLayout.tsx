@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/auth/useAuth";
 import { 
   Sidebar, 
   SidebarContent, 
@@ -177,4 +177,3 @@ export default function MainLayout({ children }: MainLayoutProps) {
     </SidebarProvider>
   );
 }
-
