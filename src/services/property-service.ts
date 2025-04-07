@@ -95,7 +95,7 @@ export const propertyService = {
   updateProperty: async (id: string, data: any = {}, newImages?: File[], deleteImages?: string[]) => {
     try {
       console.log(`Updating property ${id} with data:`, data);
-      console.log(`Images to delete:`, deleteImages);
+      console.log(`Images to delete (raw array):`, deleteImages);
       
       // Always use multipart/form-data for consistency with API specs
       const formData = new FormData();
@@ -114,15 +114,30 @@ export const propertyService = {
       
       // Add image URLs to delete if any
       if (deleteImages && deleteImages.length > 0) {
-        // Ensure full URLs without leading slash and JSON stringified
+        // Ensure full URLs without leading slash
         const formattedDeleteImages = deleteImages.map(url => 
           url.startsWith('/') ? url.substring(1) : url
         );
         
-        console.log("Formatted deleteImages:", formattedDeleteImages);
+        console.log("Formatted deleteImages array:", formattedDeleteImages);
         
-        // Double JSON stringify to ensure correct format
-        formData.append('deleteImages', JSON.stringify(JSON.stringify(formattedDeleteImages)));
+        // Convert to JSON string in the exact format required by the API
+        const deleteImagesJson = JSON.stringify(formattedDeleteImages);
+        console.log("First JSON.stringify result:", deleteImagesJson);
+        
+        // Double stringify as required by the API
+        const finalDeleteImagesJson = JSON.stringify(deleteImagesJson);
+        console.log("Final double-stringified JSON:", finalDeleteImagesJson);
+        console.log("Expected format example: \"[\\\"https://example.com/image.jpg\\\"]\"");
+        
+        // Append to form data
+        formData.append('deleteImages', finalDeleteImagesJson);
+        
+        // Log all form data keys and values for debugging
+        console.log("FormData keys:");
+        for (const pair of formData.entries()) {
+          console.log(pair[0], ':', typeof pair[1] === 'string' ? pair[1] : '[File or non-string value]');
+        }
       }
       
       const response = await api.put(`/properties/${id}`, formData, {
@@ -132,6 +147,18 @@ export const propertyService = {
       });
       
       console.log("Update property response:", response.data);
+      
+      // Log specific parts of the response for easier debugging
+      if (response.data?.data?.property) {
+        console.log("Updated property images:", response.data.data.property.images);
+        console.log("Images count after update:", response.data.data.property.images.length);
+      }
+      
+      if (response.data?.data?.meta) {
+        console.log("Response metadata:", response.data.data.meta);
+        console.log("Images deleted count:", response.data.data.meta.images_deleted || 0);
+      }
+      
       return response.data;
     } catch (error) {
       console.error(`Error updating property ${id}:`, error);

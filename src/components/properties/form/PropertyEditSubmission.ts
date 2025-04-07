@@ -27,18 +27,20 @@ export const handleEditFormSubmission = async (
     });
     
     console.log("Images to delete:", imagesToDelete);
-    console.log("New image files:", newImageFiles.length);
+    console.log("Images to delete (stringified):", JSON.stringify(imagesToDelete));
+    console.log("Images to delete (double-stringified):", JSON.stringify(JSON.stringify(imagesToDelete)));
+    console.log("New image files count:", newImageFiles.length);
+    
+    // Log the initial data for comparison
+    console.log("Initial image count:", initialData.images?.length);
+    console.log("Initial images:", initialData.images);
     
     // Send empty object to API as requested
     const propertyData = {};
     
-    // Log initial image count for comparison
-    console.log("Initial image count:", initialData.images?.length);
-    console.log("Initial images:", initialData.images);
-    
     console.log("Submitting update with data:", propertyData);
     const response = await propertyService.updateProperty(propertyId, propertyData, newImageFiles, imagesToDelete);
-    console.log("Update response:", response);
+    console.log("Complete update response:", response);
     
     // Get updated fields from response if available
     const updatedFields = response?.data?.meta?.updated_fields || [];
