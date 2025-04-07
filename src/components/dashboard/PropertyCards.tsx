@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Home } from 'lucide-react';
 import { Property } from '@/types/api-responses';
 import { useQuery } from '@tanstack/react-query';
+import { propertyService } from '@/services/api-service';
 
 interface PropertyCardProps {
   property: Property;
@@ -46,27 +47,76 @@ export function PropertyCards({ properties, isLoading, error, limit, action }: P
   const { data: fetchedProperties = [], isLoading: isFetching, error: fetchError } = useQuery({
     queryKey: ['properties', 'dashboard'],
     queryFn: async () => {
-      // Mock data for now
-      return [
-        {
-          id: '1',
-          name: 'Beach House',
-          property_type: 'House',
-          address: { city: 'Miami', state_province: 'FL' }
-        },
-        {
-          id: '2',
-          name: 'Mountain Cabin',
-          property_type: 'Cabin',
-          address: { city: 'Aspen', state_province: 'CO' }
-        },
-        {
-          id: '3',
-          name: 'Downtown Loft',
-          property_type: 'Apartment',
-          address: { city: 'New York', state_province: 'NY' }
-        }
-      ] as Property[];
+      try {
+        // Try to fetch real properties first
+        const response = await propertyService.getAllProperties();
+        return response.data.properties;
+      } catch (error) {
+        console.error("Falling back to mock data:", error);
+        // Return mock data that conforms to the Property interface
+        return [
+          {
+            id: '1',
+            name: 'Beach House',
+            property_type: 'House',
+            desc: 'A beautiful beach house',
+            accommodates: 6,
+            bedrooms: 3,
+            beds: 3,
+            bathrooms: 2,
+            images: [],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            address: { 
+              street: '123 Beach St', 
+              city: 'Miami', 
+              state_province: 'FL',
+              postal_code: '33139',
+              country: 'USA'
+            }
+          },
+          {
+            id: '2',
+            name: 'Mountain Cabin',
+            property_type: 'Cabin',
+            desc: 'Cozy mountain retreat',
+            accommodates: 4,
+            bedrooms: 2,
+            beds: 2,
+            bathrooms: 1,
+            images: [],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            address: { 
+              street: '456 Mountain Rd', 
+              city: 'Aspen', 
+              state_province: 'CO',
+              postal_code: '81611',
+              country: 'USA'
+            }
+          },
+          {
+            id: '3',
+            name: 'Downtown Loft',
+            property_type: 'Apartment',
+            desc: 'Modern downtown loft',
+            accommodates: 2,
+            bedrooms: 1,
+            beds: 1,
+            bathrooms: 1,
+            images: [],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            address: { 
+              street: '789 City Ave', 
+              city: 'New York', 
+              state_province: 'NY',
+              postal_code: '10001',
+              country: 'USA'
+            }
+          }
+        ] as Property[];
+      }
     },
     enabled: !properties && !isLoading // Only fetch if properties aren't provided
   });
