@@ -1,6 +1,6 @@
 
 import { 
-  LayoutDashboard, Home, Calendar, Bell, AlertTriangle, RefreshCw, 
+  LayoutDashboard, Home, Calendar, Bell, RefreshCw, 
   BarChart3, User, Settings, Shield 
 } from "lucide-react";
 
@@ -73,11 +73,6 @@ export const dashboardConfig: DashboardConfigType = {
             path: "/properties"
           },
           {
-            name: "Calendar",
-            icon: Calendar,
-            path: "/calendar"
-          },
-          {
             name: "Notifications",
             icon: Bell,
             path: "/notifications",
@@ -89,20 +84,14 @@ export const dashboardConfig: DashboardConfigType = {
         title: "Management",
         items: [
           {
-            name: "Conflicts",
-            icon: AlertTriangle,
-            path: "/conflicts",
-            badge: "count"
-          },
-          {
             name: "Synchronization",
             icon: RefreshCw,
             path: "/sync"
           },
           {
-            name: "Analytics",
-            icon: BarChart3,
-            path: "/analytics"
+            name: "Events",
+            icon: Calendar,
+            path: "/events"
           }
         ]
       },
@@ -112,7 +101,7 @@ export const dashboardConfig: DashboardConfigType = {
           {
             name: "Profile",
             icon: User,
-            path: "/profile"
+            path: "/settings/profile"
           },
           {
             name: "Preferences",
@@ -161,52 +150,20 @@ export const dashboardConfig: DashboardConfigType = {
             change: "+{number}% from last month"
           },
           {
-            title: "Occupancy Rate",
-            value: "{percentage}%",
-            icon: "percent",
-            change: "+{number}% from last month"
+            title: "Sync Status",
+            value: "{percent}%",
+            icon: "refresh-cw",
+            variant: "success",
+            change: "Last synced: {time}"
           },
           {
-            title: "Pending Conflicts",
+            title: "Notifications",
             value: "{count}",
-            icon: "alert-triangle",
+            icon: "bell",
             variant: "warning",
-            action: "View All"
+            change: "{number} new since yesterday"
           }
         ]
-      },
-      {
-        name: "Properties Overview",
-        layout: "grid",
-        columns: 3,
-        component: "PropertyCards",
-        action: "View All Properties"
-      },
-      {
-        name: "Calendar Overview",
-        layout: "full-width",
-        component: "MiniCalendar",
-        height: "300px",
-        action: "Open Full Calendar"
-      },
-      {
-        name: "Recent Notifications",
-        layout: "list",
-        component: "NotificationsList",
-        limit: 5,
-        action: "View All Notifications"
-      },
-      {
-        name: "Synchronization Status",
-        layout: "table",
-        component: "SyncStatusTable",
-        columns_config: [
-          "Platform",
-          "Last Sync",
-          "Status",
-          "Actions"
-        ],
-        action: "Sync All Now"
       }
     ]
   }

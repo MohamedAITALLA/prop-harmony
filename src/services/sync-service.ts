@@ -5,8 +5,7 @@ import {
   PropertySyncResponse, 
   PropertySyncStatusResponse, 
   GlobalSyncResponse,
-  GlobalSyncStatusResponse,
-  SyncLogsResponse
+  GlobalSyncStatusResponse
 } from "@/types/api-responses/sync-types";
 
 export const syncService = {
@@ -27,35 +26,6 @@ export const syncService = {
   // Global sync status
   getSyncStatus: () => {
     return api.get<ApiResponse<GlobalSyncStatusResponse>>('/sync/status');
-  },
-  
-  // Sync logs
-  getSyncLogs: (params?: {
-    search?: string;
-    platform?: string;
-    status?: string;
-    property_id?: string;
-    page?: number;
-    limit?: number;
-    start_date?: string;
-    end_date?: string;
-  }) => {
-    return api.get<ApiResponse<SyncLogsResponse>>('/sync/logs', { params });
-  },
-
-  // Download sync logs in various formats
-  downloadSyncLogs: (format: 'csv' | 'json' | 'excel', params?: {
-    search?: string;
-    platform?: string;
-    status?: string;
-    property_id?: string;
-    start_date?: string;
-    end_date?: string;
-  }) => {
-    return api.get<Blob>(`/sync/logs/download/${format}`, { 
-      params,
-      responseType: 'blob'
-    });
   }
 };
 

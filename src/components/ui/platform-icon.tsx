@@ -1,39 +1,45 @@
 
-import React from "react";
-import { cn } from "@/lib/utils";
-import { Home, Laptop, Globe, Building, Map, Store, HelpCircle } from "lucide-react";
+import React from 'react';
+import { 
+  Airbnb, 
+  BookOpen, 
+  Calendar, 
+  ExternalLink, 
+  Globe, 
+  Home, 
+  Hotel, 
+  Map 
+} from 'lucide-react';
 
-export interface PlatformIconProps extends React.HTMLAttributes<HTMLDivElement> {
+interface PlatformIconProps {
   platform: string;
   size?: number;
+  className?: string;
 }
 
-export function PlatformIcon({ platform, size = 24, className, ...props }: PlatformIconProps) {
-  const getIcon = () => {
-    const iconProps = { size, strokeWidth: 1.5 };
-    
-    switch (platform.toLowerCase()) {
-      case "airbnb":
-        return <Home {...iconProps} color="#FF5A5F" />;
-      case "booking.com":
-        return <Globe {...iconProps} color="#003580" />;
-      case "vrbo":
-      case "homeaway":
-        return <Building {...iconProps} color="#3D67FF" />;
-      case "expedia":
-        return <Map {...iconProps} color="#00355F" />;
-      case "tripadvisor":
-        return <Laptop {...iconProps} color="#00AF87" />;
-      case "direct":
-        return <Store {...iconProps} color="#000000" />;
-      default:
-        return <HelpCircle {...iconProps} />;
-    }
-  };
+export function PlatformIcon({ platform, size = 16, className = '' }: PlatformIconProps) {
+  const platformLower = platform.toLowerCase();
   
-  return (
-    <div className={cn("inline-flex items-center", className)} {...props}>
-      {getIcon()}
-    </div>
-  );
+  switch (platformLower) {
+    case 'airbnb':
+      return <Airbnb size={size} className={`text-red-500 ${className}`} />;
+    case 'booking':
+    case 'booking.com':
+      return <BookOpen size={size} className={`text-blue-500 ${className}`} />;
+    case 'vrbo':
+    case 'homeaway':
+      return <Home size={size} className={`text-green-500 ${className}`} />;
+    case 'expedia':
+      return <Map size={size} className={`text-yellow-500 ${className}`} />;
+    case 'tripadvisor':
+      return <Globe size={size} className={`text-green-700 ${className}`} />;
+    case 'google':
+    case 'google_calendar':
+      return <Calendar size={size} className={`text-blue-400 ${className}`} />;
+    case 'ical':
+    case 'ics':
+      return <ExternalLink size={size} className={`text-gray-500 ${className}`} />;
+    default:
+      return <Hotel size={size} className={`text-gray-500 ${className}`} />;
+  }
 }

@@ -1,26 +1,51 @@
 
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle, 
+  CardFooter 
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { GlobalSyncButton } from '@/components/sync/GlobalSyncButton';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { syncService } from '@/services/sync-service';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { 
-  Activity, AlertTriangle, BarChart2, Calendar, Check, 
-  Clock, Info, Server, RefreshCw, Loader2
+  Activity,
+  AlertTriangle,
+  BarChart2,
+  CheckCircle,
+  Clock,
+  Database,
+  Fingerprint,
+  Info,
+  ListFilter,
+  Loader2,
+  PlayCircle,
+  RefreshCw,
+  Server,
+  Settings,
+  Shield,
+  Wifi,
+  WifiOff,
+  Zap
 } from 'lucide-react';
-import { SyncStatusBadge } from '@/components/ui/sync-status-badge';
-import { SyncScheduleChart } from '@/components/sync/SyncScheduleChart';
-import { PlatformsList } from '@/components/sync/PlatformsList';
-import { GlobalSyncStatusResponse } from '@/types/api-responses/sync-types';
 import { toast } from 'sonner';
+import { SyncStatusBadge } from '@/components/ui/sync-status-badge';
+import { PlatformIcon } from '@/components/ui/platform-icon';
+import { GlobalSyncStatusResponse } from '@/types/api-responses/sync-types';
 
 export default function GlobalSync() {
-  const [syncInProgress, setSyncInProgress] = useState(false);
+  const queryClient = useQueryClient();
+  const [syncProgress, setSyncProgress] = useState(0);
+  const [activeTab, setActiveTab] = useState('overview');
   
-  // Fetch global sync status
+  // Query for global sync status
   const { 
     data: syncStatusData, 
     isLoading, 
@@ -35,18 +60,74 @@ export default function GlobalSync() {
     staleTime: 60 * 1000, // 1 minute
   });
 
-  const handleSyncStart = () => {
-    setSyncInProgress(true);
-  };
+  // Mutation for triggering sync
+  const syncMutation = useMutation({
+    mutationFn: async () => {
+      return await syncService.syncAll();
+    },
+    onMutate: () => {
+      // Reset progress and show toast
+      setSyncProgress(5);
+      toast.info("Starting global synchronization...");
+    },
+    onSuccess: (response) => {
+      setSyncProgress(100);
+      
+      // Extract data from the response
+      if (response.data?.success && response.data?.data) {
+        const result = response.data.data;
+        toast.success(
+          `Synchronization completed successfully`, 
+          { description: `Synced ${result.summary.successful_syncs} of ${result.summary.total_connections} connections` }
+        );
+      } else {
+        toast.success("Synchronization of all properties completed");
+      }
+      
+      // Invalidate queries to refresh UI
+      queryClient.invalidateQueries({ queryKey: ["sync", "status"] });
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
+    },
+    onError: (error) => {
+      setSyncProgress(0);
+      toast.error("Failed to complete synchronization", {
+        description: (error as Error)?.message || "An unknown error occurred"
+      });
+    }
+  });
 
-  const handleSyncComplete = () => {
-    setSyncInProgress(false);
-    refetchStatus();
-    toast.success("Synchronization completed");
+  // Progress bar animation
+  useEffect(() => {
+    if (!syncMutation.isPending) {
+      if (syncProgress === 100) {
+        // Reset progress after completion animation
+        const timer = setTimeout(() => setSyncProgress(0), 2000);
+        return () => clearTimeout(timer);
+      }
+      return;
+    }
+    
+    let progressInterval: number;
+    
+    // Start with fast progress that slows down
+    progressInterval = window.setInterval(() => {
+      setSyncProgress(prev => {
+        if (prev >= 90) return prev; // Cap at 90% until we get response
+        return prev + (90 - prev) * 0.1; // Gradually approach 90%
+      });
+    }, 1000);
+    
+    return () => {
+      clearInterval(progressInterval);
+    };
+  }, [syncMutation.isPending, syncProgress]);
+
+  const handleSyncAll = () => {
+    syncMutation.mutate();
   };
 
   const formatDateTime = (dateString?: string) => {
-    if (!dateString) return "Never";
+    if (!dateString) return "N/A";
     try {
       return format(parseISO(dateString), "MMM d, yyyy HH:mm");
     } catch (e) {
@@ -67,6 +148,7 @@ export default function GlobalSync() {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Loading synchronization data...</span>
       </div>
     );
   }
@@ -89,34 +171,71 @@ export default function GlobalSync() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Synchronization Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Synchronization Center</h1>
           <p className="text-muted-foreground">
             Manage and monitor property synchronization across all platforms
           </p>
         </div>
         
-        <GlobalSyncButton 
-          onSyncStart={handleSyncStart}
-          onSyncComplete={handleSyncComplete}
-        />
+        <Button 
+          onClick={handleSyncAll} 
+          disabled={syncMutation.isPending}
+          size="lg"
+          className="gap-2"
+        >
+          {syncMutation.isPending ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Syncing...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="h-5 w-5" />
+              Sync All Properties
+            </>
+          )}
+        </Button>
       </div>
-      
-      {syncInProgress && (
-        <Card className="border-blue-100 bg-blue-50/30">
+
+      {/* Sync progress indicator */}
+      {syncProgress > 0 && (
+        <Card className="bg-blue-50 border-blue-200">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-center gap-4 py-4">
-              <Loader2 className="h-6 w-6 text-blue-600 animate-spin" />
-              <p className="text-blue-700 font-medium">
-                Synchronizing all properties... This may take a few minutes.
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  {syncProgress < 100 ? (
+                    <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                  ) : (
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  )}
+                  <h3 className="font-medium">
+                    {syncProgress < 100 ? "Synchronization in progress" : "Synchronization complete"}
+                  </h3>
+                </div>
+                <Badge variant="outline" className={syncProgress < 100 ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}>
+                  {syncProgress < 100 ? "In Progress" : "Complete"}
+                </Badge>
+              </div>
+              
+              <Progress value={syncProgress} className="h-2" />
+              
+              <p className="text-sm text-muted-foreground">
+                {syncProgress < 100 
+                  ? "Syncing all properties with their connected platforms. This may take a few minutes..."
+                  : "All properties have been synchronized successfully."
+                }
               </p>
             </div>
           </CardContent>
         </Card>
       )}
-      
+
+      {/* Status Summary Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -158,7 +277,7 @@ export default function GlobalSync() {
             <CardTitle className="text-sm font-medium">Health Status</CardTitle>
             <div>
               {syncStatusData.summary.health_percentage >= 90 ? (
-                <Check className="h-4 w-4 text-green-500" />
+                <CheckCircle className="h-4 w-4 text-green-500" />
               ) : syncStatusData.summary.health_percentage >= 70 ? (
                 <Info className="h-4 w-4 text-yellow-500" />
               ) : (
@@ -178,7 +297,7 @@ export default function GlobalSync() {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Last Global Sync</CardTitle>
+            <CardTitle className="text-sm font-medium">Last Sync</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -191,67 +310,178 @@ export default function GlobalSync() {
           </CardContent>
         </Card>
       </div>
-      
-      <Tabs defaultValue="overview">
-        <TabsList className="grid grid-cols-4 md:w-[400px]">
+
+      {/* Main content tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid grid-cols-4 md:w-[500px]">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="platforms">Platforms</TabsTrigger>
-          <TabsTrigger value="failures">Issues</TabsTrigger>
-          <TabsTrigger value="upcoming">Schedule</TabsTrigger>
+          <TabsTrigger value="issues">Issues</TabsTrigger>
+          <TabsTrigger value="schedule">Schedule</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="overview" className="mt-4">
-          <div className="grid gap-4 md:grid-cols-2">
+        {/* Overview Tab */}
+        <TabsContent value="overview">
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+            {/* Platform Distribution */}
             <Card>
               <CardHeader>
-                <CardTitle>Sync Activity</CardTitle>
-                <CardDescription>Historical synchronization activity</CardDescription>
+                <CardTitle>Platform Distribution</CardTitle>
+                <CardDescription>Active connections by platform</CardDescription>
               </CardHeader>
-              <CardContent className="h-[300px]">
-                <SyncScheduleChart 
-                  data={syncStatusData.sync_history.map(item => ({
-                    date: item._id,
-                    count: item.count
-                  }))}
-                />
+              <CardContent>
+                <div className="space-y-4">
+                  {Object.entries(syncStatusData.platforms).map(([platform, stats]) => (
+                    <div key={platform} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <PlatformIcon platform={platform} className="mr-2" />
+                          <span className="font-medium capitalize">{platform}</span>
+                        </div>
+                        <span className="text-sm">
+                          {stats.active}/{stats.total} active
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Progress 
+                          value={(stats.active / stats.total) * 100} 
+                          className="h-2" 
+                        />
+                        <span className="text-sm w-12 text-right">
+                          {Math.round((stats.active / stats.total) * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
             
-            {syncStatusData.recent_failures.length > 0 && (
-              <Card className="border-red-100">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+            {/* Recent Issues */}
+            <Card className={syncStatusData.recent_failures.length > 0 ? "border-red-100" : ""}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {syncStatusData.recent_failures.length > 0 ? (
                     <AlertTriangle className="h-5 w-5 text-red-500" />
-                    Recent Failures
-                  </CardTitle>
-                  <CardDescription>
-                    Connections that failed during recent synchronization
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4 max-h-[220px] overflow-y-auto">
+                  ) : (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  )}
+                  Recent Issues
+                </CardTitle>
+                <CardDescription>
+                  {syncStatusData.recent_failures.length > 0 
+                    ? "Properties experiencing synchronization problems" 
+                    : "No synchronization issues detected"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {syncStatusData.recent_failures.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <CheckCircle className="h-12 w-12 text-green-500 mb-3" />
+                    <h3 className="text-lg font-medium text-green-700">All systems operational</h3>
+                    <p className="text-muted-foreground max-w-md mt-2">
+                      All property connections are working correctly. No errors have been detected.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-[260px] overflow-y-auto">
                     {syncStatusData.recent_failures.map((failure, index) => (
                       <div key={index} className="border-b pb-3 last:border-0 last:pb-0">
-                        <p className="font-medium">{failure.platform} - Property {failure.property_id}</p>
-                        <p className="text-sm text-red-600">{failure.error_message}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {formatRelativeTime(failure.last_error_time)}
-                        </p>
+                        <div className="flex items-start gap-3">
+                          <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium capitalize">{failure.platform}</p>
+                              <SyncStatusBadge status="error" />
+                            </div>
+                            <p className="text-sm mt-1">Property ID: {failure.property_id}</p>
+                            <p className="text-sm text-red-600 mt-1">{failure.error_message}</p>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              {formatRelativeTime(failure.last_error_time)}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="outline" size="sm" asChild className="w-full">
-                    <a href="/sync/logs">View All Logs</a>
-                  </Button>
-                </CardFooter>
-              </Card>
-            )}
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sync History / Upcoming Syncs */}
+          <div className="mt-4 grid gap-4 grid-cols-1 md:grid-cols-2">
+            {/* Sync History */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Sync Activity</CardTitle>
+                <CardDescription>Recent synchronization activity</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {syncStatusData.sync_history.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No sync history available
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {syncStatusData.sync_history.map((item, index) => (
+                      <div key={index} className="flex justify-between border-b pb-2 last:border-0">
+                        <div>
+                          <p className="font-medium">{item._id}</p>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant="outline">{item.count} syncs</Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            
+            {/* Upcoming Syncs */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-muted-foreground" />
+                  Upcoming Syncs
+                </CardTitle>
+                <CardDescription>
+                  Next scheduled synchronization tasks
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {syncStatusData.upcoming_syncs.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No upcoming scheduled syncs
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {syncStatusData.upcoming_syncs.slice(0, 5).map((sync, index) => (
+                      <div key={index} className="flex justify-between border-b pb-3 last:border-0">
+                        <div>
+                          <p className="font-medium capitalize">{sync.platform}</p>
+                          <p className="text-sm text-muted-foreground">Property: {sync.property_id}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-medium ${sync.minutes_until_next_sync < 30 ? 'text-blue-600' : ''}`}>
+                            In {sync.minutes_until_next_sync} minutes
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatDateTime(sync.next_sync)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
         
-        <TabsContent value="platforms" className="mt-4">
+        {/* Platforms Tab */}
+        <TabsContent value="platforms">
           <Card>
             <CardHeader>
               <CardTitle>Platform Status</CardTitle>
@@ -261,7 +491,10 @@ export default function GlobalSync() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {Object.entries(syncStatusData.platforms).map(([platform, stats]) => (
                   <div key={platform} className="bg-muted/30 p-4 rounded-lg">
-                    <h3 className="font-medium capitalize mb-2">{platform}</h3>
+                    <div className="flex items-center mb-2">
+                      <PlatformIcon platform={platform} className="mr-2" />
+                      <h3 className="font-medium capitalize">{platform}</h3>
+                    </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Total Connections:</span>
@@ -277,7 +510,7 @@ export default function GlobalSync() {
                           <span className="text-red-600">{stats.error}</span>
                         </div>
                       )}
-                      <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
+                      <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
                         <div 
                           className="bg-green-500 h-1.5 rounded-full" 
                           style={{ width: `${(stats.active / stats.total) * 100}%` }}
@@ -291,7 +524,8 @@ export default function GlobalSync() {
           </Card>
         </TabsContent>
         
-        <TabsContent value="failures" className="mt-4">
+        {/* Issues Tab */}
+        <TabsContent value="issues">
           <Card>
             <CardHeader>
               <CardTitle>Synchronization Issues</CardTitle>
@@ -300,7 +534,7 @@ export default function GlobalSync() {
             <CardContent>
               {syncStatusData.recent_failures.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <Check className="h-16 w-16 text-green-500 mb-4" />
+                  <CheckCircle className="h-16 w-16 text-green-500 mb-4" />
                   <h3 className="text-xl font-medium text-green-700">No synchronization issues!</h3>
                   <p className="text-muted-foreground max-w-md mt-2">
                     All property connections are working correctly. No errors have been detected.
@@ -311,10 +545,10 @@ export default function GlobalSync() {
                   {syncStatusData.recent_failures.map((failure, index) => (
                     <div key={index} className="border border-red-100 bg-red-50 rounded-lg p-4">
                       <div className="flex items-start gap-3">
-                        <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
+                        <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
                         <div>
                           <div className="flex items-center gap-2">
-                            <p className="font-medium">{failure.platform}</p>
+                            <p className="font-medium capitalize">{failure.platform}</p>
                             <SyncStatusBadge status="error" />
                           </div>
                           <p className="text-sm mt-1">Property ID: {failure.property_id}</p>
@@ -338,7 +572,8 @@ export default function GlobalSync() {
           </Card>
         </TabsContent>
         
-        <TabsContent value="upcoming" className="mt-4">
+        {/* Schedule Tab */}
+        <TabsContent value="schedule">
           <Card>
             <CardHeader>
               <CardTitle>Upcoming Synchronizations</CardTitle>
@@ -352,10 +587,13 @@ export default function GlobalSync() {
               ) : (
                 <div className="space-y-4">
                   {syncStatusData.upcoming_syncs.map((sync, index) => (
-                    <div key={index} className="flex justify-between items-center pb-3 border-b last:border-0">
+                    <div key={index} className="flex justify-between items-start pb-3 border-b last:border-0">
                       <div>
-                        <p className="font-medium capitalize">{sync.platform}</p>
-                        <p className="text-sm text-muted-foreground">Property: {sync.property_id}</p>
+                        <div className="flex items-center">
+                          <PlatformIcon platform={sync.platform} className="mr-2" />
+                          <p className="font-medium capitalize">{sync.platform}</p>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">Property: {sync.property_id}</p>
                         <p className="text-xs text-muted-foreground">
                           Last synced: {formatRelativeTime(sync.last_synced)}
                         </p>
@@ -385,16 +623,6 @@ export default function GlobalSync() {
           </Card>
         </TabsContent>
       </Tabs>
-      
-      <div className="flex justify-end">
-        <Button variant="outline" className="mr-2" asChild>
-          <a href="/sync/logs">View Sync Logs</a>
-        </Button>
-        <GlobalSyncButton 
-          onSyncStart={handleSyncStart} 
-          onSyncComplete={handleSyncComplete} 
-        />
-      </div>
     </div>
   );
 }

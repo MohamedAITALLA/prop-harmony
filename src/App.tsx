@@ -13,12 +13,8 @@ import Properties from './pages/Properties';
 import NewProperty from './pages/NewProperty';
 import PropertyDetails from './pages/PropertyDetails';
 import EditProperty from './pages/EditProperty';
-import PropertyAnalytics from './pages/PropertyAnalytics';
-import Calendar from './pages/Calendar';
-import Conflicts from './pages/Conflicts';
 import EventManagement from './pages/EventManagement';
-import SyncLogs from './pages/SyncLogs';
-import SyncDashboard from './pages/SyncDashboard';
+import GlobalSync from './pages/GlobalSync';
 import Notifications from './pages/Notifications';
 import ProfileSettings from './pages/ProfileSettings';
 import Login from './pages/Login';
@@ -31,7 +27,6 @@ import ComponentsDemo from './pages/ComponentsDemo';
 import NotFound from './pages/NotFound';
 import { Toaster } from "@/components/ui/toaster";
 import Index from './pages/Index';
-import GlobalSync from './pages/GlobalSync';
 import { Loader2 } from 'lucide-react';
 
 // Loading spinner component for suspense fallback
@@ -73,13 +68,8 @@ function AppRoutes() {
           <Route path="properties/new" element={<PrivateRoute><NewProperty /></PrivateRoute>} />
           <Route path="properties/:id" element={<PrivateRoute><PropertyDetails /></PrivateRoute>} />
           <Route path="properties/:id/edit" element={<PrivateRoute><EditProperty /></PrivateRoute>} />
-          <Route path="properties/:id/analytics" element={<PrivateRoute><PropertyAnalytics /></PrivateRoute>} />
-          <Route path="calendar" element={<PrivateRoute><Calendar /></PrivateRoute>} />
-          <Route path="conflicts" element={<PrivateRoute><Conflicts /></PrivateRoute>} />
           <Route path="events" element={<PrivateRoute><EventManagement /></PrivateRoute>} />
           <Route path="sync" element={<PrivateRoute><GlobalSync /></PrivateRoute>} />
-          <Route path="sync/logs" element={<PrivateRoute><SyncLogs /></PrivateRoute>} />
-          <Route path="sync/dashboard" element={<PrivateRoute><SyncDashboard /></PrivateRoute>} />
           <Route path="notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
           <Route path="settings/profile" element={<PrivateRoute><ProfileSettings /></PrivateRoute>} />
           <Route path="components" element={<ComponentsDemo />} />
