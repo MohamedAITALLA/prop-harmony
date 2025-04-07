@@ -16,7 +16,7 @@ import {
   Shield,
   Search
 } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { 
@@ -40,8 +40,9 @@ import { ReactNode } from "react";
 import { dashboardConfig, SidebarItemType } from "@/config/dashboard.config";
 import { useQuery } from "@tanstack/react-query";
 
+// Update the MainLayoutProps interface to explicitly include children
 interface MainLayoutProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
@@ -169,10 +170,11 @@ export default function MainLayout({ children }: MainLayoutProps) {
         
         <div className="flex-1 flex flex-col h-full overflow-auto">
           <div className="p-6 pb-24">
-            {children}
+            {children || <Outlet />}
           </div>
         </div>
       </div>
     </SidebarProvider>
   );
 }
+
