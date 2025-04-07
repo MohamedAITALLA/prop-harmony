@@ -33,3 +33,23 @@ export interface RegisterResponse {
     details: string;
   };
 }
+
+export interface EmailConfirmationResponse {
+  success: boolean;
+  message: string;
+  timestamp: string;
+  error?: {
+    code: string;
+    details: string;
+  };
+}
+
+export interface ResendConfirmationResponse {
+  success: boolean;
+  message: string;
+  timestamp: string;
+  error?: {
+    code: string;
+    details: string;
+  };
+}

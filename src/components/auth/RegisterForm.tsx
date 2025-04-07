@@ -1,69 +1,52 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, Loader2, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+import { Home, Loader2, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { InfoIcon } from "lucide-react";
 
 export default function RegisterForm() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [registrationComplete, setRegistrationComplete] = useState(false);
   const { register, isLoading } = useAuth();
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-    
-    if (!firstName.trim()) newErrors.firstName = "First name is required";
-    if (!lastName.trim()) newErrors.lastName = "Last name is required";
-    
-    if (!email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-    
-    if (!password) {
-      newErrors.password = "Password is required";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-    
-    if (password !== confirmPassword) {
-      newErrors.confirmPassword = "Passwords don't match";
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (!firstName || !lastName || !email || !password) {
+      toast.error("Please fill in all fields");
       return;
     }
-
+    
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters long");
+      return;
+    }
+    
     try {
       await register({
-        firstName,
-        lastName,
         email,
-        password
+        password,
+        firstName,
+        lastName
       });
-      // Navigation is handled in the useAuthMethods hook
+      
+      // Show success message instead of automatic redirect
+      setRegistrationComplete(true);
     } catch (error) {
-      // Error handling is managed by the API interceptor and useAuthMethods hook
-      console.error("Registration error:", error);
+      // Error handling is managed by the API interceptor
+      console.error("Registration failed:", error);
     }
   };
 
@@ -71,9 +54,43 @@ export default function RegisterForm() {
     setShowPassword(!showPassword);
   };
 
-  const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(!showConfirmPassword);
-  };
+  if (registrationComplete) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1 flex flex-col items-center text-center">
+          <div className="flex items-center gap-2 mb-2">
+            <Home className="h-6 w-6 text-primary" />
+            <span className="font-semibold text-xl">PropertySync</span>
+          </div>
+          <CardTitle className="text-2xl">Registration Successful</CardTitle>
+          <CardDescription>
+            Please check your email to confirm your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert className="bg-blue-50 border-blue-200">
+            <InfoIcon className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-700">
+              A confirmation email has been sent to <strong>{email}</strong>. 
+              Please check your inbox and follow the link to confirm your account.
+            </AlertDescription>
+          </Alert>
+          <p className="text-center text-muted-foreground">
+            If you don't receive the email within a few minutes, please check your spam folder or 
+            request a new confirmation email.
+          </p>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-4">
+          <Button asChild className="w-full">
+            <Link to="/login">Go to Login</Link>
+          </Button>
+          <Button asChild variant="outline" className="w-full">
+            <Link to="/resend-confirmation">Resend Confirmation Email</Link>
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-md">
@@ -91,7 +108,7 @@ export default function RegisterForm() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName">First name</Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -103,26 +120,16 @@ export default function RegisterForm() {
                   className="pl-10"
                 />
               </div>
-              {errors.firstName && (
-                <p className="text-sm font-medium text-destructive">{errors.firstName}</p>
-              )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="lastName"
-                  placeholder="Doe"
-                  required
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              {errors.lastName && (
-                <p className="text-sm font-medium text-destructive">{errors.lastName}</p>
-              )}
+              <Label htmlFor="lastName">Last name</Label>
+              <Input
+                id="lastName"
+                placeholder="Doe"
+                required
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
             </div>
           </div>
           <div className="space-y-2">
@@ -132,16 +139,13 @@ export default function RegisterForm() {
               <Input
                 id="email"
                 type="email"
-                placeholder="example@company.com"
+                placeholder="john.doe@example.com"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="pl-10"
               />
             </div>
-            {errors.email && (
-              <p className="text-sm font-medium text-destructive">{errors.email}</p>
-            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
@@ -167,37 +171,9 @@ export default function RegisterForm() {
                 )}
               </button>
             </div>
-            {errors.password && (
-              <p className="text-sm font-medium text-destructive">{errors.password}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="pl-10 pr-10"
-              />
-              <button
-                type="button"
-                onClick={toggleConfirmPasswordVisibility}
-                className="absolute right-3 top-3 text-muted-foreground"
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-            {errors.confirmPassword && (
-              <p className="text-sm font-medium text-destructive">{errors.confirmPassword}</p>
-            )}
+            <p className="text-xs text-muted-foreground mt-1">
+              Must be at least 8 characters
+            </p>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
@@ -205,10 +181,10 @@ export default function RegisterForm() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating account
+                Creating account...
               </>
             ) : (
-              "Sign up"
+              "Create account"
             )}
           </Button>
           <p className="text-sm text-muted-foreground text-center">

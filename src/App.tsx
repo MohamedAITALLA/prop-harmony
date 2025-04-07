@@ -8,6 +8,8 @@ import { AuthProvider, useAuth } from "@/hooks/auth/useAuth";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import EmailConfirmation from "./pages/EmailConfirmation";
+import ResendConfirmation from "./pages/ResendConfirmation";
 import Dashboard from "./pages/Dashboard";
 import Properties from "./pages/Properties";
 import NewProperty from "./pages/NewProperty";
@@ -86,6 +88,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/confirm-email" element={<EmailConfirmation />} />
+            <Route path="/resend-confirmation" element={<ResendConfirmation />} />
             <Route path="/components" element={<ComponentsDemo />} />
             
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

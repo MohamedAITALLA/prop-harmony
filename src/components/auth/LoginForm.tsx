@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Home, Loader2, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmationLink, setShowConfirmationLink] = useState(false);
   const { login, isLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,7 +28,11 @@ export default function LoginForm() {
     try {
       await login(email, password);
       // Redirect will be handled in the useAuth hook if successful
-    } catch (error) {
+    } catch (error: any) {
+      // Check if the error is related to email confirmation
+      if (error?.response?.data?.error?.code === "EMAIL_NOT_CONFIRMED") {
+        setShowConfirmationLink(true);
+      }
       // Error handling is now managed by the API interceptor and useAuthMethods hook
       console.error("Login failed:", error);
     }
@@ -50,6 +56,18 @@ export default function LoginForm() {
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
+          {showConfirmationLink && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Your email has not been confirmed. 
+                <Link to="/resend-confirmation" className="font-medium underline ml-1">
+                  Resend confirmation email
+                </Link>
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div className="relative">
