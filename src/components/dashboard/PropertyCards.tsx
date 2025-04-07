@@ -30,14 +30,19 @@ function PropertyCard({ property, onClick }: PropertyCardProps) {
   );
 }
 
-interface PropertyCardsProps {
+export interface PropertyCardsProps {
   properties?: Property[];
   isLoading: boolean;
   error: any;
+  limit?: number;
+  action?: string;
 }
 
-export function PropertyCards({ properties, isLoading, error }: PropertyCardsProps) {
+export function PropertyCards({ properties, isLoading, error, limit, action }: PropertyCardsProps) {
   const navigate = useNavigate();
+
+  // If limit is specified, slice the properties array
+  const displayProperties = limit && properties ? properties.slice(0, limit) : properties;
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -73,8 +78,8 @@ export function PropertyCards({ properties, isLoading, error }: PropertyCardsPro
         </>
       ) : error ? (
         <div className="text-red-500">Error loading properties.</div>
-      ) : properties && properties.length > 0 ? (
-        properties.map((property) => (
+      ) : displayProperties && displayProperties.length > 0 ? (
+        displayProperties.map((property) => (
           <PropertyCard 
             key={property.id || property._id} 
             property={property}

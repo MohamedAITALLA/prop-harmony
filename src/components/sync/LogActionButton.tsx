@@ -1,24 +1,39 @@
 
-import React from "react";
+import React from 'react';
 import { Button } from "@/components/ui/button";
-import { SyncLog } from "@/types/api-responses";
-import { Info } from "lucide-react";
+import { Eye, RotateCw } from "lucide-react";
+import { SyncLog } from '@/types/api-responses';
 
-interface LogActionButtonProps {
-  row: SyncLog;
-  onViewDetails: (log: SyncLog) => void;
+export interface LogActionButtonProps {
+  log: SyncLog;
+  onRetry?: (log: SyncLog) => void;
+  onOpenDetails?: (log: SyncLog) => void;
 }
 
-export function LogActionButton({ row, onViewDetails }: LogActionButtonProps) {
+export function LogActionButton({ log, onRetry, onOpenDetails }: LogActionButtonProps) {
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={() => onViewDetails(row)}
-      className="h-8 px-2"
-    >
-      <Info className="h-4 w-4 mr-1" />
-      <span>Details</span>
-    </Button>
+    <div className="flex space-x-2">
+      {onOpenDetails && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onOpenDetails(log)}
+          title="View Details"
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
+      )}
+      
+      {onRetry && log.status === 'error' && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onRetry(log)}
+          title="Retry Sync"
+        >
+          <RotateCw className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
   );
 }

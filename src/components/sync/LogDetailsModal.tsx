@@ -1,87 +1,97 @@
 
-import React from "react";
+import React from 'react';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import { StatusBadge } from "@/components/ui/status-badge";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
 import { PlatformIcon } from "@/components/ui/platform-icon";
-import { format, parseISO } from "date-fns";
-import { SyncLog } from "@/types/api-responses";
+import { SyncLog } from '@/types/api-responses';
+import { formatDistanceToNow } from 'date-fns';
 
-interface LogDetailsModalProps {
-  log: SyncLog | null;
+export interface LogDetailsModalProps {
+  log?: SyncLog;
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onClose?: () => void;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function LogDetailsModal({ log, open, onOpenChange }: LogDetailsModalProps) {
-  if (!log) return null;
-
-  const formatDate = (dateString: string) => {
-    try {
-      return format(parseISO(dateString), "PPpp");
-    } catch (e) {
-      return dateString;
+export function LogDetailsModal({ log, open, onClose, onOpenChange }: LogDetailsModalProps) {
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen && onClose) {
+      onClose();
+    }
+    if (onOpenChange) {
+      onOpenChange(isOpen);
     }
   };
 
+  if (!log) {
+    return null;
+  }
+
+  const timeAgo = log.created_at 
+    ? formatDistanceToNow(new Date(log.created_at), { addSuffix: true })
+    : 'Unknown time';
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <span>Log Details</span>
-            <StatusBadge status={log.status} size="sm" />
+            <PlatformIcon platform={log.platform} className="h-5 w-5" />
+            {log.property_name || 'Sync Log Details'}
           </DialogTitle>
-          <DialogDescription>
-            {log.property?.name || "Unknown Property"} • {formatDate(log.timestamp)}
+          <DialogDescription className="flex items-center justify-between">
+            <span>Log ID: {log.id?.substring(0, 8) || 'Unknown'}</span>
+            <SyncStatusBadge status={log.status} />
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Platform</p>
-              <div className="flex items-center gap-2 mt-1">
-                <PlatformIcon platform={log.platform} size={20} />
-                <span>{log.platform}</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Action</p>
-              <p>{log.action}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Duration</p>
-              <p>{log.duration}ms</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">ID</p>
-              <p className="font-mono text-xs">{log._id}</p>
-            </div>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 gap-4 text-sm">
+            <div className="font-medium">Platform:</div>
+            <div className="col-span-3">{log.platform}</div>
+            
+            <div className="font-medium">Property:</div>
+            <div className="col-span-3">{log.property_name || 'All Properties'}</div>
+            
+            <div className="font-medium">Sync Time:</div>
+            <div className="col-span-3">{timeAgo}</div>
+            
+            <div className="font-medium">Execution Time:</div>
+            <div className="col-span-3">{log.execution_time ? `${log.execution_time}ms` : 'Unknown'}</div>
           </div>
 
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Message</p>
-            <p className="mt-1">{log.message}</p>
-          </div>
-
-          {log.details && Object.keys(log.details).length > 0 && (
-            <div>
-              <p className="text-sm font-medium text-muted-foreground mb-1">Details</p>
-              <ScrollArea className="h-60 rounded-md border p-4">
-                <pre className="text-xs font-mono whitespace-pre-wrap">
-                  {JSON.stringify(log.details, null, 2)}
-                </pre>
+          {log.message && (
+            <div className="space-y-2">
+              <h4 className="font-medium">Message:</h4>
+              <div className="text-sm text-muted-foreground">{log.message}</div>
+            </div>
+          )}
+          
+          {log.details && (
+            <div className="space-y-2">
+              <h4 className="font-medium">Details:</h4>
+              <ScrollArea className="h-[200px] rounded-md border p-4">
+                <pre className="text-xs">{typeof log.details === 'object' ? JSON.stringify(log.details, null, 2) : log.details}</pre>
               </ScrollArea>
             </div>
           )}
         </div>
+
+        <DialogFooter>
+          <Button onClick={() => handleOpenChange(false)} variant="outline">Close</Button>
+          {log.status === 'error' && (
+            <Button variant="default">Retry Sync</Button>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
