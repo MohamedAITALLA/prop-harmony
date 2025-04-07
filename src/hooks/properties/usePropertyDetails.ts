@@ -59,7 +59,7 @@ export function usePropertyDetails(id: string | undefined, include?: string) {
     retry: 3, // Retry failed requests up to 3 times
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
     staleTime: 0, // Always get fresh data
-    cacheTime: 1000, // Short cache time to ensure fresh data
+    gcTime: 1000, // Short cache time to ensure fresh data (renamed from cacheTime to gcTime)
     refetchOnWindowFocus: true, // Refresh when the window gets focus
   });
 
