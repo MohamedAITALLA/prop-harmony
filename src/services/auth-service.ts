@@ -1,6 +1,13 @@
 
 import api from "@/lib/base-api";
-import { AuthResponse, RegisterResponse, EmailConfirmationResponse, ResendConfirmationResponse } from "@/types/api-responses/auth-types";
+import { 
+  AuthResponse, 
+  RegisterResponse, 
+  EmailConfirmationResponse, 
+  ResendConfirmationResponse,
+  ForgotPasswordResponse,
+  ResetPasswordResponse
+} from "@/types/api-responses/auth-types";
 
 export const authService = {
   login: async (email: string, password: string) => {
@@ -52,6 +59,30 @@ export const authService = {
       return response.data;
     } catch (error) {
       console.error("Resend confirmation service error:", error);
+      throw error;
+    }
+  },
+
+  forgotPassword: async (email: string) => {
+    try {
+      console.log("Auth service forgot password attempt for:", email);
+      const response = await api.post<ForgotPasswordResponse>("/auth/forgot-password", { email });
+      console.log("Auth service forgot password response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Forgot password service error:", error);
+      throw error;
+    }
+  },
+
+  resetPassword: async (token: string, newPassword: string) => {
+    try {
+      console.log("Auth service reset password attempt with token");
+      const response = await api.post<ResetPasswordResponse>("/auth/reset-password", { token, newPassword });
+      console.log("Auth service reset password response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Reset password service error:", error);
       throw error;
     }
   },

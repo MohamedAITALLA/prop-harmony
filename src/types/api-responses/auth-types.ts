@@ -53,3 +53,23 @@ export interface ResendConfirmationResponse {
     details: string;
   };
 }
+
+export interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
+  timestamp: string;
+  error?: {
+    code: string;
+    details: string;
+  };
+}
+
+export interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
+  timestamp: string;
+  error?: {
+    code: string;
+    details: string;
+  };
+}
