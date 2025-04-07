@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
@@ -127,9 +128,9 @@ export function PropertyList({ properties, isLoading, error }: PropertyListProps
         ) : filteredProperties && filteredProperties.length > 0 ? (
           filteredProperties.map((property) => (
             <PropertyCard
-              key={property.id}
+              key={property.id || property._id}
               property={property}
-              onClick={() => handlePropertyClick(property.id)}
+              onClick={() => handlePropertyClick(property.id || property._id)}
             />
           ))
         ) : (

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +16,9 @@ function PropertyCard({ property, onClick }: PropertyCardProps) {
     <Card onClick={onClick} className="cursor-pointer hover:shadow-md transition-shadow duration-200">
       <CardHeader>
         <CardTitle>{property.name}</CardTitle>
-        <CardDescription>{property.address}</CardDescription>
+        <CardDescription>
+          {property.address ? `${property.address.city || ''}, ${property.address.state_province || ''}` : ''}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex items-center space-x-2">
@@ -73,9 +76,9 @@ export function PropertyCards({ properties, isLoading, error }: PropertyCardsPro
       ) : properties && properties.length > 0 ? (
         properties.map((property) => (
           <PropertyCard 
-            key={property.id} 
+            key={property.id || property._id} 
             property={property}
-            onClick={() => navigate(`/properties/${property.id}`)}
+            onClick={() => navigate(`/properties/${property.id || property._id}`)}
           />
         ))
       ) : (

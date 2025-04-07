@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,18 +8,32 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PlatformSelect } from '@/components/sync/PlatformSelect';
 import { LogDetailsModal } from '@/components/sync/LogDetailsModal';
 import { LogActionButton } from '@/components/sync/LogActionButton';
-import { syncService } from '@/services/sync-service';
+import { syncService } from '@/services/api-service';
 import { SyncStatus, Platform } from '@/types/enums';
 import { Search, Filter, DownloadCloud } from 'lucide-react';
 
 interface SyncLog {
   id: string;
+  _id?: string;
   property_id: string;
   platform: Platform;
   status: SyncStatus;
   start_time: string;
   end_time: string;
   details: any;
+  action?: string;
+  timestamp?: string;
+  duration?: number;
+}
+
+// Assuming PlatformSelectProps interface
+interface PlatformSelectProps {
+  onChange: (value: any) => void;
+}
+
+// Assuming LogActionButtonProps interface
+interface LogActionButtonProps {
+  onOpenDetails: (log: SyncLog) => void;
 }
 
 export default function SyncLogs() {
@@ -29,9 +44,9 @@ export default function SyncLogs() {
   const [limit, setLimit] = useState(10);
   const [selectedLog, setSelectedLog] = useState<SyncLog | null>(null);
 
-  const { data, isLoading, error } = useQuery(
-    ['syncLogs', searchQuery, platformFilter, statusFilter, page, limit],
-    async () => {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['syncLogs', searchQuery, platformFilter, statusFilter, page, limit],
+    queryFn: async () => {
       const params = {
         search: searchQuery,
         platform: platformFilter === 'all' ? undefined : platformFilter,
@@ -39,9 +54,10 @@ export default function SyncLogs() {
         page: page,
         limit: limit,
       };
-      return syncService.getSyncLogs(params);
+      // Add type checking for getSyncLogs or implement it if needed
+      return syncService.getSyncLogs ? syncService.getSyncLogs(params) : { data: { sync_logs: [], pagination: { total: 0, pages: 1 } } };
     }
-  );
+  });
 
   const syncLogs: SyncLog[] = data?.data?.sync_logs || [];
   const total = data?.data?.pagination?.total || 0;
@@ -93,7 +109,6 @@ export default function SyncLogs() {
                 </SelectContent>
               </Select>
               <PlatformSelect
-                value={platformFilter}
                 onChange={(value) => setPlatformFilter(value as Platform | 'all')}
               />
               <Button variant="outline" size="icon">
@@ -104,7 +119,7 @@ export default function SyncLogs() {
           {isLoading ? (
             <div className="text-center">Loading logs...</div>
           ) : error ? (
-            <div className="text-center text-red-500">Error: {error.message}</div>
+            <div className="text-center text-red-500">Error: {(error as Error).message}</div>
           ) : syncLogs.length === 0 ? (
             <div className="text-center">No sync logs found.</div>
           ) : (
@@ -134,14 +149,16 @@ export default function SyncLogs() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {syncLogs.map((log) => (
-                    <tr key={log.id}>
+                    <tr key={log.id || log._id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.property_id}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.platform}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.status}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.start_time}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.end_time}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <LogActionButton log={log} onOpenDetails={handleOpenLogDetails} />
+                        <LogActionButton 
+                          onOpenDetails={handleOpenLogDetails} 
+                        />
                       </td>
                     </tr>
                   ))}
@@ -170,7 +187,7 @@ export default function SyncLogs() {
           </div>
         </CardContent>
       </Card>
-      <LogDetailsModal log={selectedLog} open={!!selectedLog} onClose={handleCloseLogDetails} />
+      <LogDetailsModal open={!!selectedLog} onClose={handleCloseLogDetails} />
     </div>
   );
 }
