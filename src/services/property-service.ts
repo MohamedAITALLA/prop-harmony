@@ -1,5 +1,15 @@
 import api from "@/lib/base-api";
 
+interface PropertyQueryParams {
+  page?: number;
+  limit?: number;
+  property_type?: string;
+  city?: string;
+  sort?: string;
+  status?: string;
+  include?: string;
+}
+
 export const propertyService = {
   getProperties: (params?: PropertyQueryParams) => {
     return api.get("/properties", { params });
