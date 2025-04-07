@@ -1,4 +1,3 @@
-
 import React from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -12,7 +11,7 @@ interface CapacitySectionProps {
 }
 
 export function CapacitySection({ form }: CapacitySectionProps) {
-  // Ensure values are integers (except for bathrooms which can be decimal)
+  // Ensure values are integers
   const ensureInteger = (value: string): number => {
     const parsed = parseInt(value, 10);
     return isNaN(parsed) ? 0 : parsed;
@@ -21,10 +20,10 @@ export function CapacitySection({ form }: CapacitySectionProps) {
   const handleIncrement = (field: keyof FormValues) => {
     const currentValue = form.getValues(field);
     
-    // For bathrooms, allow 0.5 increments
+    // For bathrooms, use whole number increments
     if (field === 'bathrooms') {
-      const current = parseFloat(String(currentValue)) || 0;
-      form.setValue(field, Math.round((current + 0.5) * 2) / 2);
+      const current = parseInt(String(currentValue)) || 0;
+      form.setValue(field, current + 1);
     } else {
       form.setValue(field, ensureInteger(String(currentValue)) + 1);
     }
@@ -33,10 +32,10 @@ export function CapacitySection({ form }: CapacitySectionProps) {
   const handleDecrement = (field: keyof FormValues) => {
     const currentValue = form.getValues(field);
     
-    // For bathrooms, allow 0.5 decrements
+    // For bathrooms, use whole number decrements
     if (field === 'bathrooms') {
-      const current = parseFloat(String(currentValue)) || 0;
-      const newValue = Math.max(0, Math.round((current - 0.5) * 2) / 2);
+      const current = parseInt(String(currentValue)) || 0;
+      const newValue = Math.max(0, current - 1);
       form.setValue(field, newValue);
     } else {
       const newValue = Math.max(0, ensureInteger(String(currentValue)) - 1);
@@ -97,7 +96,7 @@ export function CapacitySection({ form }: CapacitySectionProps) {
           )}
         />
 
-        {/* Bathrooms - Can have decimal values */}
+        {/* Bathrooms - Whole number increments */}
         <FormField
           control={form.control}
           name="bathrooms"
@@ -120,11 +119,11 @@ export function CapacitySection({ form }: CapacitySectionProps) {
                   <Input 
                     type="number" 
                     min="0" 
-                    step="0.5"
+                    step="1"
                     className="mx-2 text-center" 
                     {...field} 
                     onChange={(e) => {
-                      const value = parseFloat(e.target.value);
+                      const value = parseInt(e.target.value);
                       field.onChange(isNaN(value) ? 0 : value);
                     }}
                   />
@@ -190,7 +189,7 @@ export function CapacitySection({ form }: CapacitySectionProps) {
           )}
         />
 
-        {/* Accommodates - Integer only, minimum 1 */}
+        {/* Accommodates - Integer only */}
         <FormField
           control={form.control}
           name="accommodates"
