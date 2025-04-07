@@ -19,9 +19,14 @@ export function PropertyCard({ property, className, ...props }: PropertyCardProp
   const defaultImage = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
   
   // Always use the first image if available, otherwise use the default
-  const imageUrl = property.images && property.images.length > 0 
+  let imageUrl = property.images && property.images.length > 0 
     ? property.images[0] 
     : defaultImage;
+    
+  // Fix image URL if it starts with "/https://"
+  if (imageUrl.startsWith('/https://')) {
+    imageUrl = imageUrl.substring(1); // Remove the leading slash
+  }
     
   // Handle both _id and id property formats
   const propertyId = property._id || property.id;
@@ -84,4 +89,3 @@ export function PropertyCard({ property, className, ...props }: PropertyCardProp
     </Card>
   );
 }
-

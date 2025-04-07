@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +18,12 @@ function PropertyCard({ property, onClick }: PropertyCardProps) {
   
   // Always use the first image if available, otherwise use the default
   const hasImage = property.images && property.images.length > 0;
-  const imageUrl = hasImage ? property.images[0] : defaultImage;
+  
+  // Fix image URL if it starts with "/https://"
+  let imageUrl = hasImage ? property.images[0] : defaultImage;
+  if (imageUrl.startsWith('/https://')) {
+    imageUrl = imageUrl.substring(1); // Remove the leading slash
+  }
   
   return (
     <Card onClick={onClick} className="cursor-pointer hover:shadow-md transition-shadow duration-200">
