@@ -3,7 +3,7 @@ import api from "@/lib/base-api";
 import { ApiResponse } from "@/types/api-responses";
 import { 
   ICalConnectionsResponse, 
-  ICalConnection,
+  ICalConnection, 
   ICalConnectionResponse
 } from "@/types/api-responses/ical-types";
 import { TestConnectionResponse, UpdateConnectionResponse, DeleteConnectionResponse } from "@/types/ical-connection";
