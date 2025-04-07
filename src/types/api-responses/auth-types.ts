@@ -12,16 +12,24 @@ export interface AuthResponse {
   };
   message: string;
   timestamp: string;
+  error?: {
+    code: string;
+    details: string;
+  };
 }
 
 export interface RegisterResponse {
   success: boolean;
   data: {
     user: User;
-    access_token: string;
-    token_type: string;
-    expires_at: string;
+    access_token?: string;
+    token_type?: string;
+    expires_at?: string;
   };
   message: string;
   timestamp: string;
+  error?: {
+    code: string;
+    details: string;
+  };
 }

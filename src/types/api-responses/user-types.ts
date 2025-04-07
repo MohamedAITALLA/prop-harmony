@@ -2,16 +2,19 @@
 // User related types
 
 export interface User {
-  _id: string;
+  _id?: string;
+  id?: string;
   email: string;
   first_name: string;
   last_name: string;
   full_name: string;
-  role: string;
+  role?: string;
   is_admin: boolean;
   is_active: boolean;
+  email_confirmed?: boolean;
   created_at: string;
   updated_at: string;
+  created_by?: string | null;
 }
 
 export interface UserPreferences {

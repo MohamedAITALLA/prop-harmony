@@ -6,13 +6,13 @@ import { useAuthState } from "./useAuthState";
 import { useAuthMethods } from "./useAuthMethods";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { user, setUser, isLoading } = useAuthState();
+  const { user, setUser, isLoading: isAuthStateLoading } = useAuthState();
   const navigate = useNavigate();
-  const { login, register, logout } = useAuthMethods(setUser, navigate);
+  const { login, register, logout, isLoading: isAuthMethodsLoading } = useAuthMethods(setUser, navigate);
 
   const contextValue: AuthContextType = {
     user,
-    isLoading,
+    isLoading: isAuthStateLoading || isAuthMethodsLoading,
     login,
     register,
     logout,

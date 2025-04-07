@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { authService } from "@/services/api-service";
+import { authService } from "@/services/auth-service";
 import { ensureMongoId } from "@/lib/mongo-helpers";
 import { User } from "@/types/api-responses";
 import { RegisterData } from "./AuthContext";
@@ -15,25 +15,24 @@ export function useAuthMethods(
   navigate: (path: string) => void
 ) {
   const { setToken, removeToken } = useTokenManagement();
+  const [isLoading, setIsLoading] = useState(false);
 
   const login = async (email: string, password: string) => {
+    setIsLoading(true);
     try {
       const response = await authService.login(email, password);
       
-      // Handle the nested response structure
-      const responseData = response.data?.data || response.data;
-      
-      if (responseData?.access_token) {
-        const { access_token, user } = responseData;
+      if (response.success && response.data) {
+        const { access_token, user } = response.data;
         
         setToken(access_token);
         
         if (user) {
-          // Convert _id to id if needed
+          // Convert id to _id if needed
           const processedUser = ensureMongoId(user);
           setUser(processedUser);
           navigate("/dashboard");
-          toast.success(response.data?.message || "Login successful!");
+          toast.success(response.message || "Login successful!");
         } else {
           console.warn("No user data in login response");
           toast.error("Login was incomplete. Please try again.");
@@ -45,10 +44,13 @@ export function useAuthMethods(
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Unable to log in. Please check your credentials.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const register = async (userData: RegisterData) => {
+    setIsLoading(true);
     try {
       const response = await authService.register({
         email: userData.email,
@@ -57,20 +59,23 @@ export function useAuthMethods(
         last_name: userData.lastName,
       });
       
-      // Handle the nested response structure
-      const responseData = response.data?.data || response.data;
-      
-      if (responseData?.access_token && responseData.user) {
-        const { access_token, user } = responseData;
+      if (response.success && response.data) {
+        const { access_token, user } = response.data;
         
-        setToken(access_token);
+        if (access_token) {
+          setToken(access_token);
+        }
         
-        const processedUser = ensureMongoId(user);
-        setUser(processedUser);
-        
-        navigate("/dashboard");
-        const successMessage = response.data?.message || "Registration successful!";
-        toast.success(successMessage);
+        if (user) {
+          const processedUser = ensureMongoId(user);
+          setUser(processedUser);
+          
+          navigate("/dashboard");
+          toast.success(response.message || "Registration successful!");
+        } else {
+          toast.success(response.message || "Registration successful! Please log in.");
+          navigate("/login");
+        }
       } else {
         console.error("Invalid registration response:", response);
         toast.error("Registration failed. Please try again.");
@@ -78,6 +83,8 @@ export function useAuthMethods(
     } catch (error) {
       console.error("Registration error:", error);
       toast.error("Unable to register. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -91,6 +98,7 @@ export function useAuthMethods(
   return {
     login,
     register,
-    logout
+    logout,
+    isLoading
   };
 }
