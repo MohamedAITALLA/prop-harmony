@@ -140,6 +140,8 @@ export const propertyService = {
         }
       }
       
+      console.log("About to send request to update property...");
+      
       const response = await api.put(`/properties/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
@@ -147,6 +149,7 @@ export const propertyService = {
       });
       
       console.log("Update property response:", response.data);
+      console.log("Full response data:", JSON.stringify(response.data, null, 2));
       
       // Log specific parts of the response for easier debugging
       if (response.data?.data?.property) {
@@ -157,6 +160,8 @@ export const propertyService = {
       if (response.data?.data?.meta) {
         console.log("Response metadata:", response.data.data.meta);
         console.log("Images deleted count:", response.data.data.meta.images_deleted || 0);
+        console.log("Images added count:", response.data.data.meta.images_added || 0);
+        console.log("Changes count:", response.data.data.meta.changes_count || 0);
       }
       
       return response.data;

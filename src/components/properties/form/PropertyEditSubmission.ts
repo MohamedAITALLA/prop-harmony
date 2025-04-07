@@ -39,6 +39,8 @@ export const handleEditFormSubmission = async (
     const propertyData = {};
     
     console.log("Submitting update with data:", propertyData);
+    console.log(`About to call updateProperty with propertyId=${propertyId}, newImageFiles.length=${newImageFiles.length}, imagesToDelete=${JSON.stringify(imagesToDelete)}`);
+    
     const response = await propertyService.updateProperty(propertyId, propertyData, newImageFiles, imagesToDelete);
     console.log("Complete update response:", response);
     
