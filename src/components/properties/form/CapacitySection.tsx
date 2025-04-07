@@ -82,14 +82,14 @@ export function CapacitySection({ form }: CapacitySectionProps) {
           )}
         />
 
-        {/* Bathrooms - Can have decimal values */}
-        <FormField
+          {/* Bathrooms - Can have decimal values */}
+          <FormField
           control={form.control}
           name="bathrooms"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="flex items-center gap-1">
-                <Bath className="h-4 w-4" /> Bathrooms
+                <Bed className="h-4 w-4" /> Bathrooms
               </FormLabel>
               <FormControl>
                 <div className="flex items-center">
@@ -98,30 +98,26 @@ export function CapacitySection({ form }: CapacitySectionProps) {
                     variant="outline" 
                     size="sm" 
                     className="h-9 px-2"
-                    onClick={() => {
-                      const current = parseFloat(field.value.toString());
-                      const newValue = Math.max(0, current - 0.5);
-                      field.onChange(newValue);
-                    }}
+                    onClick={() => handleDecrement("bathrooms")}
                   >
                     -
                   </Button>
                   <Input 
                     type="number" 
                     min="0" 
-                    step="0.5" 
+                    step="1"
                     className="mx-2 text-center" 
                     {...field} 
+                    onChange={(e) => {
+                      field.onChange(ensureInteger(e.target.value));
+                    }}
                   />
                   <Button 
                     type="button" 
                     variant="outline" 
                     size="sm" 
                     className="h-9 px-2"
-                    onClick={() => {
-                      const current = parseFloat(field.value.toString());
-                      field.onChange(current + 0.5);
-                    }}
+                    onClick={() => handleIncrement("bathrooms")}
                   >
                     +
                   </Button>
