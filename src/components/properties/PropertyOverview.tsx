@@ -8,6 +8,7 @@ import { AddressDetailsCard } from "./property-overview/AddressDetailsCard";
 import { AmenitiesCard } from "./property-overview/AmenitiesCard";
 import { PoliciesCard } from "./property-overview/PoliciesCard";
 import { ImagesCard } from "./property-overview/ImagesCard";
+import { RawDataCard } from "./property-overview/RawDataCard";
 
 export interface PropertyOverviewProps {
   property: Property;
@@ -34,6 +35,9 @@ export function PropertyOverview({ property }: PropertyOverviewProps) {
 
       {/* Property Images */}
       <ImagesCard property={property} />
+      
+      {/* Raw Property Data */}
+      <RawDataCard property={property} />
     </div>
   );
 }
