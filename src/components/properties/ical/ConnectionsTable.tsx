@@ -1,18 +1,18 @@
 
-import React, { useState } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Link2, Edit2, Trash2, ExternalLink, Copy, Check } from "lucide-react";
+import React from 'react';
 import { ICalConnection } from "@/types/api-responses";
-import { formatDistanceToNow, parseISO } from 'date-fns';
-import { SyncStatusBadge } from '@/components/ui/sync-status-badge';
-import { 
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger 
-} from "@/components/ui/tooltip";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { SyncStatusBadge } from "@/components/ui/sync-status-badge";
+import { formatDistanceToNow } from 'date-fns';
+import { Edit, Trash2, Link2, RefreshCw } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface ConnectionsTableProps {
   connections: ICalConnection[];
@@ -21,167 +21,101 @@ interface ConnectionsTableProps {
   onTest: (connection: ICalConnection) => void;
 }
 
-export function ConnectionsTable({ connections, onEdit, onDelete, onTest }: ConnectionsTableProps) {
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-
-  const formatLastSync = (lastSync: string | null) => {
-    if (!lastSync) return 'Never';
+export function ConnectionsTable({ 
+  connections, 
+  onEdit, 
+  onDelete, 
+  onTest 
+}: ConnectionsTableProps) {
+  const formatLastSync = (date: string) => {
+    if (!date) return 'Never';
     try {
-      return formatDistanceToNow(parseISO(lastSync), { addSuffix: true });
-    } catch {
-      return 'Invalid date';
-    }
-  };
-
-  const handleCopyUrl = async (url: string, id: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopiedId(id);
-      toast.success("iCal URL copied to clipboard");
-      
-      setTimeout(() => {
-        setCopiedId(null);
-      }, 2000);
-    } catch (err) {
-      toast.error("Failed to copy URL");
+      return formatDistanceToNow(new Date(date), { addSuffix: true });
+    } catch (e) {
+      return 'Unknown';
     }
   };
 
   if (connections.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center border rounded-lg bg-muted/5">
-        <div className="bg-primary/10 rounded-full p-4 mb-4">
-          <Link2 className="h-7 w-7 text-primary/70" />
-        </div>
-        <h3 className="text-lg font-medium mb-2">No connections yet</h3>
-        <p className="text-muted-foreground text-sm max-w-md mb-4 px-4">
-          Add your first external calendar connection to sync availability and bookings
+      <div className="border rounded-md p-8 text-center">
+        <h3 className="text-lg font-medium text-muted-foreground mb-2">No iCal Connections</h3>
+        <p className="max-w-md mx-auto text-sm text-muted-foreground">
+          You haven't added any external calendar connections yet. Add your first one by clicking the "Add Connection" button above.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden shadow-sm">
+    <div className="border rounded-md overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="bg-muted/5 hover:bg-muted/5">
-            <TableHead className="w-[180px] py-4">Platform</TableHead>
-            <TableHead className="hidden md:table-cell w-[300px]">iCal URL</TableHead>
-            <TableHead className="hidden md:table-cell w-[120px]">Status</TableHead>
-            <TableHead className="hidden md:table-cell">Last Synced</TableHead>
-            <TableHead className="hidden md:table-cell">Frequency</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+          <TableRow>
+            <TableHead className="w-[180px]">Platform</TableHead>
+            <TableHead>iCal URL</TableHead>
+            <TableHead className="w-[100px]">Status</TableHead>
+            <TableHead className="w-[120px]">Last Sync</TableHead>
+            <TableHead className="w-[100px]">Frequency</TableHead>
+            <TableHead className="text-right w-[140px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {connections.map((connection) => (
-            <TableRow key={connection._id} className="hover:bg-muted/5">
-              <TableCell className="font-medium py-4">
+            <TableRow key={connection._id}>
+              <TableCell className="font-medium">
                 {connection.platform}
-                <div className="md:hidden flex items-center text-xs text-muted-foreground mt-1">
-                  <SyncStatusBadge 
-                    status={connection.status} 
-                    lastSync={connection.last_synced} 
-                    className="mt-0"
-                  />
-                </div>
               </TableCell>
-              <TableCell className="hidden md:table-cell max-w-[300px] group">
-                <div className="flex items-center gap-2">
-                  <div className="truncate text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <TableCell className="max-w-[300px] truncate">
+                <div className="flex items-center gap-1.5">
+                  <Link2 className="h-3.5 w-3.5 text-muted-foreground/70" />
+                  <span className="truncate" title={connection.ical_url}>
                     {connection.ical_url}
-                  </div>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => handleCopyUrl(connection.ical_url, connection._id)}
-                        >
-                          {copiedId === connection._id ? (
-                            <Check className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Copy iCal URL</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  </span>
                 </div>
               </TableCell>
-              <TableCell className="hidden md:table-cell">
+              <TableCell>
                 <SyncStatusBadge 
                   status={connection.status} 
                   lastSync={connection.last_synced} 
+                  message={connection.error_message} 
                 />
               </TableCell>
-              <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
+              <TableCell className="text-sm text-muted-foreground">
                 {formatLastSync(connection.last_synced)}
               </TableCell>
-              <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
-                {connection.sync_frequency} hour{connection.sync_frequency !== 1 ? 's' : ''}
+              <TableCell className="text-sm text-muted-foreground">
+                {connection.sync_frequency === 1 
+                  ? 'Every hour' 
+                  : `Every ${connection.sync_frequency} hours`}
               </TableCell>
-              <TableCell className="text-right pr-4">
-                <div className="flex justify-end gap-2">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          onClick={() => onTest(connection)} 
-                          variant="outline" 
-                          size="sm"
-                          className="hidden md:flex h-8"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Test connection</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          onClick={() => onEdit(connection)} 
-                          variant="outline" 
-                          size="sm"
-                          className="text-primary h-8"
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Edit connection</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button 
-                          onClick={() => onDelete(connection)}
-                          variant="outline"
-                          size="sm"
-                          className="text-destructive h-8"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Delete connection</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+              <TableCell className="text-right">
+                <div className="flex items-center justify-end gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => onTest(connection)}
+                    title="Test Connection"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => onEdit(connection)}
+                    title="Edit Connection"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
+                    onClick={() => onDelete(connection)}
+                    title="Delete Connection"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </TableCell>
             </TableRow>

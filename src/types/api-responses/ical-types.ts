@@ -29,8 +29,32 @@ export interface ICalConnectionsResponse {
   timestamp: string;
 }
 
+export interface ICalConnectionResponse {
+  success: boolean;
+  data: ICalConnection;
+  meta: {
+    property_id: string;
+    connection_id: string;
+    platform: string;
+    status: string;
+    days_since_last_sync?: number;
+    is_active?: boolean;
+    updated_fields?: string[];
+    updated_at?: string;
+  };
+  message: string;
+  timestamp: string;
+}
+
 export interface CreateICalConnectionDto {
   platform: string;
   ical_url: string;
   sync_frequency?: number;
+}
+
+export interface UpdateICalConnectionDto {
+  platform?: string;
+  ical_url?: string;
+  sync_frequency?: number;
+  status?: string;
 }

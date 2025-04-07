@@ -29,3 +29,25 @@ export function useICalConnections(propertyId: string) {
     refetch
   };
 }
+
+export function useICalConnection(propertyId: string, connectionId: string) {
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: [`property-ical-connection-${propertyId}-${connectionId}`],
+    queryFn: async () => {
+      const response = await icalConnectionService.getConnection(propertyId, connectionId);
+      return response.data;
+    },
+    enabled: !!(propertyId && connectionId)
+  });
+
+  const connection = data?.data || null;
+  const connectionMeta = data?.meta || null;
+
+  return {
+    connection,
+    connectionMeta,
+    isLoading,
+    isError,
+    refetch
+  };
+}

@@ -26,6 +26,9 @@ export interface DeleteConnectionResponse {
     platform: string;
     preserve_history: boolean;
     action: "deactivated" | "permanently deleted";
+    events_action?: string;
+    events_affected?: number;
+    conflicts_processed?: number;
   };
   message: string;
   timestamp: string;
