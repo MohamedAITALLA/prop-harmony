@@ -16,11 +16,6 @@ export function useEventDialog(propertyId: string, refetchEvents: () => void) {
     description: ""
   });
 
-  const [hasSubmitConflict, setHasSubmitConflict] = useState(false);
-  const [conflictDetails, setConflictDetails] = useState<any>(null);
-  const [isConflictDialogOpen, setIsConflictDialogOpen] = useState(false);
-  const [isConflictResolverOpen, setIsConflictResolverOpen] = useState(false);
-
   const resetEventForm = () => {
     setNewEvent({
       property_id: propertyId,
@@ -62,13 +57,6 @@ export function useEventDialog(propertyId: string, refetchEvents: () => void) {
         description: newEvent.description
       });
       
-      if (response.meta?.conflicts_detected && response.meta.conflicts_detected > 0) {
-        setHasSubmitConflict(true);
-        setConflictDetails(response.meta);
-        setIsConflictDialogOpen(true);
-        return;
-      }
-      
       toast.success("Event created successfully");
       return { success: true };
     } catch (error) {
@@ -78,29 +66,11 @@ export function useEventDialog(propertyId: string, refetchEvents: () => void) {
     }
   };
 
-  // Calculate conflicting events
-  const conflictingEvents = hasSubmitConflict && conflictDetails?.conflict_events
-    ? conflictDetails.conflict_events.map((event: any) => ({
-        id: event.id,
-        platform: event.platform || 'Unknown',
-        summary: event.summary,
-        startDate: event.start_date,
-        endDate: event.end_date
-      }))
-    : [];
-
   return {
     newEvent,
     setNewEvent,
-    hasSubmitConflict,
-    conflictDetails,
-    isConflictDialogOpen,
-    setIsConflictDialogOpen,
-    isConflictResolverOpen,
-    setIsConflictResolverOpen,
     resetEventForm,
     handleInputChange,
     handleSubmitEvent,
-    conflictingEvents
   };
 }

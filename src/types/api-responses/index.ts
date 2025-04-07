@@ -9,3 +9,4 @@ export * from './notification-types';
 export * from './property-types';
 export * from './sync-types';
 export * from './user-types';
+export * from './conflict-types';

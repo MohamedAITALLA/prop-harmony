@@ -6,7 +6,6 @@ import { eventService } from "@/services/api-service";
 import { useEventDialog } from '@/hooks/properties/useEventDialog';
 import { AddEventDialog } from '@/components/properties/calendar/AddEventDialog';
 import { ViewEventDialog } from '@/components/properties/calendar/ViewEventDialog';
-import { ConflictDialogs } from '@/components/properties/calendar/ConflictDialogs';
 
 interface EventDialogManagerProps {
   propertyId: string;
@@ -27,15 +26,9 @@ export const EventDialogManager = forwardRef<EventDialogManagerRef, EventDialogM
     const {
       newEvent,
       setNewEvent,
-      isConflictDialogOpen,
-      setIsConflictDialogOpen,
-      isConflictResolverOpen,
-      setIsConflictResolverOpen,
       resetEventForm,
       handleInputChange,
       handleSubmitEvent,
-      conflictDetails,
-      conflictingEvents
     } = useEventDialog(propertyId, refetchEvents);
 
     useImperativeHandle(ref, () => ({
@@ -78,16 +71,6 @@ export const EventDialogManager = forwardRef<EventDialogManagerRef, EventDialogM
       }
     };
 
-    const handleResolveConflicts = () => {
-      setIsConflictResolverOpen(true);
-      setIsConflictDialogOpen(false);
-    };
-
-    const handleConflictResolution = () => {
-      setIsConflictResolverOpen(false);
-      refetchEvents();
-    };
-
     return (
       <>
         <AddEventDialog
@@ -106,21 +89,6 @@ export const EventDialogManager = forwardRef<EventDialogManagerRef, EventDialogM
             handleDeleteEvent={handleDeleteEvent}
           />
         )}
-        
-        <ConflictDialogs
-          isConflictDialogOpen={isConflictDialogOpen}
-          setIsConflictDialogOpen={setIsConflictDialogOpen}
-          isConflictResolverOpen={isConflictResolverOpen}
-          setIsConflictResolverOpen={setIsConflictResolverOpen}
-          conflictDetails={conflictDetails}
-          conflictingEvents={conflictingEvents}
-          propertyId={propertyId}
-          onResolveConflicts={handleResolveConflicts}
-          onConflictResolution={handleConflictResolution}
-          refetchEvents={refetchEvents}
-          resetEventForm={resetEventForm}
-          setIsAddEventOpen={setIsAddEventOpen}
-        />
       </>
     );
   }

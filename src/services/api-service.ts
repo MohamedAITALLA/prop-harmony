@@ -9,6 +9,7 @@ import adminUserService from "./admin-user-service";
 import adminProfileService from "./admin-profile-service";
 import eventService from "./event-service";
 import notificationService from "./notification-service";
+import calendarService from "./calendar-service";
 
 // Export all services
 export {
@@ -20,5 +21,6 @@ export {
   adminUserService,
   adminProfileService,
   eventService,
-  notificationService
+  notificationService,
+  calendarService
 };

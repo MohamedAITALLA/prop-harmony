@@ -6,7 +6,6 @@ import { OverviewTabContent } from "./tabs/OverviewTabContent";
 import { CalendarTabContent } from "./tabs/CalendarTabContent";
 import { ICalTabContent } from "./tabs/ICalTabContent";
 import { SyncTabContent } from "./tabs/SyncTabContent";
-import { ConflictsTabContent } from "./tabs/ConflictsTabContent";
 import { SettingsTabContent } from "./tabs/SettingsTabContent";
 
 interface PropertyDetailsContentProps {
@@ -57,10 +56,6 @@ export function PropertyDetailsContent({
       
       <TabsContent value="sync" className="space-y-4">
         <SyncTabContent propertyId={propertyId} />
-      </TabsContent>
-      
-      <TabsContent value="conflicts" className="space-y-4">
-        <ConflictsTabContent propertyId={propertyId} />
       </TabsContent>
       
       <TabsContent value="settings" className="space-y-4">

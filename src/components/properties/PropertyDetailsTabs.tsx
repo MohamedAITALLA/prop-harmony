@@ -1,74 +1,70 @@
 
 import React from "react";
-import { TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Info, Calendar, Link, AlertTriangle, Settings, Cloud } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CalendarDays, Cog, Home, Link2 } from "lucide-react";
 
 interface PropertyDetailsTabsProps {
   activeTab: string;
   onTabChange: (value: string) => void;
-  hasConflicts: boolean;
+  hasConflicts?: boolean;
 }
 
-export function PropertyDetailsTabs({ activeTab, onTabChange, hasConflicts }: PropertyDetailsTabsProps) {
+export function PropertyDetailsTabs({
+  activeTab,
+  onTabChange,
+  hasConflicts
+}: PropertyDetailsTabsProps) {
   return (
-    <div className="bg-background rounded-lg border shadow-sm p-1 mb-6">
-      <TabsList className="w-full flex flex-wrap justify-start h-auto">
-        <TabsTrigger 
-          value="overview" 
-          onClick={() => onTabChange("overview")}
-          className={cn("flex-grow sm:flex-grow-0 data-[state=active]:bg-primary data-[state=active]:text-white")}
-        >
-          <Info className="mr-2 h-4 w-4" /> Overview
-        </TabsTrigger>
-        <TabsTrigger 
-          value="calendar" 
-          onClick={() => onTabChange("calendar")}
-          className={cn("flex-grow sm:flex-grow-0 data-[state=active]:bg-primary data-[state=active]:text-white")}
-        >
-          <Calendar className="mr-2 h-4 w-4" /> 
-          Calendar 
-          {hasConflicts && (
-            <span className="ml-1 rounded-full bg-destructive w-4 h-4 text-xs flex items-center justify-center text-white">
-              !
-            </span>
-          )}
-        </TabsTrigger>
-        <TabsTrigger 
-          value="ical" 
-          onClick={() => onTabChange("ical")}
-          className={cn("flex-grow sm:flex-grow-0 data-[state=active]:bg-primary data-[state=active]:text-white")}
-        >
-          <Link className="mr-2 h-4 w-4" /> iCal
-        </TabsTrigger>
-        <TabsTrigger 
-          value="sync" 
-          onClick={() => onTabChange("sync")}
-          className={cn("flex-grow sm:flex-grow-0 data-[state=active]:bg-primary data-[state=active]:text-white")}
-        >
-          <Cloud className="mr-2 h-4 w-4" /> Sync
-        </TabsTrigger>
-        <TabsTrigger 
-          value="conflicts" 
-          onClick={() => onTabChange("conflicts")}
-          className={cn("flex-grow sm:flex-grow-0 data-[state=active]:bg-primary data-[state=active]:text-white")}
-        >
-          <AlertTriangle className="mr-2 h-4 w-4" /> 
-          Conflicts 
-          {hasConflicts && (
-            <span className="ml-1 rounded-full bg-destructive w-4 h-4 text-xs flex items-center justify-center text-white">
-              !
-            </span>
-          )}
-        </TabsTrigger>
-        <TabsTrigger 
-          value="settings" 
-          onClick={() => onTabChange("settings")}
-          className={cn("flex-grow sm:flex-grow-0 data-[state=active]:bg-primary data-[state=active]:text-white")}
-        >
-          <Settings className="mr-2 h-4 w-4" /> Settings
-        </TabsTrigger>
-      </TabsList>
-    </div>
+    <TabsList className="grid grid-cols-5 h-auto w-full max-w-3xl mx-auto md:mb-4">
+      <TabsTrigger 
+        value="overview" 
+        onClick={() => onTabChange("overview")}
+        className="flex items-center gap-1.5 py-3"
+      >
+        <Home className="w-4 h-4" />
+        <span>Overview</span>
+      </TabsTrigger>
+      
+      <TabsTrigger 
+        value="calendar" 
+        onClick={() => onTabChange("calendar")}
+        className="flex items-center gap-1.5 py-3"
+      >
+        <CalendarDays className="w-4 h-4" />
+        <span>Calendar</span>
+      </TabsTrigger>
+      
+      <TabsTrigger 
+        value="ical" 
+        onClick={() => onTabChange("ical")}
+        className="flex items-center gap-1.5 py-3"
+      >
+        <Link2 className="w-4 h-4" />
+        <span>iCal</span>
+      </TabsTrigger>
+      
+      <TabsTrigger 
+        value="sync" 
+        onClick={() => onTabChange("sync")}
+        className="flex items-center gap-1.5 py-3"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-refresh-cw">
+          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+          <path d="M21 3v5h-5"></path>
+          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+          <path d="M8 16H3v5"></path>
+        </svg>
+        <span>Sync</span>
+      </TabsTrigger>
+      
+      <TabsTrigger 
+        value="settings" 
+        onClick={() => onTabChange("settings")}
+        className="flex items-center gap-1.5 py-3"
+      >
+        <Cog className="w-4 h-4" />
+        <span>Settings</span>
+      </TabsTrigger>
+    </TabsList>
   );
 }

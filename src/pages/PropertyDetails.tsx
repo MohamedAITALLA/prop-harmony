@@ -11,7 +11,6 @@ import { PropertyDetailsLoading } from "@/components/properties/PropertyDetailsL
 import { PropertyDetailsError } from "@/components/properties/PropertyDetailsError";
 import { usePropertyDetails } from "@/hooks/properties/usePropertyDetails";
 import { usePropertyEvents } from "@/hooks/properties/usePropertyEvents";
-import { usePropertyConflicts } from "@/hooks/properties/usePropertyConflicts";
 import { DeletePropertyDialog } from "@/components/properties/DeletePropertyDialog";
 import { propertyService } from "@/services/property-service";
 
@@ -38,7 +37,8 @@ export default function PropertyDetails() {
     refetchEvents 
   } = usePropertyEvents(id);
 
-  const { hasConflicts } = usePropertyConflicts(id);
+  // Setting a simple flag for hasConflicts - since we're removing that functionality
+  const hasConflicts = false;
 
   const handleTabChange = (value) => {
     setActiveTab(value);
@@ -88,7 +88,8 @@ export default function PropertyDetails() {
   };
   
   const handleViewConflicts = () => {
-    handleTabChange("conflicts");
+    // This function would have changed tabs to conflicts, but we've removed that tab
+    toast.info("Conflict management has been removed from this version");
   };
 
   const handleRetryLoadProperty = () => {
