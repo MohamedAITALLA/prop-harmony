@@ -2,7 +2,7 @@
 import React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, Image } from "lucide-react";
 
 interface ExistingImagesGalleryProps {
   imageUrls: string[];
@@ -23,7 +23,10 @@ export function ExistingImagesGallery({
 
   return (
     <div className="bg-muted/20 p-4 rounded-md border border-border/50">
-      <h4 className="text-sm font-medium mb-3">Select images to delete:</h4>
+      <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+        <Image className="h-4 w-4 text-primary" />
+        Existing Images ({imageUrls.length})
+      </h4>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         {imageUrls.map((imageUrl, idx) => {
           // Ensure URL is normalized

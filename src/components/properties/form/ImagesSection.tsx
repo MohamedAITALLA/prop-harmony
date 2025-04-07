@@ -6,6 +6,8 @@ import { ImagesSummary } from "./images/ImagesSummary";
 import { ExistingImagesGallery } from "./images/ExistingImagesGallery";
 import { ImageDeletionPreview } from "./images/ImageDeletionPreview";
 import { ImageUploadSection } from "./images/ImageUploadSection";
+import { Image } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 interface ImagesSectionProps {
   form: UseFormReturn<FormValues>;
@@ -84,19 +86,33 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
 
   return (
     <div className="space-y-4">
-      <ImagesSummary totalImagesCount={totalImagesCount} isEditMode={isEditMode} />
+      <div>
+        <h3 className="text-lg font-medium flex items-center gap-2">
+          <Image className="h-4 w-4" /> Property Images
+        </h3>
       
-      <ExistingImagesGallery
-        imageUrls={existingImageUrls}
-        imagesToDelete={imagesToDelete}
-        onToggleImageForDeletion={toggleImageForDeletion}
-        isEditMode={isEditMode}
-      />
+        <div className="bg-muted/30 p-3 rounded-md mt-2">
+          <ImagesSummary totalImagesCount={totalImagesCount} isEditMode={isEditMode} />
+        </div>
+      </div>
       
-      <ImageDeletionPreview
-        imagesToDelete={imagesToDelete}
-        onToggleImageForDeletion={toggleImageForDeletion}
-      />
+      {isEditMode && existingImageUrls.length > 0 && (
+        <>
+          <ExistingImagesGallery
+            imageUrls={existingImageUrls}
+            imagesToDelete={imagesToDelete}
+            onToggleImageForDeletion={toggleImageForDeletion}
+            isEditMode={isEditMode}
+          />
+          
+          <ImageDeletionPreview
+            imagesToDelete={imagesToDelete}
+            onToggleImageForDeletion={toggleImageForDeletion}
+          />
+          
+          <Separator className="my-4" />
+        </>
+      )}
       
       <ImageUploadSection
         form={form}

@@ -2,15 +2,34 @@
 import React from "react";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Users } from "lucide-react";
+import { Users, Bed, Bath } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { FormValues } from "./PropertyFormSchema";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 
 interface CapacitySectionProps {
   form: UseFormReturn<FormValues>;
 }
 
 export function CapacitySection({ form }: CapacitySectionProps) {
+  // Ensure values are integers
+  const ensureInteger = (value: string): number => {
+    const parsed = parseInt(value, 10);
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
+  const handleIncrement = (field: string) => {
+    const currentValue = form.getValues(field as any);
+    form.setValue(field as any, ensureInteger(String(currentValue)) + 1);
+  };
+
+  const handleDecrement = (field: string) => {
+    const currentValue = form.getValues(field as any);
+    const newValue = Math.max(0, ensureInteger(String(currentValue)) - 1);
+    form.setValue(field as any, newValue);
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium flex items-center gap-2">
@@ -23,9 +42,40 @@ export function CapacitySection({ form }: CapacitySectionProps) {
           name="bedrooms"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Bedrooms</FormLabel>
+              <FormLabel className="flex items-center gap-1">
+                <Bed className="h-4 w-4" /> Bedrooms
+              </FormLabel>
               <FormControl>
-                <Input type="number" min="0" {...field} />
+                <div className="flex items-center">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-9 px-2"
+                    onClick={() => handleDecrement("bedrooms")}
+                  >
+                    -
+                  </Button>
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    step="1"
+                    className="mx-2 text-center" 
+                    {...field} 
+                    onChange={(e) => {
+                      field.onChange(ensureInteger(e.target.value));
+                    }}
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-9 px-2"
+                    onClick={() => handleIncrement("bedrooms")}
+                  >
+                    +
+                  </Button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -37,14 +87,44 @@ export function CapacitySection({ form }: CapacitySectionProps) {
           name="bathrooms"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Bathrooms</FormLabel>
+              <FormLabel className="flex items-center gap-1">
+                <Bath className="h-4 w-4" /> Bathrooms
+              </FormLabel>
               <FormControl>
-                <Input 
-                  type="number" 
-                  min="0" 
-                  step="0.5" 
-                  {...field} 
-                />
+                <div className="flex items-center">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-9 px-2"
+                    onClick={() => {
+                      const current = parseFloat(field.value.toString());
+                      const newValue = Math.max(0, current - 0.5);
+                      field.onChange(newValue);
+                    }}
+                  >
+                    -
+                  </Button>
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    step="0.5" 
+                    className="mx-2 text-center" 
+                    {...field} 
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-9 px-2"
+                    onClick={() => {
+                      const current = parseFloat(field.value.toString());
+                      field.onChange(current + 0.5);
+                    }}
+                  >
+                    +
+                  </Button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -56,9 +136,40 @@ export function CapacitySection({ form }: CapacitySectionProps) {
           name="beds"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Beds</FormLabel>
+              <FormLabel className="flex items-center gap-1">
+                <Bed className="h-4 w-4" /> Beds
+              </FormLabel>
               <FormControl>
-                <Input type="number" min="0" {...field} />
+                <div className="flex items-center">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-9 px-2"
+                    onClick={() => handleDecrement("beds")}
+                  >
+                    -
+                  </Button>
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    step="1"
+                    className="mx-2 text-center" 
+                    {...field} 
+                    onChange={(e) => {
+                      field.onChange(ensureInteger(e.target.value));
+                    }}
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-9 px-2"
+                    onClick={() => handleIncrement("beds")}
+                  >
+                    +
+                  </Button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -70,9 +181,48 @@ export function CapacitySection({ form }: CapacitySectionProps) {
           name="accommodates"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Accommodates</FormLabel>
+              <FormLabel className="flex items-center gap-1">
+                <Users className="h-4 w-4" /> Accommodates
+              </FormLabel>
               <FormControl>
-                <Input type="number" min="1" {...field} />
+                <div className="flex items-center">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-9 px-2"
+                    onClick={() => {
+                      const current = ensureInteger(field.value.toString());
+                      const newValue = Math.max(1, current - 1);
+                      field.onChange(newValue);
+                    }}
+                  >
+                    -
+                  </Button>
+                  <Input 
+                    type="number" 
+                    min="1" 
+                    step="1"
+                    className="mx-2 text-center" 
+                    {...field} 
+                    onChange={(e) => {
+                      const value = ensureInteger(e.target.value);
+                      field.onChange(Math.max(1, value)); // Ensure at least 1
+                    }}
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-9 px-2"
+                    onClick={() => {
+                      const current = ensureInteger(field.value.toString());
+                      field.onChange(current + 1);
+                    }}
+                  >
+                    +
+                  </Button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

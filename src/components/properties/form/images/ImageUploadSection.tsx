@@ -1,9 +1,9 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Upload, X } from "lucide-react";
+import { ImagePlus, X, Upload, Image as ImageIcon } from "lucide-react";
 import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { FormValues } from "../PropertyFormSchema";
 
@@ -25,7 +25,7 @@ export function ImageUploadSection({
     name: "images"
   });
   
-  const [showFileInputs, setShowFileInputs] = React.useState(false);
+  const [showFileInputs, setShowFileInputs] = useState(false);
   
   const addImageUpload = () => {
     append({ value: "" });
@@ -51,67 +51,74 @@ export function ImageUploadSection({
 
   return (
     <div className="border-t pt-4 mt-6">
-      <h4 className="text-sm font-medium mb-3">Add new images:</h4>
+      <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+        <ImagePlus className="h-4 w-4 text-primary" />
+        Add new images
+      </h4>
       
       {/* Only show file inputs when showFileInputs is true */}
-      {showFileInputs && fields.map((field, index) => (
-        <div key={field.id} className="space-y-2 mb-4">
-          <div className="flex items-start gap-2">
-            <FormField
-              control={form.control}
-              name={`images.${index}.value`}
-              render={() => (
-                <FormItem className="flex-1">
-                  <FormControl>
-                    <div className="flex flex-col gap-2">
-                      <div className="grid grid-cols-1 gap-2">
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => onFileChange(index, e.target.files)}
-                          className="cursor-pointer"
-                        />
-                      </div>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+      {showFileInputs && (
+        <div className="space-y-4 mb-4">
+          {fields.map((field, index) => (
+            <div key={field.id} className="space-y-2">
+              <div className="flex items-start gap-2">
+                <FormField
+                  control={form.control}
+                  name={`images.${index}.value`}
+                  render={() => (
+                    <FormItem className="flex-1">
+                      <FormControl>
+                        <div className="flex flex-col gap-2">
+                          <div className="grid grid-cols-1 gap-2">
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => onFileChange(index, e.target.files)}
+                              className="cursor-pointer bg-background"
+                            />
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button 
+                  type="button" 
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => removeNewImage(index)}
+                  className="mt-1"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              {previewUrls[index] && (
+                <div className="relative w-full h-40 overflow-hidden rounded-md border border-border/50">
+                  <img 
+                    src={previewUrls[index]} 
+                    alt={`Preview ${index}`} 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // If the image fails to load, show a placeholder
+                      (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
+                    }}
+                  />
+                </div>
               )}
-            />
-            <Button 
-              type="button" 
-              variant="destructive"
-              size="icon"
-              onClick={() => removeNewImage(index)}
-              className="mt-1"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {previewUrls[index] && (
-            <div className="relative w-full h-40 overflow-hidden rounded-md border border-border/50">
-              <img 
-                src={previewUrls[index]} 
-                alt={`Preview ${index}`} 
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  // If the image fails to load, show a placeholder
-                  (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
-                }}
-              />
             </div>
-          )}
+          ))}
         </div>
-      ))}
+      )}
       
       <Button
         type="button"
         variant="outline"
         onClick={addImageUpload}
-        className="w-full mt-2"
+        className="w-full"
       >
-        <Upload className="mr-2 h-4 w-4" /> Add Image
+        <ImagePlus className="mr-2 h-4 w-4" /> Add Image
       </Button>
     </div>
   );
