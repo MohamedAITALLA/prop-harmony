@@ -6,7 +6,7 @@ import {
   Route,
   Navigate,
 } from 'react-router-dom';
-import { useAuth, AuthProvider } from './hooks/useAuth';
+import { useAuth, AuthProvider } from './hooks/auth/useAuth';
 import MainLayout from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Properties from './pages/Properties';
@@ -54,20 +54,20 @@ function AppRoutes() {
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Index />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="properties" element={<Properties />} />
-          <Route path="properties/new" element={<NewProperty />} />
-          <Route path="properties/:id" element={<PropertyDetails />} />
-          <Route path="properties/:id/edit" element={<EditProperty />} />
-          <Route path="properties/:id/analytics" element={<PropertyAnalytics />} />
-          <Route path="calendar" element={<Calendar />} />
-          <Route path="conflicts" element={<Conflicts />} />
-          <Route path="events" element={<EventManagement />} />
-          <Route path="sync" element={<GlobalSync />} />
-          <Route path="sync/logs" element={<SyncLogs />} />
-          <Route path="sync/dashboard" element={<SyncDashboard />} />
-          <Route path="notifications" element={<Notifications />} />
-          <Route path="settings/profile" element={<ProfileSettings />} />
+          <Route path="dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+          <Route path="properties" element={<PrivateRoute><Properties /></PrivateRoute>} />
+          <Route path="properties/new" element={<PrivateRoute><NewProperty /></PrivateRoute>} />
+          <Route path="properties/:id" element={<PrivateRoute><PropertyDetails /></PrivateRoute>} />
+          <Route path="properties/:id/edit" element={<PrivateRoute><EditProperty /></PrivateRoute>} />
+          <Route path="properties/:id/analytics" element={<PrivateRoute><PropertyAnalytics /></PrivateRoute>} />
+          <Route path="calendar" element={<PrivateRoute><Calendar /></PrivateRoute>} />
+          <Route path="conflicts" element={<PrivateRoute><Conflicts /></PrivateRoute>} />
+          <Route path="events" element={<PrivateRoute><EventManagement /></PrivateRoute>} />
+          <Route path="sync" element={<PrivateRoute><GlobalSync /></PrivateRoute>} />
+          <Route path="sync/logs" element={<PrivateRoute><SyncLogs /></PrivateRoute>} />
+          <Route path="sync/dashboard" element={<PrivateRoute><SyncDashboard /></PrivateRoute>} />
+          <Route path="notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
+          <Route path="settings/profile" element={<PrivateRoute><ProfileSettings /></PrivateRoute>} />
           <Route path="components" element={<ComponentsDemo />} />
           <Route path="*" element={<NotFound />} />
         </Route>
