@@ -6,28 +6,27 @@ import { Users, Bed, Bath } from "lucide-react";
 import { UseFormReturn } from "react-hook-form";
 import { FormValues } from "./PropertyFormSchema";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 
 interface CapacitySectionProps {
   form: UseFormReturn<FormValues>;
 }
 
 export function CapacitySection({ form }: CapacitySectionProps) {
-  // Ensure values are integers
+  // Ensure values are integers (except for bathrooms which can be decimal)
   const ensureInteger = (value: string): number => {
     const parsed = parseInt(value, 10);
     return isNaN(parsed) ? 0 : parsed;
   };
 
-  const handleIncrement = (field: string) => {
-    const currentValue = form.getValues(field as any);
-    form.setValue(field as any, ensureInteger(String(currentValue)) + 1);
+  const handleIncrement = (field: keyof FormValues) => {
+    const currentValue = form.getValues(field);
+    form.setValue(field, ensureInteger(String(currentValue)) + 1);
   };
 
-  const handleDecrement = (field: string) => {
-    const currentValue = form.getValues(field as any);
+  const handleDecrement = (field: keyof FormValues) => {
+    const currentValue = form.getValues(field);
     const newValue = Math.max(0, ensureInteger(String(currentValue)) - 1);
-    form.setValue(field as any, newValue);
+    form.setValue(field, newValue);
   };
 
   return (
@@ -37,6 +36,7 @@ export function CapacitySection({ form }: CapacitySectionProps) {
       </h3>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Bedrooms - Integer only */}
         <FormField
           control={form.control}
           name="bedrooms"
@@ -82,6 +82,7 @@ export function CapacitySection({ form }: CapacitySectionProps) {
           )}
         />
 
+        {/* Bathrooms - Can have decimal values */}
         <FormField
           control={form.control}
           name="bathrooms"
@@ -131,6 +132,7 @@ export function CapacitySection({ form }: CapacitySectionProps) {
           )}
         />
 
+        {/* Beds - Integer only */}
         <FormField
           control={form.control}
           name="beds"
@@ -176,6 +178,7 @@ export function CapacitySection({ form }: CapacitySectionProps) {
           )}
         />
 
+        {/* Accommodates - Integer only, minimum 1 */}
         <FormField
           control={form.control}
           name="accommodates"

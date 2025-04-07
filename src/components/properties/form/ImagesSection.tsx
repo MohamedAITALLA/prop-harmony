@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { FormValues } from "./PropertyFormSchema";
@@ -96,8 +95,9 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
         </div>
       </div>
       
+      {/* Existing Images Section - Only shown in edit mode */}
       {isEditMode && existingImageUrls.length > 0 && (
-        <>
+        <div className="space-y-4">
           <ExistingImagesGallery
             imageUrls={existingImageUrls}
             imagesToDelete={imagesToDelete}
@@ -111,9 +111,10 @@ export function ImagesSection({ form, isEditMode = false }: ImagesSectionProps) 
           />
           
           <Separator className="my-4" />
-        </>
+        </div>
       )}
       
+      {/* Add New Images Section - Completely separate from existing images */}
       <ImageUploadSection
         form={form}
         uploadedImages={uploadedImages}

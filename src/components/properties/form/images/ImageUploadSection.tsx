@@ -50,7 +50,7 @@ export function ImageUploadSection({
   };
 
   return (
-    <div className="border-t pt-4 mt-6">
+    <div className="border rounded-md p-4 bg-background mt-4">
       <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
         <ImagePlus className="h-4 w-4 text-primary" />
         Add new images
@@ -114,11 +114,11 @@ export function ImageUploadSection({
       
       <Button
         type="button"
-        variant="outline"
+        variant={showFileInputs ? "outline" : "default"}
         onClick={addImageUpload}
         className="w-full"
       >
-        <ImagePlus className="mr-2 h-4 w-4" /> Add Image
+        <ImagePlus className="mr-2 h-4 w-4" /> {showFileInputs ? "Add Another Image" : "Add Images"}
       </Button>
     </div>
   );
