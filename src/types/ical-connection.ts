@@ -37,6 +37,7 @@ export interface UpdateConnectionResponse {
   meta?: {
     action: string;
     platform: string;
+    updated_fields?: string[]; // Add this field which was missing
   };
   message: string;
 }

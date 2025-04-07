@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { syncService } from "@/services/api-service";
@@ -13,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Platform } from "@/types/enums";
 import { CircularProgress } from "@/components/ui/circular-progress";
 import { PropertySyncStatusResponse } from "@/types/api-responses/sync-types";
+import { ApiResponse } from "@/types/api-responses";
 
 interface PropertySyncProps {
   propertyId: string;
@@ -26,7 +26,6 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
   const [syncProgress, setSyncProgress] = useState(0);
   const [timeoutWarning, setTimeoutWarning] = useState(false);
 
-  // Monitor online status
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
@@ -48,14 +47,12 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
     };
   }, [syncError]);
   
-  // Simulate progress when syncing is in progress
   React.useEffect(() => {
     if (!isSyncing) return;
     
     let progressInterval: number;
     let timeoutWarningTimeout: number;
     
-    // Start with fast progress that slows down
     progressInterval = window.setInterval(() => {
       setSyncProgress(prev => {
         if (prev >= 90) return prev; // Cap at 90% until we get response
@@ -63,7 +60,6 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
       });
     }, 1000);
     
-    // Show timeout warning after 45 seconds
     timeoutWarningTimeout = window.setTimeout(() => {
       setTimeoutWarning(true);
     }, 45000);
@@ -86,9 +82,9 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
       const response = await syncService.getPropertySyncStatus(propertyId);
       console.log('Raw sync status response:', response);
       if (response.data?.success && response.data?.data) {
-        return response.data.data; // Return the actual sync status data
+        return response.data.data as PropertySyncStatusResponse; // Return the actual sync status data
       } else if (response.data) {
-        return response.data; // Return whatever data structure we have
+        return response.data as PropertySyncStatusResponse; // Cast to the correct type
       }
       throw new Error("Invalid sync status data format");
     },
@@ -97,8 +93,7 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
   });
 
-  // Extract the sync status from the API response
-  const syncStatus: PropertySyncStatusResponse | null = syncData || null;
+  const syncStatus = syncData as PropertySyncStatusResponse | null;
 
   const handleSync = async () => {
     if (isSyncing) return;
@@ -118,16 +113,13 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
     try {
       await syncService.syncProperty(propertyId);
       toast.success("Synchronization initiated");
-      // Set progress to 100% on success
       setSyncProgress(100);
-      // Refetch data after a small delay to allow sync to process
       setTimeout(() => {
         refetchSyncStatus();
       }, 2000);
     } catch (error) {
       console.error("Sync error:", error);
       
-      // Extract meaningful error message
       let errorMessage = "Failed to synchronize property";
       if (error instanceof Error) {
         errorMessage = error.message || errorMessage;
@@ -208,7 +200,6 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
 
   return (
     <div className="space-y-6">
-      {/* Sync Status Overview */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex justify-between items-center">
@@ -271,7 +262,6 @@ export function PropertySync({ propertyId }: PropertySyncProps) {
                   <h3 className="font-medium text-blue-700">Synchronization in progress</h3>
                 </div>
                 
-                {/* Progress bar */}
                 <div className="w-full bg-blue-100 rounded-full h-2.5 mb-1">
                   <div 
                     className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" 

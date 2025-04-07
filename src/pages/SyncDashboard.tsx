@@ -57,7 +57,12 @@ export default function SyncDashboard() {
     queryFn: async () => {
       try {
         const response = await syncService.getSyncStatus();
-        return response.data.syncStatus;
+        if (response.data?.success && response.data?.data) {
+          return response.data.data; // Return the data property from the API response
+        } else if (response.data) {
+          return response.data; // Return whatever data is available
+        }
+        return getMockSyncStatus(); // Return mock data if no valid data
       } catch (error) {
         console.error("Error fetching sync status:", error);
         toast.error("Failed to load synchronization status");

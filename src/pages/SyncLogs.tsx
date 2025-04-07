@@ -10,7 +10,7 @@ import { LogDetailsModal } from '@/components/sync/LogDetailsModal';
 import { LogActionButton } from '@/components/sync/LogActionButton';
 import { syncService } from '@/services/sync-service';
 import { SyncStatus, Platform } from '@/types/enums';
-import { SyncLog } from '@/types/api-responses';
+import { SyncLog, SyncLogsResponse } from '@/types/api-responses/sync-types';
 import { Search, Filter, DownloadCloud } from 'lucide-react';
 
 export default function SyncLogs() {
@@ -34,10 +34,16 @@ export default function SyncLogs() {
       
       try {
         const response = await syncService.getSyncLogs(params);
-        return response.data;
+        if (response.data?.success && response.data?.data) {
+          return response.data.data as SyncLogsResponse['data'];
+        } else if (response.data) {
+          return response.data as SyncLogsResponse['data'];
+        }
+        // Return empty data if nothing valid is found
+        return { logs: [], pagination: { total: 0, pages: 1, page: 1, limit: 10, has_next_page: false, has_previous_page: false } };
       } catch (err) {
         console.error('Error fetching sync logs:', err);
-        return { logs: [], pagination: { total: 0, pages: 1 } };
+        return { logs: [], pagination: { total: 0, pages: 1, page: 1, limit: 10, has_next_page: false, has_previous_page: false } };
       }
     }
   });
