@@ -1,15 +1,11 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { icalConnectionService } from '@/services/ical-connection-service';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ICalConnection } from "@/types/api-responses";
-import { Loader2, AlertCircle, Link2, Calendar, Clock } from "lucide-react";
-import { Platform } from "@/types/enums";
+import { Loader2, Calendar } from "lucide-react";
 import { 
   Dialog, 
   DialogContent, 
@@ -18,6 +14,9 @@ import {
   DialogFooter,
   DialogDescription
 } from "@/components/ui/dialog";
+import { ConnectionStatusBadge } from './connection-form/ConnectionStatusBadge';
+import { ConnectionFormFields } from './connection-form/ConnectionFormFields';
+import { useConnectionFormValidation } from '@/hooks/useConnectionFormValidation';
 
 interface EditConnectionDialogProps {
   open: boolean;
@@ -35,7 +34,7 @@ export function EditConnectionDialog({
   onConnectionChange
 }: EditConnectionDialogProps) {
   const queryClient = useQueryClient();
-  const [errors, setErrors] = useState<{ical_url?: string}>({});
+  const { errors, validateForm } = useConnectionFormValidation();
 
   // Update connection mutation
   const updateMutation = useMutation({
@@ -70,27 +69,11 @@ export function EditConnectionDialog({
     }
   });
 
-  const validateForm = () => {
-    const newErrors: {ical_url?: string} = {};
-    let isValid = true;
-    
-    if (!connection?.ical_url || !connection.ical_url.trim()) {
-      newErrors.ical_url = "iCal URL is required";
-      isValid = false;
-    } else if (!connection.ical_url.startsWith('http')) {
-      newErrors.ical_url = "URL must start with http:// or https://";
-      isValid = false;
-    }
-    
-    setErrors(newErrors);
-    return isValid;
-  };
-
   const handleUpdateConnection = (e: React.FormEvent) => {
     e.preventDefault();
     if (!connection) return;
     
-    if (!validateForm()) return;
+    if (!validateForm(connection)) return;
 
     updateMutation.mutate({
       connectionId: connection._id,
@@ -117,95 +100,14 @@ export function EditConnectionDialog({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="bg-muted/30 rounded-lg p-3 border mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="font-medium text-sm">{connection.platform}</div>
-            {/* Status display without editing capability */}
-            <div className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
-              {connection.status}
-            </div>
-          </div>
-          {connection.last_synced && (
-            <div className="flex items-center text-xs text-muted-foreground gap-1.5">
-              <Clock className="h-3 w-3" />
-              <span>Last synced: {new Date(connection.last_synced).toLocaleString()}</span>
-            </div>
-          )}
-        </div>
+        <ConnectionStatusBadge connection={connection} />
         
         <form onSubmit={handleUpdateConnection}>
-          <div className="grid gap-4 py-2">
-            <div className="grid gap-2">
-              <Label htmlFor="edit-platform">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Calendar className="h-3.5 w-3.5" />
-                  Platform Name
-                </div>
-              </Label>
-              <Input
-                id="edit-platform"
-                value={connection.platform}
-                onChange={(e) => onConnectionChange({ 
-                  ...connection, 
-                  platform: e.target.value as unknown as Platform 
-                })}
-                placeholder="e.g. Airbnb, Booking.com"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Name of the platform or service providing this calendar
-              </p>
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="edit-ical_url">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Link2 className="h-3.5 w-3.5" />
-                  iCal URL
-                </div>
-              </Label>
-              <Input
-                id="edit-ical_url"
-                value={connection.ical_url}
-                onChange={(e) => onConnectionChange({ ...connection, ical_url: e.target.value })}
-                placeholder="https://example.com/ical/calendar.ics"
-                className={errors.ical_url ? "border-red-500" : ""}
-              />
-              {errors.ical_url && (
-                <div className="text-red-500 text-xs flex items-center gap-1 mt-1">
-                  <AlertCircle className="h-3 w-3" /> {errors.ical_url}
-                </div>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">
-                Enter the full URL to your external calendar's iCal feed
-              </p>
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="edit-sync_frequency">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <Clock className="h-3.5 w-3.5" />
-                  Sync Frequency
-                </div>
-              </Label>
-              <Select
-                value={String(connection.sync_frequency)}
-                onValueChange={(value) => onConnectionChange({ ...connection, sync_frequency: parseInt(value) })}
-              >
-                <SelectTrigger id="edit-sync_frequency">
-                  <SelectValue placeholder="Select Frequency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="15">Every 15 hours</SelectItem>
-                  <SelectItem value="30">Every 30 hours</SelectItem>
-                  <SelectItem value="45">Every 45 hours</SelectItem>
-                  <SelectItem value="60">Every 60 hours</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground mt-1">
-                How often should we check for updates from this calendar
-              </p>
-            </div>
-          </div>
+          <ConnectionFormFields 
+            connection={connection}
+            onConnectionChange={onConnectionChange}
+            errors={errors}
+          />
           
           <DialogFooter className="mt-6">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
