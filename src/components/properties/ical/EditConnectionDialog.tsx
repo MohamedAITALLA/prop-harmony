@@ -54,7 +54,7 @@ export function EditConnectionDialog({
       
       // Safely access the updated_fields property if it exists
       const meta = response.data.meta || {};
-      const updatedFields = Array.isArray(meta.updated_fields) ? meta.updated_fields : [];
+      const updatedFields = meta.updated_fields ? meta.updated_fields : [];
       const fieldText = updatedFields.length > 0 
         ? `Updated ${updatedFields.join(', ')}` 
         : 'Connection updated';
