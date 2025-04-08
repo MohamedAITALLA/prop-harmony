@@ -30,7 +30,7 @@ export const ProfileImageUpload = () => {
   
   // Get initials from name or use fallback
   const getInitials = () => {
-    const name = user?.name || '';
+    const name = user?.name || user?.full_name || '';
     return name.split(' ')
       .map(part => part.charAt(0))
       .join('')
@@ -46,7 +46,7 @@ export const ProfileImageUpload = () => {
       <CardContent className="flex flex-col items-center sm:flex-row sm:items-start gap-6">
         <div className="flex flex-col items-center gap-2">
           <Avatar className="w-24 h-24">
-            <AvatarImage src={profileImage} alt={user?.name || 'User'} />
+            <AvatarImage src={profileImage} alt={user?.name || user?.full_name || 'User'} />
             <AvatarFallback className="text-lg">{getInitials()}</AvatarFallback>
           </Avatar>
           <span className="text-sm text-muted-foreground">Current Image</span>

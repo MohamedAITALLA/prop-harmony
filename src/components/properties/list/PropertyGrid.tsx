@@ -6,13 +6,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface PropertyGridProps {
   properties: Property[];
-  isLoading: boolean;
+  isLoading?: boolean;
+  viewMode?: 'grid' | 'list';
   onPropertyClick: (property: Property) => void;
 }
 
 export const PropertyGrid: React.FC<PropertyGridProps> = ({ 
   properties, 
-  isLoading, 
+  isLoading = false,
+  viewMode = 'grid',
   onPropertyClick 
 }) => {
   if (isLoading) {

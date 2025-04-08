@@ -2,12 +2,26 @@
 import { createContext, useContext, ReactNode } from "react";
 import { User } from "@/types/api-responses";
 
+export interface ExtendedUser extends User {
+  profile_image?: string;
+  name?: string;
+}
+
+export interface ProfileUpdateData {
+  profile_image?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  [key: string]: any;
+}
+
 export interface AuthContextType {
-  user: User | null;
+  user: ExtendedUser | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (userData: RegisterData) => Promise<void>;
   logout: () => void;
+  updateProfile?: (data: ProfileUpdateData) => Promise<void>;
 }
 
 export interface RegisterData {
