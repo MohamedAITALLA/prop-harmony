@@ -1,10 +1,8 @@
-
 import React from "react";
 import { Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PropertyCard } from "../PropertyCard";
-import { useNavigate } from "react-router-dom";
 import { Property } from "@/types/api-responses";
 
 interface PropertyListResultsProps {
@@ -92,8 +90,7 @@ export function PropertyListResults({
         ? "grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3" 
         : "space-y-4"}>
         {properties.map((property) => {
-          // Ensure we have a valid ID string to pass to the onClick handler
-          const propertyId = property._id?.toString() || property.id?.toString() || "";
+          const propertyId = String(property._id || property.id || '');
           
           return (
             <PropertyCard
