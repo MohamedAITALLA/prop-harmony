@@ -49,7 +49,11 @@ export function PropertyView({
         <PropertyList
           properties={properties}
           isLoading={isLoading}
-          pagination={pagination}
+          pagination={pagination ? {
+            page: pagination.page,
+            pages: pagination.pages,
+            total: pagination.total,
+          } : undefined}
           summary={summary}
           onPageChange={onPageChange}
           onPropertyDeleted={onPropertyDeleted}
