@@ -1,15 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
+
+import React, { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useProperties } from "@/hooks/properties/useProperties";
-import { SearchBar } from './list/SearchBar';
-import { ViewModeSwitcher } from './list/ViewModeSwitcher';
-import { PropertyFiltersPopover } from './list/PropertyFiltersPopover';
-import { TypeFilter } from './list/TypeFilter';
-import { FilterBadges } from './list/FilterBadges';
+import { usePropertyListState } from './hooks/usePropertyListState';
+import { PropertyListHeader } from './list/PropertyListHeader';
+import { PropertyListFilters } from './list/PropertyListFilters';
 import { PropertyListResults } from './list/PropertyListResults';
 import { PropertyListPagination } from './list/PropertyListPagination';
-import { AddPropertyButton } from './list/AddPropertyButton';
 
 interface PropertyListProps {
   properties?: any[];
@@ -42,16 +39,23 @@ export function PropertyList({
   onPropertyDeleted
 }: PropertyListProps) {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   
-  const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('search') || '');
-  const [propertyTypeFilter, setPropertyTypeFilter] = useState<string>(searchParams.get('type') || 'all');
-  const [cityFilter, setCityFilter] = useState<string>(searchParams.get('city') || 'all_cities');
-  const [currentPage, setCurrentPage] = useState<number>(Number(searchParams.get('page')) || 1);
-  const [pageSize, setPageSize] = useState<number>(Number(searchParams.get('limit')) || 12);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>(
-    propViewMode === 'table' ? 'grid' : propViewMode as 'grid' | 'list'
-  );
+  const {
+    searchQuery,
+    propertyTypeFilter,
+    cityFilter,
+    currentPage,
+    pageSize,
+    viewMode,
+    activeFiltersCount,
+    handleSearchChange,
+    handleTypeFilterChange,
+    handleCityFilterChange,
+    handleViewModeChange,
+    handlePageChange,
+    handlePageSizeChange,
+    handleResetFilters
+  } = usePropertyListState();
 
   const { 
     properties: fetchedProperties, 
@@ -69,121 +73,44 @@ export function PropertyList({
   const isLoadingProperties = propIsLoading !== undefined ? propIsLoading : isLoading;
   const displayPagination = propPagination || pagination;
 
-  const updateSearchParams = useCallback(() => {
-    const newParams = new URLSearchParams(searchParams);
-    if (searchQuery) {
-      newParams.set('search', searchQuery);
-    } else {
-      newParams.delete('search');
-    }
-    if (propertyTypeFilter !== 'all') {
-      newParams.set('type', propertyTypeFilter);
-    } else {
-      newParams.delete('type');
-    }
-    if (cityFilter !== 'all_cities') {
-      newParams.set('city', cityFilter);
-    } else {
-      newParams.delete('city');
-    }
-    newParams.set('page', currentPage.toString());
-    newParams.set('limit', pageSize.toString());
-    setSearchParams(newParams);
-  }, [searchQuery, propertyTypeFilter, cityFilter, currentPage, pageSize, setSearchParams]);
-
-  useEffect(() => {
-    updateSearchParams();
-  }, [updateSearchParams]);
-
   const handlePropertyClick = useCallback((id: string) => {
     navigate(`/properties/${id}`);
   }, [navigate]);
 
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1);
-  }, []);
-
-  const handleTypeFilterChange = useCallback((value: string) => {
-    setPropertyTypeFilter(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handleCityFilterChange = useCallback((value: string) => {
-    setCityFilter(value);
-    setCurrentPage(1);
-  }, []);
-
-  const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
-    setViewMode(mode);
-  }, []);
-
-  const handlePageChange = useCallback((page: number) => {
-    setCurrentPage(page);
+  const handlePageChangeWrapper = useCallback((page: number) => {
+    handlePageChange(page);
     if (propOnPageChange) {
       propOnPageChange(page);
     }
-  }, [propOnPageChange]);
+  }, [handlePageChange, propOnPageChange]);
 
-  const handlePageSizeChange = useCallback((size: number) => {
-    setPageSize(size);
-    setCurrentPage(1);
-  }, []);
-
-  const handleResetFilters = useCallback(() => {
-    setSearchQuery('');
-    setPropertyTypeFilter('all');
-    setCityFilter('all_cities');
-    setCurrentPage(1);
-  }, []);
-
-  const activeFiltersCount = 
-    (propertyTypeFilter !== 'all' ? 1 : 0) + 
-    (cityFilter !== 'all_cities' ? 1 : 0);
+  const handleAddPropertyClick = useCallback(() => {
+    navigate('/properties/new');
+  }, [navigate]);
 
   return (
     <div className="bg-white dark:bg-gray-950 rounded-lg p-6 shadow-sm border">
       <div className="flex flex-col gap-6">
-        <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
-          <SearchBar 
-            searchQuery={searchQuery} 
-            onSearchChange={handleSearchChange} 
-          />
-          
-          <AddPropertyButton onClick={() => navigate('/properties/new')} />
-        </div>
+        <PropertyListHeader
+          searchQuery={searchQuery}
+          onSearchChange={handleSearchChange}
+          onAddPropertyClick={handleAddPropertyClick}
+        />
         
-        <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
-            <TypeFilter 
-              propertyType={propertyTypeFilter} 
-              onPropertyTypeChange={handleTypeFilterChange} 
-            />
-            
-            <PropertyFiltersPopover
-              propertyType={propertyTypeFilter}
-              onPropertyTypeChange={handleTypeFilterChange}
-              cityFilter={cityFilter}
-              onCityChange={handleCityFilterChange}
-              pageSize={pageSize}
-              onPageSizeChange={handlePageSizeChange}
-              onResetFilters={handleResetFilters}
-              activeFiltersCount={activeFiltersCount}
-            />
-            
-            <FilterBadges
-              propertyType={propertyTypeFilter}
-              cityFilter={cityFilter}
-              onClearPropertyType={() => setPropertyTypeFilter('all')}
-              onClearCity={() => setCityFilter('all_cities')}
-            />
-          </div>
-          
-          <ViewModeSwitcher 
-            viewMode={viewMode} 
-            onViewModeChange={handleViewModeChange} 
-          />
-        </div>
+        <PropertyListFilters
+          propertyTypeFilter={propertyTypeFilter}
+          cityFilter={cityFilter}
+          viewMode={viewMode}
+          pageSize={pageSize}
+          activeFiltersCount={activeFiltersCount}
+          onPropertyTypeChange={handleTypeFilterChange}
+          onCityChange={handleCityFilterChange}
+          onViewModeChange={handleViewModeChange}
+          onPageSizeChange={handlePageSizeChange}
+          onResetFilters={handleResetFilters}
+          onClearPropertyType={() => handleTypeFilterChange('all')}
+          onClearCity={() => handleCityFilterChange('all_cities')}
+        />
         
         <PropertyListResults
           properties={displayProperties}
@@ -199,7 +126,7 @@ export function PropertyList({
             currentPage={displayPagination.page}
             totalPages={displayPagination.pages}
             pageSize={pageSize}
-            onPageChange={handlePageChange}
+            onPageChange={handlePageChangeWrapper}
             onPageSizeChange={handlePageSizeChange}
           />
         )}
