@@ -1,44 +1,87 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Property } from "@/types/api-responses";
 import { propertyService } from "@/services/property-service";
 import { SortField, SortDirection } from "@/components/properties/table/PropertyTableUtils";
 
-export function usePropertyTable({
-  onPropertyDeleted
-}: {
+export interface UsePropertyTableOptions {
   onPropertyDeleted?: (propertyId: string) => void;
-}) {
+}
+
+export interface UsePropertyTableState {
+  // Filter and search state
+  searchQuery: string;
+  propertyType: string;
+  cityFilter: string;
+  
+  // Sorting state
+  sortField: SortField;
+  sortDirection: SortDirection;
+  
+  // Delete dialog state
+  deleteDialogOpen: boolean;
+  propertyToDelete: {id: string, name: string} | null;
+}
+
+export interface UsePropertyTableActions {
+  // Filter and search actions
+  setSearchQuery: (query: string) => void;
+  setPropertyType: (type: string) => void;
+  setCityFilter: (city: string) => void;
+  handleClearFilters: () => void;
+  
+  // Sorting actions
+  handleSetSortField: (field: string) => void;
+  handleSetSortDirection: (direction: string) => void;
+  handleSort: (field: SortField) => void;
+  
+  // Property actions
+  handleAction: (action: string, property: Property) => void;
+  handleDeleteConfirm: (preserveHistory: boolean) => void;
+  
+  // Delete dialog actions
+  setDeleteDialogOpen: (open: boolean) => void;
+  setPropertyToDelete: (property: {id: string, name: string} | null) => void;
+}
+
+export function usePropertyTable(options: UsePropertyTableOptions = {}): UsePropertyTableState & UsePropertyTableActions {
   const navigate = useNavigate();
+  const { onPropertyDeleted } = options;
+  
+  // Filter and search state
   const [searchQuery, setSearchQuery] = useState("");
   const [propertyType, setPropertyType] = useState<string>("");
   const [cityFilter, setCityFilter] = useState("");
+  
+  // Sorting state
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  
+  // Delete dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<{id: string, name: string} | null>(null);
 
   // Type-safe wrapper functions for setting sort field and direction
-  const handleSetSortField = (field: string) => {
+  const handleSetSortField = useCallback((field: string) => {
     setSortField(field as SortField);
-  };
+  }, []);
   
-  const handleSetSortDirection = (direction: string) => {
+  const handleSetSortDirection = useCallback((direction: string) => {
     setSortDirection(direction as SortDirection);
-  };
+  }, []);
 
-  const handleSort = (field: SortField) => {
+  const handleSort = useCallback((field: SortField) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+      setSortDirection(prev => prev === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
       setSortDirection("asc");
     }
-  };
+  }, [sortField]);
 
-  const handleAction = (action: string, property: Property) => {
+  const handleAction = useCallback((action: string, property: Property) => {
     switch (action) {
       case "View":
         navigate(`/properties/${property._id}`);
@@ -58,9 +101,9 @@ export function usePropertyTable({
         setDeleteDialogOpen(true);
         break;
     }
-  };
+  }, [navigate]);
   
-  const handleDeleteConfirm = async (preserveHistory: boolean) => {
+  const handleDeleteConfirm = useCallback(async (preserveHistory: boolean) => {
     if (!propertyToDelete) return;
     
     try {
@@ -86,28 +129,28 @@ export function usePropertyTable({
       setDeleteDialogOpen(false);
       setPropertyToDelete(null);
     }
-  };
+  }, [propertyToDelete, onPropertyDeleted]);
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setSearchQuery("");
     setPropertyType("");
     setCityFilter("");
-  };
+  }, []);
 
   return {
     // State
     searchQuery,
-    setSearchQuery,
     propertyType,
-    setPropertyType,
     cityFilter,
-    setCityFilter,
     sortField,
     sortDirection,
     deleteDialogOpen,
     propertyToDelete,
     
     // Actions
+    setSearchQuery,
+    setPropertyType,
+    setCityFilter,
     handleSetSortField,
     handleSetSortDirection,
     handleSort,

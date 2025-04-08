@@ -49,16 +49,10 @@ export function PropertyView({
         <PropertyList
           properties={properties}
           isLoading={isLoading}
-          pagination={pagination ? {
-            page: pagination.page,
-            pages: pagination.pages,
-            total: pagination.total,
-          } : undefined}
-          summary={summary}
+          viewMode={viewMode}
           onPageChange={onPageChange}
           onPropertyDeleted={onPropertyDeleted}
-          viewMode={viewMode}
-          setViewMode={setViewMode}
+          summary={summary}
         />
       )}
     </div>
