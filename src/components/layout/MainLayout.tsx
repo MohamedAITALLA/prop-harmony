@@ -1,4 +1,3 @@
-
 import {
   Calendar,
   Home,
@@ -41,7 +40,6 @@ import { dashboardConfig, SidebarItemType } from "@/config/dashboard.config";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 
-// Update the MainLayoutProps interface to explicitly include children
 interface MainLayoutProps {
   children?: ReactNode;
 }
@@ -51,10 +49,22 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Remove the isClient state as it's causing React error #310
-  // We don't need this state since we're using React Router
+  const { data: notificationCount = 0 } = useQuery({
+    queryKey: ["notificationCount"],
+    queryFn: async () => {
+      return 3;
+    },
+    enabled: !!user,
+  });
 
-  // If still loading auth state, show a loading indicator
+  const { data: conflictCount = 0 } = useQuery({
+    queryKey: ["conflictCount"],
+    queryFn: async () => {
+      return 2;
+    },
+    enabled: !!user,
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
@@ -66,44 +76,21 @@ export default function MainLayout({ children }: MainLayoutProps) {
     );
   }
 
-  // Prevent auth routes from being accessed when authenticated
   const isAuthRoute = ['/login', '/register', '/forgot-password', '/reset-password', '/resend-confirmation', '/confirm-email'].includes(location.pathname);
   const isRootRoute = location.pathname === '/';
   
-  // Redirect authenticated users trying to access auth pages
   if (user && isAuthRoute) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // For non-authenticated users, only allow specific routes
   if (!user && !isAuthRoute && !isRootRoute) {
     return <Navigate to="/login" replace />;
   }
 
-  // Only show sidebar for authenticated users
   if (!user) {
     return <Outlet />;
   }
 
-  // Mock query for notification count - memoized to prevent re-renders
-  const { data: notificationCount = 0 } = useQuery({
-    queryKey: ["notificationCount"],
-    queryFn: async () => {
-      // This would be an API call in a real app
-      return 3;
-    },
-  });
-
-  // Mock query for conflict count - memoized to prevent re-renders
-  const { data: conflictCount = 0 } = useQuery({
-    queryKey: ["conflictCount"],
-    queryFn: async () => {
-      // This would be an API call in a real app
-      return 2;
-    },
-  });
-
-  // Function to get the badge count for an item
   const getBadgeCount = (item: SidebarItemType) => {
     if (item.badge === "count") {
       if (item.path === "/notifications") return notificationCount;
@@ -112,7 +99,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
     return 0;
   };
 
-  // Handler function for sidebar navigation
   const handleNavigation = (path: string) => {
     navigate(path);
   };
@@ -145,7 +131,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {section.items.map((item, itemIndex) => {
-                      // Skip admin-only items if user is not admin
                       if (item.role === "admin" && user?.role !== "admin") return null;
                       
                       const badgeCount = getBadgeCount(item);
