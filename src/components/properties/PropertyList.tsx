@@ -7,6 +7,7 @@ import { PropertyListHeader } from './list/PropertyListHeader';
 import { PropertyListFilters } from './list/PropertyListFilters';
 import { PropertyListResults } from './list/PropertyListResults';
 import { PropertyListPagination } from './list/PropertyListPagination';
+import { Property } from '@/types/api-responses';
 
 interface PropertyListProps {
   properties?: any[];
@@ -73,8 +74,8 @@ export function PropertyList({
   const isLoadingProperties = propIsLoading !== undefined ? propIsLoading : isLoading;
   const displayPagination = propPagination || pagination;
 
-  const handlePropertyClick = useCallback((id: string) => {
-    navigate(`/properties/${id}`);
+  const handlePropertyClick = useCallback((property: Property) => {
+    navigate(`/properties/${property._id || property.id}`);
   }, [navigate]);
 
   const handlePageChangeWrapper = useCallback((page: number) => {
