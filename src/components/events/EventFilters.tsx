@@ -68,13 +68,14 @@ export const EventFilters: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="properties">Properties</Label>
               <Select
-                value={selectedProperties.length > 0 ? selectedProperties[0] : ""}
-                onValueChange={(value) => setSelectedProperties(value ? [value] : [])}
+                value={selectedProperties.length > 0 ? selectedProperties[0] : "all_properties"}
+                onValueChange={(value) => setSelectedProperties(value === "all_properties" ? [] : [value])}
               >
                 <SelectTrigger id="properties">
                   <SelectValue placeholder="All properties" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all_properties">All properties</SelectItem>
                   {properties.map((property: Property) => (
                     <SelectItem key={property._id} value={property._id}>
                       {property.name}
@@ -87,7 +88,7 @@ export const EventFilters: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="platforms">Platforms</Label>
               <Select
-                value={selectedPlatforms.length > 0 ? selectedPlatforms[0] : ""}
+                value={selectedPlatforms.length > 0 ? selectedPlatforms[0] : "all_platforms"}
                 onValueChange={(value) => setSelectedPlatforms(value === "all_platforms" ? [] : value ? [value] : [])}
               >
                 <SelectTrigger id="platforms">
@@ -108,7 +109,7 @@ export const EventFilters: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="event-types">Event Types</Label>
               <Select
-                value={selectedEventTypes.length > 0 ? selectedEventTypes[0] : ""}
+                value={selectedEventTypes.length > 0 ? selectedEventTypes[0] : "all_types"}
                 onValueChange={(value) => setSelectedEventTypes(value === "all_types" ? [] : value ? [value] : [])}
               >
                 <SelectTrigger id="event-types">

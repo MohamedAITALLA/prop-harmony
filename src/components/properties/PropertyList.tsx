@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
@@ -49,7 +48,6 @@ export function PropertyList({ properties: propProperties, isLoading: propIsLoad
     city: cityFilter || undefined
   });
 
-  // Use the properties passed as props if available, otherwise use the fetched properties
   const displayProperties = propProperties || fetchedProperties;
   const isLoadingProperties = propIsLoading !== undefined ? propIsLoading : isLoading;
 
@@ -119,7 +117,6 @@ export function PropertyList({ properties: propProperties, isLoading: propIsLoad
   return (
     <div className="bg-white dark:bg-gray-950 rounded-lg p-6 shadow-sm border">
       <div className="flex flex-col gap-6">
-        {/* Top row with search and add property */}
         <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
           <div className="relative w-full md:max-w-sm flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -148,7 +145,6 @@ export function PropertyList({ properties: propProperties, isLoading: propIsLoad
           </div>
         </div>
         
-        {/* Filters row */}
         <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <Select value={propertyTypeFilter} onValueChange={handleTypeFilterChange}>
@@ -215,7 +211,7 @@ export function PropertyList({ properties: propProperties, isLoading: propIsLoad
                         <SelectValue placeholder="All Cities" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Cities</SelectItem>
+                        <SelectItem value="all_cities">All Cities</SelectItem>
                         {cities.map(city => (
                           <SelectItem key={city} value={city}>{city}</SelectItem>
                         ))}
@@ -241,7 +237,6 @@ export function PropertyList({ properties: propProperties, isLoading: propIsLoad
               </PopoverContent>
             </Popover>
             
-            {/* Active filters */}
             <div className="flex flex-wrap gap-2">
               {propertyTypeFilter !== 'all' && (
                 <Badge variant="secondary" className="flex items-center gap-1">
@@ -284,7 +279,6 @@ export function PropertyList({ properties: propProperties, isLoading: propIsLoad
           </div>
         </div>
         
-        {/* Results summary */}
         {!isLoadingProperties && displayProperties && (
           <div className="flex justify-between items-center text-sm text-muted-foreground border-b pb-3">
             <div>
@@ -299,7 +293,6 @@ export function PropertyList({ properties: propProperties, isLoading: propIsLoad
           </div>
         )}
         
-        {/* Property Grid */}
         {isLoadingProperties ? (
           <div className={viewMode === 'grid' ? "grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3" : "space-y-4"}>
             {Array.from({ length: 6 }).map((_, i) => (
@@ -351,7 +344,6 @@ export function PropertyList({ properties: propProperties, isLoading: propIsLoad
           </div>
         )}
         
-        {/* Pagination */}
         {pagination && pagination.pages > 1 && (
           <div className="flex justify-center mt-8">
             <div className="flex flex-col items-center gap-2">

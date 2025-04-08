@@ -14,7 +14,7 @@ export function PropertyViewTabs({
 }: PropertyViewTabsProps) {
   return (
     <Tabs defaultValue={viewMode} onValueChange={(value) => setViewMode(value as "grid" | "table")}>
-      <TabsList className="hidden">
+      <TabsList>
         <TabsTrigger value="grid">
           <Grid className="h-4 w-4 mr-2" /> Grid View
         </TabsTrigger>
