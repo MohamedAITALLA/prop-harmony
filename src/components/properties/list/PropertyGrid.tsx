@@ -21,7 +21,6 @@ export function PropertyGrid({ properties, viewMode, onPropertyDeleted, onProper
             property={property}
             onDeleted={() => onPropertyDeleted?.(propertyId)}
             onClick={() => onPropertyClick?.(propertyId)}
-            // Add missing required props with default values
             imageUrl={property.images?.[0] || '/placeholder.svg'}
             createdDate={property.created_at ? new Date(property.created_at) : null}
           />
