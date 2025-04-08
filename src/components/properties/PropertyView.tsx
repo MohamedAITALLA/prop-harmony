@@ -1,10 +1,9 @@
 
 import React from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { PropertyList } from "@/components/properties/PropertyList";
-import { PropertyTable } from "@/components/properties/PropertyTable";
-import { Grid, List } from "lucide-react";
+import { Tabs } from "@/components/ui/tabs";
 import { Property } from "@/types/api-responses";
+import { PropertyViewTabs } from "./view/PropertyViewTabs";
+import { PropertyViewContent } from "./view/PropertyViewContent";
 
 interface PropertyViewProps {
   properties: Property[];
@@ -41,29 +40,15 @@ export function PropertyView({
 }: PropertyViewProps) {
   return (
     <Tabs defaultValue={viewMode} onValueChange={(value) => setViewMode(value as "grid" | "table")}>
-      <TabsList className="hidden">
-        <TabsTrigger value="grid">
-          <Grid className="h-4 w-4 mr-2" /> Grid View
-        </TabsTrigger>
-        <TabsTrigger value="table">
-          <List className="h-4 w-4 mr-2" /> Table View
-        </TabsTrigger>
-      </TabsList>
-      <TabsContent value="grid" className="mt-0">
-        <PropertyList 
-          properties={properties} 
-          isLoading={isLoading} 
-        />
-      </TabsContent>
-      <TabsContent value="table" className="mt-0">
-        <PropertyTable 
-          properties={properties} 
-          isLoading={isLoading} 
-          pagination={pagination}
-          onPageChange={onPageChange}
-          onPropertyDeleted={onPropertyDeleted}
-        />
-      </TabsContent>
+      <PropertyViewTabs viewMode={viewMode} setViewMode={setViewMode} />
+      <PropertyViewContent 
+        viewMode={viewMode}
+        properties={properties}
+        isLoading={isLoading}
+        pagination={pagination}
+        onPageChange={onPageChange}
+        onPropertyDeleted={onPropertyDeleted}
+      />
     </Tabs>
   );
 }
