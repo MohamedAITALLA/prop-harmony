@@ -46,8 +46,13 @@ export const PropertyGrid: React.FC<PropertyGridProps> = ({
     );
   }
 
+  // Adjust grid columns based on view mode
+  const gridClass = viewMode === 'list' 
+    ? "grid grid-cols-1 gap-6" 
+    : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6";
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className={gridClass}>
       {properties.map((property) => (
         <PropertyCard 
           key={property._id} 

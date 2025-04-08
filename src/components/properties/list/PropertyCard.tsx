@@ -13,20 +13,19 @@ interface PropertyCardProps {
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick }) => {
+  // Get the first image if available, or use a placeholder
+  const imageUrl = property.images && property.images.length > 0 
+    ? (typeof property.images[0] === 'string' ? property.images[0] : String(property.images[0])) 
+    : 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop';
+
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md cursor-pointer group" onClick={onClick}>
       <div className="relative h-40 bg-muted overflow-hidden">
-        {property.images && property.images.length > 0 ? (
-          <img 
-            src={typeof property.images[0] === 'string' ? property.images[0] : String(property.images[0])} 
-            alt={property.name} 
-            className="w-full h-full object-cover transition-transform group-hover:scale-105"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground">
-            No image available
-          </div>
-        )}
+        <img 
+          src={imageUrl} 
+          alt={property.name} 
+          className="w-full h-full object-cover transition-transform group-hover:scale-105"
+        />
         <Badge className="absolute top-2 right-2 bg-background/80 text-foreground backdrop-blur-sm">
           {property.property_type}
         </Badge>
