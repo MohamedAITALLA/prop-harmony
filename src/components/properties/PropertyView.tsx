@@ -50,9 +50,10 @@ export function PropertyView({
           properties={properties}
           isLoading={isLoading}
           viewMode={viewMode}
+          pagination={pagination}
+          summary={summary}
           onPageChange={onPageChange}
           onPropertyDeleted={onPropertyDeleted}
-          summary={summary}
         />
       )}
     </div>

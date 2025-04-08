@@ -93,7 +93,7 @@ export function PropertyListResults({
         : "space-y-4"}>
         {properties.map((property) => (
           <PropertyCard
-            key={property._id || property.id}
+            key={property._id || property.id || ""}
             property={property}
             viewMode={viewMode}
             onClick={() => onPropertyClick(property._id || property.id || "")}

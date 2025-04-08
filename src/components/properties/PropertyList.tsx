@@ -16,9 +16,31 @@ interface PropertyListProps {
   properties?: any[];
   isLoading?: boolean;
   error?: any;
+  viewMode?: 'grid' | 'list';
+  pagination?: {
+    total: number;
+    page: number;
+    pages: number;
+  };
+  summary?: {
+    total_properties: number;
+    by_property_type: Record<string, number>;
+    by_city: Record<string, number>;
+    applied_filters: Record<string, any>;
+  };
+  onPageChange?: (page: number) => void;
+  onPropertyDeleted?: (propertyId: string) => void;
 }
 
-export function PropertyList({ properties: propProperties, isLoading: propIsLoading }: PropertyListProps) {
+export function PropertyList({ 
+  properties: propProperties, 
+  isLoading: propIsLoading,
+  viewMode: propViewMode = 'grid',
+  pagination: propPagination,
+  summary,
+  onPageChange: propOnPageChange,
+  onPropertyDeleted
+}: PropertyListProps) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   
@@ -28,7 +50,7 @@ export function PropertyList({ properties: propProperties, isLoading: propIsLoad
   const [cityFilter, setCityFilter] = useState<string>(searchParams.get('city') || '');
   const [currentPage, setCurrentPage] = useState<number>(Number(searchParams.get('page')) || 1);
   const [pageSize, setPageSize] = useState<number>(Number(searchParams.get('limit')) || 12);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(propViewMode);
 
   // Fetch properties using the hook
   const { 
@@ -45,6 +67,7 @@ export function PropertyList({ properties: propProperties, isLoading: propIsLoad
 
   const displayProperties = propProperties || fetchedProperties;
   const isLoadingProperties = propIsLoading !== undefined ? propIsLoading : isLoading;
+  const displayPagination = propPagination || pagination;
 
   // Update URL params when filters change
   useEffect(() => {
@@ -95,6 +118,9 @@ export function PropertyList({ properties: propProperties, isLoading: propIsLoad
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+    if (propOnPageChange) {
+      propOnPageChange(page);
+    }
   };
 
   const handlePageSizeChange = (size: number) => {
@@ -165,16 +191,16 @@ export function PropertyList({ properties: propProperties, isLoading: propIsLoad
           properties={displayProperties}
           isLoading={isLoadingProperties}
           viewMode={viewMode}
-          pagination={pagination}
+          pagination={displayPagination}
           onResetFilters={handleResetFilters}
           onPropertyClick={handlePropertyClick}
         />
         
         {/* Pagination */}
-        {pagination && pagination.pages > 1 && (
+        {displayPagination && displayPagination.pages > 1 && (
           <PropertyListPagination
-            currentPage={currentPage}
-            totalPages={pagination.pages}
+            currentPage={displayPagination.page}
+            totalPages={displayPagination.pages}
             pageSize={pageSize}
             onPageChange={handlePageChange}
             onPageSizeChange={handlePageSizeChange}
