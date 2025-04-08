@@ -7,9 +7,10 @@ interface PropertyGridProps {
   properties: Property[];
   viewMode: 'grid' | 'list';
   onPropertyDeleted?: (propertyId: string) => void;
+  onPropertyClick?: (id: string) => void;
 }
 
-export function PropertyGrid({ properties, viewMode, onPropertyDeleted }: PropertyGridProps) {
+export function PropertyGrid({ properties, viewMode, onPropertyDeleted, onPropertyClick }: PropertyGridProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {properties.map((property) => {
@@ -19,6 +20,7 @@ export function PropertyGrid({ properties, viewMode, onPropertyDeleted }: Proper
             key={propertyId}
             property={property}
             onDeleted={() => onPropertyDeleted?.(propertyId)}
+            onClick={() => onPropertyClick?.(propertyId)}
           />
         );
       })}
