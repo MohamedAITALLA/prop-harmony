@@ -18,7 +18,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick })
       <div className="relative h-40 bg-muted overflow-hidden">
         {property.images && property.images.length > 0 ? (
           <img 
-            src={typeof property.images[0] === 'string' ? property.images[0] : property.images[0].toString()} 
+            src={typeof property.images[0] === 'string' ? property.images[0] : String(property.images[0])} 
             alt={property.name} 
             className="w-full h-full object-cover transition-transform group-hover:scale-105"
           />
