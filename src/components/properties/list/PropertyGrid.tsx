@@ -14,7 +14,8 @@ export function PropertyGrid({ properties, viewMode, onPropertyDeleted, onProper
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {properties.map((property) => {
-        const propertyId = property._id || property.id || "";
+        // Fix the type error by ensuring propertyId is a string
+        const propertyId = String(property._id || property.id || "");
         return (
           <PropertyGridCard
             key={propertyId}
