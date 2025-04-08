@@ -1,7 +1,6 @@
 
 import React from "react";
 import { usePropertiesPage } from "@/hooks/properties/usePropertiesPage";
-import { PropertyPageHeader } from "@/components/properties/PropertyPageHeader";
 import { PropertyView } from "@/components/properties/PropertyView";
 import { PropertyError } from "@/components/properties/PropertyError";
 
@@ -34,20 +33,6 @@ export default function Properties() {
 
   return (
     <div className="space-y-6">
-      <PropertyPageHeader 
-        propertyType={propertyType}
-        setPropertyType={setPropertyType}
-        city={city}
-        setCity={setCity}
-        sortOption={sortOption}
-        setSortOption={setSortOption}
-        onReset={handleFilterReset}
-        onRefresh={handleRefresh}
-        isFilterOpen={isFilterOpen}
-        setIsFilterOpen={setIsFilterOpen}
-        summary={summary}
-      />
-      
       <PropertyView 
         properties={properties}
         isLoading={isLoading}
