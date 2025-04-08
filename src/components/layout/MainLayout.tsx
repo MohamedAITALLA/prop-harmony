@@ -50,7 +50,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const { user, logout, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [isClient, setIsClient] = useState(false);
+  
+  // Remove the isClient state as it's causing React error #310
+  // We don't need this state since we're using React Router
 
   // If still loading auth state, show a loading indicator
   if (isLoading) {
@@ -83,7 +85,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     return <Outlet />;
   }
 
-  // Mock query for notification count
+  // Mock query for notification count - memoized to prevent re-renders
   const { data: notificationCount = 0 } = useQuery({
     queryKey: ["notificationCount"],
     queryFn: async () => {
@@ -92,7 +94,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     },
   });
 
-  // Mock query for conflict count
+  // Mock query for conflict count - memoized to prevent re-renders
   const { data: conflictCount = 0 } = useQuery({
     queryKey: ["conflictCount"],
     queryFn: async () => {

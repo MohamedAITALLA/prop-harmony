@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useProperties } from "@/hooks/properties/useProperties";
@@ -70,7 +69,7 @@ export function PropertyList({
   const isLoadingProperties = propIsLoading !== undefined ? propIsLoading : isLoading;
   const displayPagination = propPagination || pagination;
 
-  useEffect(() => {
+  const updateSearchParams = useCallback(() => {
     const newParams = new URLSearchParams(searchParams);
     if (searchQuery) {
       newParams.set('search', searchQuery);
@@ -90,49 +89,53 @@ export function PropertyList({
     newParams.set('page', currentPage.toString());
     newParams.set('limit', pageSize.toString());
     setSearchParams(newParams);
-  }, [searchQuery, propertyTypeFilter, cityFilter, currentPage, pageSize, setSearchParams, searchParams]);
+  }, [searchQuery, propertyTypeFilter, cityFilter, currentPage, pageSize, setSearchParams]);
 
-  const handlePropertyClick = (id: string) => {
+  useEffect(() => {
+    updateSearchParams();
+  }, [updateSearchParams]);
+
+  const handlePropertyClick = useCallback((id: string) => {
     navigate(`/properties/${id}`);
-  };
+  }, [navigate]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleTypeFilterChange = (value: string) => {
+  const handleTypeFilterChange = useCallback((value: string) => {
     setPropertyTypeFilter(value);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleCityFilterChange = (value: string) => {
+  const handleCityFilterChange = useCallback((value: string) => {
     setCityFilter(value);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleViewModeChange = (mode: 'grid' | 'list') => {
+  const handleViewModeChange = useCallback((mode: 'grid' | 'list') => {
     setViewMode(mode);
-  };
+  }, []);
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
     if (propOnPageChange) {
       propOnPageChange(page);
     }
-  };
+  }, [propOnPageChange]);
 
-  const handlePageSizeChange = (size: number) => {
+  const handlePageSizeChange = useCallback((size: number) => {
     setPageSize(size);
     setCurrentPage(1);
-  };
+  }, []);
 
-  const handleResetFilters = () => {
+  const handleResetFilters = useCallback(() => {
     setSearchQuery('');
     setPropertyTypeFilter('all');
     setCityFilter('all_cities');
     setCurrentPage(1);
-  };
+  }, []);
 
   const activeFiltersCount = 
     (propertyTypeFilter !== 'all' ? 1 : 0) + 
