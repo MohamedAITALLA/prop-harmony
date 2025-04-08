@@ -37,7 +37,11 @@ export function PropertyFilters({
   isOpen,
   setIsOpen,
 }: PropertyFiltersProps) {
-  const activeFiltersCount = [propertyType, city, sortOption].filter(Boolean).length;
+  const activeFiltersCount = [
+    propertyType !== "all_types" ? 1 : 0, 
+    city ? 1 : 0, 
+    sortOption !== "default" ? 1 : 0
+  ].reduce((a, b) => a + b, 0);
 
   return (
     <>

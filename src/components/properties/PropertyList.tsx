@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -46,7 +47,7 @@ export function PropertyList({
   
   const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('search') || '');
   const [propertyTypeFilter, setPropertyTypeFilter] = useState<string>(searchParams.get('type') || 'all');
-  const [cityFilter, setCityFilter] = useState<string>(searchParams.get('city') || '');
+  const [cityFilter, setCityFilter] = useState<string>(searchParams.get('city') || 'all_cities');
   const [currentPage, setCurrentPage] = useState<number>(Number(searchParams.get('page')) || 1);
   const [pageSize, setPageSize] = useState<number>(Number(searchParams.get('limit')) || 12);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>(
@@ -62,7 +63,7 @@ export function PropertyList({
     limit: pageSize,
     search: searchQuery,
     property_type: propertyTypeFilter === 'all' ? undefined : propertyTypeFilter,
-    city: cityFilter || undefined
+    city: cityFilter === 'all_cities' ? undefined : cityFilter
   });
 
   const displayProperties = propProperties || fetchedProperties;
@@ -81,7 +82,7 @@ export function PropertyList({
     } else {
       newParams.delete('type');
     }
-    if (cityFilter) {
+    if (cityFilter !== 'all_cities') {
       newParams.set('city', cityFilter);
     } else {
       newParams.delete('city');
@@ -129,13 +130,13 @@ export function PropertyList({
   const handleResetFilters = () => {
     setSearchQuery('');
     setPropertyTypeFilter('all');
-    setCityFilter('');
+    setCityFilter('all_cities');
     setCurrentPage(1);
   };
 
   const activeFiltersCount = 
     (propertyTypeFilter !== 'all' ? 1 : 0) + 
-    (cityFilter ? 1 : 0);
+    (cityFilter !== 'all_cities' ? 1 : 0);
 
   return (
     <div className="bg-white dark:bg-gray-950 rounded-lg p-6 shadow-sm border">
@@ -171,7 +172,7 @@ export function PropertyList({
               propertyType={propertyTypeFilter}
               cityFilter={cityFilter}
               onClearPropertyType={() => setPropertyTypeFilter('all')}
-              onClearCity={() => setCityFilter('')}
+              onClearCity={() => setCityFilter('all_cities')}
             />
           </div>
           

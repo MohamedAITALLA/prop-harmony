@@ -1,6 +1,7 @@
 
 import React from "react";
 import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 
 interface FilterBadgesProps {
   propertyType: string;
@@ -9,36 +10,36 @@ interface FilterBadgesProps {
   onClearCity: () => void;
 }
 
-export function FilterBadges({ 
-  propertyType, 
-  cityFilter, 
-  onClearPropertyType, 
-  onClearCity 
+export function FilterBadges({
+  propertyType,
+  cityFilter,
+  onClearPropertyType,
+  onClearCity
 }: FilterBadgesProps) {
-  if (propertyType === 'all' && !cityFilter) return null;
+  // Only show badges if filters are active
+  if (propertyType === 'all' && cityFilter === 'all_cities') {
+    return null;
+  }
   
   return (
     <div className="flex flex-wrap gap-2">
       {propertyType !== 'all' && (
-        <Badge variant="secondary" className="flex items-center gap-1">
-          <span>Type: {propertyType}</span>
-          <button 
-            onClick={onClearPropertyType} 
-            className="ml-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 h-4 w-4 inline-flex items-center justify-center"
-          >
-            ×
-          </button>
+        <Badge variant="secondary" className="flex items-center gap-1 py-1">
+          Type: {propertyType.charAt(0).toUpperCase() + propertyType.slice(1)}
+          <X 
+            className="h-3.5 w-3.5 cursor-pointer ml-1" 
+            onClick={onClearPropertyType}
+          />
         </Badge>
       )}
-      {cityFilter && (
-        <Badge variant="secondary" className="flex items-center gap-1">
-          <span>City: {cityFilter}</span>
-          <button 
-            onClick={onClearCity} 
-            className="ml-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 h-4 w-4 inline-flex items-center justify-center"
-          >
-            ×
-          </button>
+      
+      {cityFilter !== 'all_cities' && (
+        <Badge variant="secondary" className="flex items-center gap-1 py-1">
+          City: {cityFilter}
+          <X 
+            className="h-3.5 w-3.5 cursor-pointer ml-1" 
+            onClick={onClearCity}
+          />
         </Badge>
       )}
     </div>

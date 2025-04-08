@@ -8,7 +8,7 @@ import { PropertyType } from "@/types/enums";
 export const usePropertiesPage = () => {
   // State for filters
   const [propertyType, setPropertyType] = useState<string>("all_types");
-  const [city, setCity] = useState<string>("");
+  const [city, setCity] = useState<string>("all_cities");
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(10);
   const [sortOption, setSortOption] = useState<string>("default");
@@ -25,7 +25,7 @@ export const usePropertiesPage = () => {
       params.property_type = propertyType;
     }
 
-    if (city) {
+    if (city !== "all_cities") {
       params.city = city;
     }
 
@@ -64,7 +64,7 @@ export const usePropertiesPage = () => {
   // Reset filters
   const handleFilterReset = useCallback(() => {
     setPropertyType("all_types");
-    setCity("");
+    setCity("all_cities");
     setSortOption("default");
     setIsFilterOpen(false);
     setPage(1);
