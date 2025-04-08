@@ -1,8 +1,9 @@
 
 import React from "react";
-import { PropertyList } from "./PropertyList";
-import { PropertyTableContainer } from "./table/PropertyTableContainer";
 import { Property } from "@/types/api-responses";
+import { Tabs } from "@/components/ui/tabs";
+import { PropertyViewTabs } from "./view/PropertyViewTabs";
+import { PropertyViewContent } from "./view/PropertyViewContent";
 
 interface PropertyViewProps {
   properties: Property[];
@@ -37,25 +38,21 @@ export function PropertyView({
 }: PropertyViewProps) {
   return (
     <div className="container mx-auto px-4 py-6">
-      {viewMode === 'table' ? (
-        <PropertyTableContainer
-          properties={properties}
-          isLoading={isLoading}
-          pagination={pagination}
-          onPageChange={onPageChange}
-          onPropertyDeleted={onPropertyDeleted}
-        />
-      ) : (
-        <PropertyList
-          properties={properties}
-          isLoading={isLoading}
+      <Tabs value={viewMode} className="w-full">
+        <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
+          <PropertyViewTabs viewMode={viewMode} setViewMode={setViewMode} />
+        </div>
+        
+        <PropertyViewContent 
           viewMode={viewMode}
+          properties={properties}
+          isLoading={isLoading}
           pagination={pagination}
           summary={summary}
           onPageChange={onPageChange}
           onPropertyDeleted={onPropertyDeleted}
         />
-      )}
+      </Tabs>
     </div>
   );
 }

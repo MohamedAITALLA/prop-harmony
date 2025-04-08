@@ -1,29 +1,24 @@
 
 import React from "react";
-import { PropertyCard } from "../PropertyCard";
 import { Property } from "@/types/api-responses";
+import { PropertyGridCard } from "../cards/PropertyGridCard";
 
 interface PropertyGridProps {
   properties: Property[];
   viewMode: 'grid' | 'list';
-  onPropertyClick: (id: string) => void;
+  onPropertyDeleted?: (propertyId: string) => void;
 }
 
-export function PropertyGrid({ properties, viewMode, onPropertyClick }: PropertyGridProps) {
+export function PropertyGrid({ properties, viewMode, onPropertyDeleted }: PropertyGridProps) {
   return (
-    <div className={viewMode === 'grid' 
-      ? "grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3" 
-      : "space-y-4"}>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {properties.map((property) => {
-        // Extract the ID as a string to fix the TypeScript error
-        const propertyId = String(property._id || property.id || '');
-        
+        const propertyId = property._id || property.id || "";
         return (
-          <PropertyCard
+          <PropertyGridCard
             key={propertyId}
             property={property}
-            viewMode={viewMode}
-            onClick={() => onPropertyClick(propertyId)}
+            onDeleted={() => onPropertyDeleted?.(propertyId)}
           />
         );
       })}
