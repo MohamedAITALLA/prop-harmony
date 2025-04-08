@@ -91,14 +91,19 @@ export function PropertyListResults({
       <div className={viewMode === 'grid' 
         ? "grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3" 
         : "space-y-4"}>
-        {properties.map((property) => (
-          <PropertyCard
-            key={property._id?.toString() || property.id?.toString() || ""}
-            property={property}
-            viewMode={viewMode}
-            onClick={() => onPropertyClick(property._id?.toString() || property.id?.toString() || "")}
-          />
-        ))}
+        {properties.map((property) => {
+          // Ensure we have a valid ID string to pass to the onClick handler
+          const propertyId = property._id?.toString() || property.id?.toString() || "";
+          
+          return (
+            <PropertyCard
+              key={propertyId}
+              property={property}
+              viewMode={viewMode}
+              onClick={() => onPropertyClick(propertyId)}
+            />
+          );
+        })}
       </div>
     </>
   );
