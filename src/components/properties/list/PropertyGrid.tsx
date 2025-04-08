@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Property } from "@/types/api-responses";
 import { PropertyCard } from "@/components/properties/list/PropertyCard";

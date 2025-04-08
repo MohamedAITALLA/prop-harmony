@@ -39,14 +39,11 @@ export const EventFormFields: React.FC<EventFormFieldsProps> = ({
               <SelectValue placeholder="Select Platform" />
             </SelectTrigger>
             <SelectContent>
-              {Object.values(Platform)
-                .filter(platform => platform !== 'Google' && platform !== 'OTHER')
-                .map((platform) => (
-                  <SelectItem key={platform} value={platform}>
-                    {platform}
-                  </SelectItem>
-                ))
-              }
+              {Object.values(Platform).map((platform) => (
+                <SelectItem key={platform} value={platform}>
+                  {platform}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

@@ -1,12 +1,23 @@
 
-import React, { useState } from "react";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
+import { EventType, Platform } from "@/types/enums";
 import { Property } from "@/types/api-responses";
-import { Platform } from "@/types/enums";
+import { eventService } from "@/services/api-service";
+import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface AddEventDialogProps {
   isOpen: boolean;
@@ -14,48 +25,91 @@ interface AddEventDialogProps {
   properties: Property[];
 }
 
-export const AddEventDialog: React.FC<AddEventDialogProps> = ({ 
-  isOpen, 
+export const AddEventDialog: React.FC<AddEventDialogProps> = ({
+  isOpen,
   onOpenChange,
   properties
 }) => {
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    propertyId: "",
-    platform: "manual",
-    title: "",
-    startDate: "",
-    endDate: "",
-    eventType: "booking", // Default value
+    property_id: "",
+    platform: Platform.MANUAL,
+    summary: "",
+    start_date: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+    end_date: format(new Date(Date.now() + 86400000), "yyyy-MM-dd'T'HH:mm"),
+    event_type: EventType.BOOKING,
     status: "confirmed",
     description: ""
   });
 
-  const handleChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In the future we can implement the actual submission logic
-    onOpenChange(false);
+    
+    if (!formData.property_id) {
+      toast.error("Please select a property");
+      return;
+    }
+    
+    if (!formData.summary) {
+      toast.error("Please enter a title for the event");
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const response = await eventService.createEvent(formData.property_id, {
+        platform: formData.platform,
+        summary: formData.summary,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        event_type: formData.event_type,
+        status: formData.status,
+        description: formData.description
+      });
+      
+      toast.success("Event created successfully");
+      onOpenChange(false);
+      setFormData({
+        property_id: "",
+        platform: Platform.MANUAL,
+        summary: "",
+        start_date: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+        end_date: format(new Date(Date.now() + 86400000), "yyyy-MM-dd'T'HH:mm"),
+        event_type: EventType.BOOKING,
+        status: "confirmed",
+        description: ""
+      });
+    } catch (error) {
+      console.error("Error creating event:", error);
+      toast.error("Failed to create event");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
           <DialogTitle>Add New Event</DialogTitle>
+          <DialogDescription>
+            Create a new event for your property
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="property">Property</Label>
-              <Select
-                value={formData.propertyId}
-                onValueChange={(value) => handleChange("propertyId", value)}
+            <div className="space-y-2">
+              <Label htmlFor="property_id">Property</Label>
+              <Select 
+                value={formData.property_id} 
+                onValueChange={(value) => handleInputChange("property_id", value)}
               >
-                <SelectTrigger id="property">
-                  <SelectValue placeholder="Select property" />
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a property" />
                 </SelectTrigger>
                 <SelectContent>
                   {properties.map((property) => (
@@ -66,83 +120,84 @@ export const AddEventDialog: React.FC<AddEventDialogProps> = ({
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid gap-2">
+            
+            <div className="space-y-2">
               <Label htmlFor="platform">Platform</Label>
-              <Select
-                value={formData.platform}
-                onValueChange={(value) => handleChange("platform", value)}
-                defaultValue="manual"
+              <Select 
+                value={formData.platform} 
+                onValueChange={(value) => handleInputChange("platform", value)}
               >
-                <SelectTrigger id="platform">
-                  <SelectValue placeholder="Select platform" />
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Platform" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.values(Platform)
-                    .filter(platform => platform !== 'Google' && platform !== 'OTHER')
-                    .map((platform) => (
-                      <SelectItem key={platform} value={platform}>
-                        {platform}
-                      </SelectItem>
-                    ))
-                  }
+                  {Object.values(Platform).map((platform) => (
+                    <SelectItem key={platform} value={platform}>
+                      {platform}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="title">Title</Label>
+            
+            <div className="space-y-2">
+              <Label htmlFor="summary">Title</Label>
               <Input 
-                id="title" 
-                placeholder="Event title" 
-                value={formData.title}
-                onChange={(e) => handleChange("title", e.target.value)}
+                id="summary" 
+                value={formData.summary}
+                onChange={(e) => handleInputChange("summary", e.target.value)}
+                placeholder="Event title"
               />
             </div>
+            
             <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
+              <div className="space-y-2">
                 <Label htmlFor="start_date">Start Date</Label>
                 <Input 
                   id="start_date" 
-                  type="date" 
-                  value={formData.startDate}
-                  onChange={(e) => handleChange("startDate", e.target.value)}
+                  type="datetime-local"
+                  value={formData.start_date}
+                  onChange={(e) => handleInputChange("start_date", e.target.value)}
                 />
               </div>
-              <div className="grid gap-2">
+              <div className="space-y-2">
                 <Label htmlFor="end_date">End Date</Label>
                 <Input 
                   id="end_date" 
-                  type="date" 
-                  value={formData.endDate}
-                  onChange={(e) => handleChange("endDate", e.target.value)}
+                  type="datetime-local"
+                  value={formData.end_date}
+                  onChange={(e) => handleInputChange("end_date", e.target.value)}
                 />
               </div>
             </div>
+            
             <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
+              <div className="space-y-2">
                 <Label htmlFor="event_type">Event Type</Label>
-                <Select
-                  value={formData.eventType}
-                  onValueChange={(value) => handleChange("eventType", value)}
+                <Select 
+                  value={formData.event_type} 
+                  onValueChange={(value) => handleInputChange("event_type", value)}
                 >
-                  <SelectTrigger id="event_type">
-                    <SelectValue placeholder="Select type" />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Event Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="booking">Booking</SelectItem>
-                    <SelectItem value="blocked">Blocked</SelectItem>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                    {[EventType.BOOKING, EventType.BLOCKED, EventType.MAINTENANCE].map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid gap-2">
+              <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value) => handleChange("status", value)}
-                  defaultValue="confirmed"
+                <Select 
+                  value={formData.status} 
+                  onValueChange={(value) => handleInputChange("status", value)}
                 >
-                  <SelectTrigger id="status">
-                    <SelectValue placeholder="Select status" />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="confirmed">Confirmed</SelectItem>
@@ -152,24 +207,28 @@ export const AddEventDialog: React.FC<AddEventDialogProps> = ({
                 </Select>
               </div>
             </div>
-            <div className="grid gap-2">
+            
+            <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
-              <Input 
+              <Textarea 
                 id="description" 
-                placeholder="Event description" 
                 value={formData.description}
-                onChange={(e) => handleChange("description", e.target.value)}
+                onChange={(e) => handleInputChange("description", e.target.value)}
+                placeholder="Add any additional details..."
+                rows={3}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">Create Event</Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Creating..." : "Create Event"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
-}
+};

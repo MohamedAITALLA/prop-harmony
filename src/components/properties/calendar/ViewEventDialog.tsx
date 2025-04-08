@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { CalendarEvent } from "@/types/api-responses";
 import { Badge } from "@/components/ui/badge";
 import { EventFormFields } from "@/components/properties/calendar/EventFormFields";
-import { Trash2 } from "lucide-react";
+import { Trash2, Edit2, CheckCircle, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
+import { eventService } from "@/services/api-service";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +40,9 @@ export const ViewEventDialog: React.FC<ViewEventDialogProps> = ({
   handleDeleteEvent
 }) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updatedEventData, setUpdatedEventData] = useState<any>(null);
   
   if (!viewedEvent) return null;
 
@@ -52,9 +57,68 @@ export const ViewEventDialog: React.FC<ViewEventDialogProps> = ({
     description: viewedEvent.description || "",
   }), [viewedEvent]);
   
+  // Initialize edit data when entering edit mode
+  const handleEditClick = () => {
+    setUpdatedEventData(formattedEventData);
+    setIsEditMode(true);
+  };
+  
+  // Handle form field changes
+  const handleInputChange = (field: string, value: string) => {
+    setUpdatedEventData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+  
+  // Save updated event
+  const handleUpdateEvent = async () => {
+    if (!viewedEvent || !updatedEventData) return;
+    
+    try {
+      setIsUpdating(true);
+      
+      // Validate required fields
+      if (!updatedEventData.summary) {
+        toast.error("Event title is required");
+        return;
+      }
+      
+      if (!updatedEventData.start_date || !updatedEventData.end_date) {
+        toast.error("Start and end dates are required");
+        return;
+      }
+      
+      const response = await eventService.updateEvent(
+        viewedEvent.property_id,
+        viewedEvent._id,
+        updatedEventData
+      );
+      
+      toast.success("Event updated successfully");
+      
+      // Exit edit mode and close dialog
+      setIsEditMode(false);
+      setIsViewEventOpen(false);
+      
+      // Force refresh
+      window.location.reload();
+    } catch (error) {
+      console.error("Error updating event:", error);
+      toast.error("Failed to update event");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+  
   const onConfirmDelete = () => {
     handleDeleteEvent();
     setIsDeleteDialogOpen(false);
+  };
+  
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setUpdatedEventData(null);
   };
   
   return (
@@ -62,24 +126,27 @@ export const ViewEventDialog: React.FC<ViewEventDialogProps> = ({
       <Dialog open={isViewEventOpen} onOpenChange={setIsViewEventOpen}>
         <DialogContent className="sm:max-w-[525px]">
           <DialogHeader>
-            <DialogTitle>Event Details</DialogTitle>
+            <DialogTitle>{isEditMode ? "Edit Event" : "Event Details"}</DialogTitle>
             <DialogDescription>
-              View details for this event
+              {isEditMode ? "Update this event's information" : "View details for this event"}
             </DialogDescription>
           </DialogHeader>
           
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">{viewedEvent.summary}</h3>
-            <Badge>{viewedEvent.platform}</Badge>
-          </div>
+          {!isEditMode && (
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">{viewedEvent.summary}</h3>
+              <Badge>{viewedEvent.platform}</Badge>
+            </div>
+          )}
           
-          {/* Use the shared form fields component in read-only mode */}
+          {/* Use the shared form fields component in read-only or edit mode */}
           <EventFormFields 
-            formData={formattedEventData}
-            readOnly={true}
+            formData={isEditMode ? updatedEventData : formattedEventData}
+            onInputChange={handleInputChange}
+            readOnly={!isEditMode}
           />
           
-          {viewedEvent.ical_uid && (
+          {!isEditMode && viewedEvent.ical_uid && (
             <div className="mt-4">
               <p className="text-sm text-muted-foreground">iCal UID</p>
               <p className="mt-1 text-xs text-muted-foreground break-all">{viewedEvent.ical_uid}</p>
@@ -87,18 +154,59 @@ export const ViewEventDialog: React.FC<ViewEventDialogProps> = ({
           )}
           
           <DialogFooter className="mt-6">
-            <Button 
-              type="button" 
-              variant="destructive" 
-              onClick={() => setIsDeleteDialogOpen(true)}
-              className="flex items-center gap-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete Event
-            </Button>
-            <Button type="button" variant="outline" onClick={() => setIsViewEventOpen(false)}>
-              Close
-            </Button>
+            {isEditMode ? (
+              <>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleCancelEdit}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="button" 
+                  onClick={handleUpdateEvent}
+                  disabled={isUpdating}
+                  className="flex items-center gap-2"
+                >
+                  {isUpdating ? (
+                    "Updating..."
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button 
+                  type="button" 
+                  variant="destructive" 
+                  onClick={() => setIsDeleteDialogOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsViewEventOpen(false)}
+                >
+                  Close
+                </Button>
+                <Button 
+                  type="button" 
+                  onClick={handleEditClick}
+                  className="flex items-center gap-2"
+                >
+                  <Edit2 className="h-4 w-4" />
+                  Edit
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
