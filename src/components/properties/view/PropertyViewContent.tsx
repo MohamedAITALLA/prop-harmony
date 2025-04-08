@@ -1,6 +1,5 @@
 
 import React from "react";
-import { TabsContent } from "@/components/ui/tabs";
 import { PropertyList } from "@/components/properties/PropertyList";
 import { PropertyTableContainer } from "@/components/properties/table/PropertyTableContainer";
 import { Property } from "@/types/api-responses";
@@ -36,39 +35,29 @@ export function PropertyViewContent({
   onPageChange,
   onPropertyDeleted
 }: PropertyViewContentProps) {
+  // Instead of using TabsContent, we'll conditionally render based on viewMode
+  if (viewMode === "table") {
+    return (
+      <PropertyTableContainer
+        properties={properties}
+        isLoading={isLoading}
+        pagination={pagination}
+        onPageChange={onPageChange}
+        onPropertyDeleted={onPropertyDeleted}
+      />
+    );
+  }
+  
+  // For both grid and list views, use PropertyList with the appropriate viewMode
   return (
-    <div className="mt-4">
-      <TabsContent value="grid" className="mt-0">
-        <PropertyList 
-          properties={properties} 
-          isLoading={isLoading} 
-          viewMode="grid"
-          pagination={pagination}
-          summary={summary}
-          onPageChange={onPageChange}
-          onPropertyDeleted={onPropertyDeleted}
-        />
-      </TabsContent>
-      <TabsContent value="list" className="mt-0">
-        <PropertyList 
-          properties={properties} 
-          isLoading={isLoading} 
-          viewMode="list"
-          pagination={pagination}
-          summary={summary}
-          onPageChange={onPageChange}
-          onPropertyDeleted={onPropertyDeleted}
-        />
-      </TabsContent>
-      <TabsContent value="table" className="mt-0">
-        <PropertyTableContainer
-          properties={properties}
-          isLoading={isLoading}
-          pagination={pagination}
-          onPageChange={onPageChange}
-          onPropertyDeleted={onPropertyDeleted}
-        />
-      </TabsContent>
-    </div>
+    <PropertyList 
+      properties={properties} 
+      isLoading={isLoading} 
+      viewMode={viewMode}
+      pagination={pagination}
+      summary={summary}
+      onPageChange={onPageChange}
+      onPropertyDeleted={onPropertyDeleted}
+    />
   );
 }
