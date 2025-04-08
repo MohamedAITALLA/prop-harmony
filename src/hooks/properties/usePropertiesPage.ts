@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { propertyService } from "@/services/api-service";
 import { toast } from "sonner";
@@ -13,7 +13,6 @@ export const usePropertiesPage = () => {
   const [limit, setLimit] = useState<number>(10);
   const [sortOption, setSortOption] = useState<string>("default");
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
-  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
   // Generate query parameters
   const getQueryParams = useCallback(() => {
@@ -107,38 +106,12 @@ export const usePropertiesPage = () => {
     applied_filters: { property_type: propertyType, city }
   };
 
-  // Get property type label
-  const getPropertyTypeLabel = useCallback((type: string) => {
-    switch (type) {
-      case PropertyType.VILLA:
-        return "Villa";
-      case PropertyType.APARTMENT:
-        return "Apartment";
-      case PropertyType.CABIN:
-        return "Cabin";
-      case PropertyType.CONDO:
-        return "Condo";
-      case PropertyType.HOUSE:
-        return "House";
-      case PropertyType.HOTEL:
-        return "Hotel";
-      case PropertyType.ROOM:
-        return "Room";
-      case PropertyType.OTHER:
-        return "Other";
-      default:
-        return type;
-    }
-  }, []);
-
   return {
     properties,
     pagination,
     summary,
     isLoading,
     error,
-    viewMode,
-    setViewMode,
     propertyType,
     setPropertyType,
     city,
@@ -151,6 +124,5 @@ export const usePropertiesPage = () => {
     handleFilterReset,
     handleRefresh,
     handlePropertyDeleted,
-    getPropertyTypeLabel,
   };
 };

@@ -1,6 +1,7 @@
 
 import React from "react";
 import { usePropertiesPage } from "@/hooks/properties/usePropertiesPage";
+import { usePropertyView } from "@/hooks/properties/usePropertyView";
 import { PropertyView } from "@/components/properties/PropertyView";
 import { PropertyError } from "@/components/properties/PropertyError";
 
@@ -11,21 +12,12 @@ export default function Properties() {
     summary,
     isLoading,
     error,
-    viewMode,
-    setViewMode,
-    propertyType,
-    setPropertyType,
-    city,
-    setCity,
-    sortOption,
-    setSortOption,
-    isFilterOpen,
-    setIsFilterOpen,
     handlePageChange,
-    handleFilterReset,
     handleRefresh,
     handlePropertyDeleted,
   } = usePropertiesPage();
+
+  const { viewMode, setViewMode } = usePropertyView();
 
   if (error) {
     return <PropertyError onRetry={handleRefresh} />;
