@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarDays, Cog, Home, Link2 } from "lucide-react";
+import { CalendarDays, Cog, Home, Link2, AlertTriangle } from "lucide-react";
 
 interface PropertyDetailsTabsProps {
   activeTab: string;
@@ -15,7 +15,7 @@ export function PropertyDetailsTabs({
   hasConflicts
 }: PropertyDetailsTabsProps) {
   return (
-    <TabsList className="grid grid-cols-5 h-auto w-full max-w-3xl mx-auto md:mb-4">
+    <TabsList className="grid grid-cols-6 h-auto w-full max-w-4xl mx-auto md:mb-4">
       <TabsTrigger 
         value="overview" 
         onClick={() => onTabChange("overview")}
@@ -32,6 +32,18 @@ export function PropertyDetailsTabs({
       >
         <CalendarDays className="w-4 h-4" />
         <span>Calendar</span>
+      </TabsTrigger>
+      
+      <TabsTrigger 
+        value="conflicts" 
+        onClick={() => onTabChange("conflicts")}
+        className="flex items-center gap-1.5 py-3 relative"
+      >
+        <AlertTriangle className="w-4 h-4" />
+        <span>Conflicts</span>
+        {hasConflicts && (
+          <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full" />
+        )}
       </TabsTrigger>
       
       <TabsTrigger 

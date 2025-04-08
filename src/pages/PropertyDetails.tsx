@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Tabs } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { PropertyDetailsLoading } from "@/components/properties/PropertyDetailsL
 import { PropertyDetailsError } from "@/components/properties/PropertyDetailsError";
 import { usePropertyDetails } from "@/hooks/properties/usePropertyDetails";
 import { usePropertyEvents } from "@/hooks/properties/usePropertyEvents";
+import { usePropertyConflicts } from "@/hooks/properties/usePropertyConflicts";
 import { DeletePropertyDialog } from "@/components/properties/DeletePropertyDialog";
 import { propertyService } from "@/services/property-service";
 
@@ -36,15 +37,24 @@ export default function PropertyDetails() {
     eventsLoading, 
     refetchEvents 
   } = usePropertyEvents(id);
+  
+  const {
+    conflicts,
+    refetchConflicts
+  } = usePropertyConflicts(id);
 
-  // Setting a simple flag for hasConflicts - since we're removing that functionality
-  const hasConflicts = false;
+  // Check if there are any active conflicts
+  const hasConflicts = conflicts && conflicts.some(c => c.status === 'active');
 
   const handleTabChange = (value) => {
     setActiveTab(value);
     setSearchParams({ tab: value });
     
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    if (value === 'conflicts') {
+      refetchConflicts();
+    }
   };
 
   const handleSync = () => {
@@ -84,12 +94,12 @@ export default function PropertyDetails() {
 
   const handleSyncComplete = () => {
     refetchEvents();
+    refetchConflicts();
     toast.success("Sync completed successfully");
   };
   
   const handleViewConflicts = () => {
-    // This function would have changed tabs to conflicts, but we've removed that tab
-    toast.info("Conflict management has been removed from this version");
+    handleTabChange('conflicts');
   };
 
   const handleRetryLoadProperty = () => {

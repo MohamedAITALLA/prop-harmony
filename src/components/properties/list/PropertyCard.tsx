@@ -17,7 +17,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick })
       <div className="relative h-40 bg-muted overflow-hidden">
         {property.images && property.images.length > 0 ? (
           <img 
-            src={property.images[0].url} 
+            src={typeof property.images[0] === 'string' ? property.images[0] : property.images[0].url} 
             alt={property.name} 
             className="w-full h-full object-cover transition-transform group-hover:scale-105"
           />
@@ -27,7 +27,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick })
           </div>
         )}
         <Badge className="absolute top-2 right-2 bg-background/80 text-foreground backdrop-blur-sm">
-          {property.type}
+          {property.property_type}
         </Badge>
       </div>
       
@@ -46,11 +46,11 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick })
         <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
           <div className="flex items-center gap-1.5">
             <Users className="h-3.5 w-3.5 text-muted-foreground/70" />
-            <span>{property.capacity?.accommodates || 0} guests</span>
+            <span>{property.accommodates || 0} guests</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Bed className="h-3.5 w-3.5 text-muted-foreground/70" />
-            <span>{property.capacity?.bedrooms || 0} bedrooms</span>
+            <span>{property.bedrooms || 0} bedrooms</span>
           </div>
         </div>
       </CardContent>

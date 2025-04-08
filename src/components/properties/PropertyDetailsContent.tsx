@@ -4,6 +4,7 @@ import { TabsContent } from "@/components/ui/tabs";
 import { Property } from "@/types/api-responses";
 import { OverviewTabContent } from "./tabs/OverviewTabContent";
 import { CalendarTabContent } from "./tabs/CalendarTabContent";
+import { ConflictsTabContent } from "./tabs/ConflictsTabContent";
 import { ICalTabContent } from "./tabs/ICalTabContent";
 import { SyncTabContent } from "./tabs/SyncTabContent";
 import { SettingsTabContent } from "./tabs/SettingsTabContent";
@@ -48,6 +49,10 @@ export function PropertyDetailsContent({
           onViewConflicts={onViewConflicts}
           refetchEvents={refetchEvents}
         />
+      </TabsContent>
+      
+      <TabsContent value="conflicts" className="space-y-4">
+        <ConflictsTabContent propertyId={propertyId} />
       </TabsContent>
       
       <TabsContent value="ical" className="space-y-4">
