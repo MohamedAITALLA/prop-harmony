@@ -30,7 +30,11 @@ export function useAuthMethods(
         if (user) {
           // Convert id to _id if needed
           const processedUser = ensureMongoId(user);
+          // Store user data in local storage for persistence
+          localStorage.setItem("user_data", JSON.stringify(processedUser));
           setUser(processedUser);
+          
+          // Navigate to dashboard
           navigate("/dashboard");
           toast.success(response.message || "Login successful!");
         } else {
@@ -68,6 +72,8 @@ export function useAuthMethods(
         
         if (user) {
           const processedUser = ensureMongoId(user);
+          // Store user data in local storage for persistence
+          localStorage.setItem("user_data", JSON.stringify(processedUser));
           setUser(processedUser);
           
           navigate("/dashboard");
@@ -89,8 +95,12 @@ export function useAuthMethods(
   };
 
   const logout = () => {
+    // Clear all auth-related data
     removeToken();
+    localStorage.removeItem("user_data");
     setUser(null);
+    
+    // Navigate to login page
     navigate("/login");
     toast.success("You have been logged out.");
   };

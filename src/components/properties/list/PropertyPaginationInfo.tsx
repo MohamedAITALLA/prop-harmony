@@ -1,5 +1,6 @@
 
 import React from "react";
+import { motion } from "framer-motion";
 
 interface PropertyPaginationInfoProps {
   count: number;
@@ -12,16 +13,29 @@ interface PropertyPaginationInfoProps {
 
 export function PropertyPaginationInfo({ count, pagination }: PropertyPaginationInfoProps) {
   return (
-    <div className="flex justify-between items-center text-sm text-muted-foreground border-b pb-3">
-      <div>
-        Showing {count} properties
-        {pagination && ` of ${pagination.total}`}
+    <motion.div 
+      className="flex justify-between items-center text-sm text-muted-foreground border-b pb-3"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="flex items-center">
+        <span className="font-medium text-primary mr-1">{count}</span> 
+        <span>properties</span>
+        {pagination && (
+          <span className="ml-1">
+            of <span className="font-medium text-primary">{pagination.total}</span>
+          </span>
+        )}
       </div>
       {pagination && (
-        <div>
-          Page {pagination.page} of {pagination.pages}
+        <div className="flex items-center gap-1 bg-accent px-3 py-1 rounded-full">
+          <span>Page</span>
+          <span className="font-medium text-primary">{pagination.page}</span>
+          <span>of</span>
+          <span className="font-medium text-primary">{pagination.pages}</span>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

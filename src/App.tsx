@@ -1,5 +1,5 @@
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -30,59 +30,56 @@ import Index from './pages/Index';
 import { Loader2 } from 'lucide-react';
 
 // Create a client
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 // Loading spinner component for suspense fallback
 const LoadingSpinner = () => (
-  <div className="flex items-center justify-center h-screen">
-    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-    <span className="ml-2">Loading application...</span>
+  <div className="flex items-center justify-center h-screen bg-background">
+    <div className="flex flex-col items-center">
+      <Loader2 className="h-12 w-12 animate-spin text-primary mb-3" />
+      <span className="text-muted-foreground">Loading application...</span>
+    </div>
   </div>
 );
 
 function AppRoutes() {
   const { user, isLoading } = useAuth();
-  const isAuthenticated = !!user;
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2">Checking authentication...</span>
-      </div>
-    );
-  }
-
-  const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-    return isAuthenticated ? (
-      children
-    ) : (
-      <Navigate to="/login" replace />
-    );
-  };
-
+  // We don't need the PrivateRoute component anymore since MainLayout handles authentication
   return (
     <>
       <Routes>
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Index />} />
-          <Route path="dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="properties" element={<PrivateRoute><Properties /></PrivateRoute>} />
-          <Route path="properties/new" element={<PrivateRoute><NewProperty /></PrivateRoute>} />
-          <Route path="properties/:id" element={<PrivateRoute><PropertyDetails /></PrivateRoute>} />
-          <Route path="properties/:id/edit" element={<PrivateRoute><EditProperty /></PrivateRoute>} />
-          <Route path="sync" element={<PrivateRoute><GlobalSync /></PrivateRoute>} />
-          <Route path="notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
-          <Route path="settings/profile" element={<PrivateRoute><ProfileSettings /></PrivateRoute>} />
-          <Route path="components" element={<ComponentsDemo />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
+        {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/resend-confirmation" element={<ResendConfirmation />} />
         <Route path="/confirm-email" element={<EmailConfirmation />} />
+        
+        {/* Root route - landing page */}
+        <Route index element={<Index />} />
+        
+        {/* Protected routes - all under MainLayout which handles authentication */}
+        <Route path="/" element={<MainLayout />}>
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="properties" element={<Properties />} />
+          <Route path="properties/new" element={<NewProperty />} />
+          <Route path="properties/:id" element={<PropertyDetails />} />
+          <Route path="properties/:id/edit" element={<EditProperty />} />
+          <Route path="sync" element={<GlobalSync />} />
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="settings/profile" element={<ProfileSettings />} />
+          <Route path="components" element={<ComponentsDemo />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
       </Routes>
       <Toaster />
     </>
