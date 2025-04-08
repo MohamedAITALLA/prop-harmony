@@ -8,6 +8,24 @@ import {
 } from "@/types/api-responses/ical-types";
 import { TestConnectionResponse, UpdateConnectionResponse, DeleteConnectionResponse } from "@/types/ical-connection";
 
+export interface ICalSyncResponse {
+  property_id: string;
+  connection_id: string;
+  platform: string;
+  events_synced: number;
+  events_created: number;
+  events_updated: number;
+  events_cancelled: number;
+  sync_duration_ms: number;
+  conflicts: Array<{
+    conflict_id: string;
+    event_ids: string[];
+    overlap_start_date: string;
+    overlap_end_date: string;
+  }>;
+  last_synced: string;
+}
+
 export const icalConnectionService = {
   // Get all connections for a property
   getConnections: (propertyId: string) => {
@@ -49,6 +67,13 @@ export const icalConnectionService = {
   testConnection: (propertyId: string, connectionId: string) => {
     return api.post<ApiResponse<TestConnectionResponse>>(
       `/properties/${propertyId}/ical-connections/${connectionId}/test`
+    );
+  },
+  
+  // Sync a specific connection
+  syncConnection: (propertyId: string, connectionId: string) => {
+    return api.post<ApiResponse<ICalSyncResponse>>(
+      `/properties/${propertyId}/ical-connections/${connectionId}/sync`
     );
   }
 };

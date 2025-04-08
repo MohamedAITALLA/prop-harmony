@@ -31,6 +31,11 @@ export function ICalConnectionsManager({ propertyId }: ICalConnectionsManagerPro
 
   const { connections, connectionsMeta, isLoading, isError, refetch } = useICalConnections(propertyId);
 
+  const handleSyncComplete = () => {
+    // Refetch the connections to get the updated data
+    refetch();
+  };
+
   if (isLoading) {
     return <LoadingState />;
   }
@@ -47,9 +52,11 @@ export function ICalConnectionsManager({ propertyId }: ICalConnectionsManagerPro
       <CardContent className="pt-6 px-6">
         <ConnectionsTable 
           connections={connections}
+          propertyId={propertyId}
           onEdit={handleEditClick}
           onDelete={handleDeleteClick}
           onTest={handleTestClick}
+          onSyncComplete={handleSyncComplete}
         />
       </CardContent>
       <CardFooter className="bg-muted/10 border-t py-4 px-6 flex justify-between">
