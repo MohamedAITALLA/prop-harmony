@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { CalendarEvent } from "@/types/api-responses";
 import { Badge } from "@/components/ui/badge";
 import { EventFormFields } from "@/components/properties/calendar/EventFormFields";
-import { Trash2, Edit2, CheckCircle, AlertCircle } from "lucide-react";
+import { Trash2, Edit2, CheckCircle, AlertCircle, Calendar, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { eventService } from "@/services/api-service";
+import { format } from "date-fns";
 import {
   Dialog,
   DialogContent,
@@ -56,6 +57,19 @@ export const ViewEventDialog: React.FC<ViewEventDialogProps> = ({
     status: viewedEvent.status || "confirmed",
     description: viewedEvent.description || "",
   }), [viewedEvent]);
+  
+  // Format dates for display
+  const formatDateTime = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      return format(date, "MMM dd, yyyy 'at' h:mm a");
+    } catch (e) {
+      return dateStr;
+    }
+  };
+  
+  const formattedStartDate = formatDateTime(viewedEvent.start_date);
+  const formattedEndDate = formatDateTime(viewedEvent.end_date);
   
   // Initialize edit data when entering edit mode
   const handleEditClick = () => {
@@ -133,10 +147,29 @@ export const ViewEventDialog: React.FC<ViewEventDialogProps> = ({
           </DialogHeader>
           
           {!isEditMode && (
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">{viewedEvent.summary}</h3>
-              <Badge>{viewedEvent.platform}</Badge>
-            </div>
+            <>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">{viewedEvent.summary}</h3>
+                <Badge>{viewedEvent.platform}</Badge>
+              </div>
+              
+              <div className="space-y-3 mb-4 p-3 bg-muted/30 rounded-md border">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium">Start Date</p>
+                    <p className="text-sm text-muted-foreground">{formattedStartDate}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-primary" />
+                  <div>
+                    <p className="text-sm font-medium">End Date</p>
+                    <p className="text-sm text-muted-foreground">{formattedEndDate}</p>
+                  </div>
+                </div>
+              </div>
+            </>
           )}
           
           {/* Use the shared form fields component in read-only or edit mode */}
@@ -228,6 +261,8 @@ export const ViewEventDialog: React.FC<ViewEventDialogProps> = ({
             <div className="text-sm text-muted-foreground mt-1 space-y-1">
               <p><span className="font-medium">Platform:</span> {viewedEvent.platform}</p>
               <p><span className="font-medium">Type:</span> {viewedEvent.event_type}</p>
+              <p><span className="font-medium">Start:</span> {formattedStartDate}</p>
+              <p><span className="font-medium">End:</span> {formattedEndDate}</p>
             </div>
           </div>
           <AlertDialogFooter>

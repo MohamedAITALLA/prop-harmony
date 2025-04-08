@@ -25,6 +25,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick })
           src={imageUrl} 
           alt={property.name} 
           className="w-full h-full object-cover transition-transform group-hover:scale-105"
+          onError={(e) => {
+            // Fallback if image fails to load
+            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop';
+          }}
         />
         <Badge className="absolute top-2 right-2 bg-background/80 text-foreground backdrop-blur-sm">
           {property.property_type}
