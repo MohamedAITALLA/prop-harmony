@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -16,11 +15,12 @@ interface PropertyListProps {
   properties?: any[];
   isLoading?: boolean;
   error?: any;
-  viewMode?: 'grid' | 'list';
+  viewMode?: 'grid' | 'list' | 'table';
   pagination?: {
     total: number;
     page: number;
     pages: number;
+    limit?: number;
   };
   summary?: {
     total_properties: number;
@@ -44,15 +44,15 @@ export function PropertyList({
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   
-  // State for filters and pagination
   const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('search') || '');
   const [propertyTypeFilter, setPropertyTypeFilter] = useState<string>(searchParams.get('type') || 'all');
   const [cityFilter, setCityFilter] = useState<string>(searchParams.get('city') || '');
   const [currentPage, setCurrentPage] = useState<number>(Number(searchParams.get('page')) || 1);
   const [pageSize, setPageSize] = useState<number>(Number(searchParams.get('limit')) || 12);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>(propViewMode);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(
+    propViewMode === 'table' ? 'grid' : propViewMode as 'grid' | 'list'
+  );
 
-  // Fetch properties using the hook
   const { 
     properties: fetchedProperties, 
     isLoading, 
@@ -69,7 +69,6 @@ export function PropertyList({
   const isLoadingProperties = propIsLoading !== undefined ? propIsLoading : isLoading;
   const displayPagination = propPagination || pagination;
 
-  // Update URL params when filters change
   useEffect(() => {
     const newParams = new URLSearchParams(searchParams);
     if (searchQuery) {
@@ -92,7 +91,6 @@ export function PropertyList({
     setSearchParams(newParams);
   }, [searchQuery, propertyTypeFilter, cityFilter, currentPage, pageSize, setSearchParams, searchParams]);
 
-  // Event handlers
   const handlePropertyClick = (id: string) => {
     navigate(`/properties/${id}`);
   };
@@ -135,7 +133,6 @@ export function PropertyList({
     setCurrentPage(1);
   };
 
-  // Calculate active filters count for filter badge
   const activeFiltersCount = 
     (propertyTypeFilter !== 'all' ? 1 : 0) + 
     (cityFilter ? 1 : 0);
@@ -143,7 +140,6 @@ export function PropertyList({
   return (
     <div className="bg-white dark:bg-gray-950 rounded-lg p-6 shadow-sm border">
       <div className="flex flex-col gap-6">
-        {/* Header with search and add button */}
         <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
           <SearchBar 
             searchQuery={searchQuery} 
@@ -153,7 +149,6 @@ export function PropertyList({
           <AddPropertyButton onClick={() => navigate('/properties/new')} />
         </div>
         
-        {/* Filters row */}
         <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <TypeFilter 
@@ -186,7 +181,6 @@ export function PropertyList({
           />
         </div>
         
-        {/* Property list results */}
         <PropertyListResults
           properties={displayProperties}
           isLoading={isLoadingProperties}
@@ -196,7 +190,6 @@ export function PropertyList({
           onPropertyClick={handlePropertyClick}
         />
         
-        {/* Pagination */}
         {displayPagination && displayPagination.pages > 1 && (
           <PropertyListPagination
             currentPage={displayPagination.page}
