@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Property } from "@/types/api-responses";
 import { format, formatDistance } from "date-fns";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { PropertyType } from "@/types/enums";
 
 export interface PropertyCardProps {
   property: Property;
@@ -34,20 +35,22 @@ export function PropertyCard({ property, viewMode = "grid", className, onClick, 
   const timeAgo = createdDate ? formatDistance(createdDate, new Date(), { addSuffix: true }) : "Unknown date";
   
   const propertyTypeColor = () => {
-    switch (property.property_type) {
-      case 'APARTMENT':
+    const propertyTypeUpper = property.property_type?.toUpperCase();
+    
+    switch (propertyTypeUpper) {
+      case PropertyType.APARTMENT.toUpperCase():
         return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
-      case 'HOUSE':
+      case PropertyType.HOUSE.toUpperCase():
         return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-      case 'VILLA':
+      case PropertyType.VILLA.toUpperCase():
         return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
-      case 'CABIN':
+      case PropertyType.CABIN.toUpperCase():
         return "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300";
-      case 'HOTEL':
+      case PropertyType.HOTEL.toUpperCase():
         return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-      case 'CONDO':
+      case PropertyType.CONDO.toUpperCase():
         return "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300";
-      case 'ROOM':
+      case PropertyType.ROOM.toUpperCase():
         return "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300";
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
