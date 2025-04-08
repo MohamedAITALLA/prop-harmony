@@ -8,13 +8,14 @@ interface UsePropertiesParams {
   limit: number;
   search?: string;
   property_type?: string;
+  city?: string;
 }
 
-export function useProperties({ page, limit, search, property_type }: UsePropertiesParams) {
+export function useProperties({ page, limit, search, property_type, city }: UsePropertiesParams) {
   const [totalPages, setTotalPages] = useState<number>(1);
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['properties', page, limit, search, property_type],
+    queryKey: ['properties', page, limit, search, property_type, city],
     queryFn: async () => {
       const params: any = {
         page,
@@ -28,6 +29,10 @@ export function useProperties({ page, limit, search, property_type }: UsePropert
       if (property_type) {
         params.property_type = property_type;
       }
+      
+      if (city) {
+        params.city = city;
+      }
 
       return propertyService.getAllProperties(params);
     },
@@ -39,17 +44,12 @@ export function useProperties({ page, limit, search, property_type }: UsePropert
     }
   }, [data]);
 
-  const onPageChange = (newPage: number) => {
-    // This is handled by the parent component setting the page state
-    // which will trigger a refetch through the queryKey change
-  };
-
   return {
     properties: data?.data?.properties || [],
     isLoading,
     error,
     totalPages,
-    onPageChange,
+    pagination: data?.data?.pagination,
     refetch,
   };
 }

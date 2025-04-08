@@ -3,7 +3,6 @@ import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PropertyList } from "@/components/properties/PropertyList";
 import { PropertyTable } from "@/components/properties/PropertyTable";
-import { AdvancedPagination } from "@/components/ui/advanced-pagination";
 import { Grid, List } from "lucide-react";
 import { Property } from "@/types/api-responses";
 
@@ -42,7 +41,7 @@ export function PropertyView({
 }: PropertyViewProps) {
   return (
     <Tabs defaultValue={viewMode} onValueChange={(value) => setViewMode(value as "grid" | "table")}>
-      <TabsList>
+      <TabsList className="hidden">
         <TabsTrigger value="grid">
           <Grid className="h-4 w-4 mr-2" /> Grid View
         </TabsTrigger>
@@ -50,20 +49,13 @@ export function PropertyView({
           <List className="h-4 w-4 mr-2" /> Table View
         </TabsTrigger>
       </TabsList>
-      <TabsContent value="grid" className="mt-6">
+      <TabsContent value="grid" className="mt-0">
         <PropertyList 
           properties={properties} 
           isLoading={isLoading} 
         />
-        <div className="flex justify-center mt-4">
-          <AdvancedPagination
-            currentPage={pagination.page}
-            totalPages={pagination.pages}
-            onPageChange={onPageChange}
-          />
-        </div>
       </TabsContent>
-      <TabsContent value="table" className="mt-6">
+      <TabsContent value="table" className="mt-0">
         <PropertyTable 
           properties={properties} 
           isLoading={isLoading} 
@@ -71,13 +63,6 @@ export function PropertyView({
           onPageChange={onPageChange}
           onPropertyDeleted={onPropertyDeleted}
         />
-        <div className="flex justify-center mt-4">
-          <AdvancedPagination
-            currentPage={pagination.page}
-            totalPages={pagination.pages}
-            onPageChange={onPageChange}
-          />
-        </div>
       </TabsContent>
     </Tabs>
   );

@@ -6,7 +6,10 @@ import { cn } from "@/lib/utils"
 
 const TooltipProvider = TooltipPrimitive.Provider
 
-const Tooltip = TooltipPrimitive.Root
+const Tooltip = ({ delayDuration = 300, ...props }: React.ComponentProps<typeof TooltipPrimitive.Root>) => (
+  <TooltipPrimitive.Root delayDuration={delayDuration} {...props} />
+)
+Tooltip.displayName = TooltipPrimitive.Root.displayName
 
 const TooltipTrigger = TooltipPrimitive.Trigger
 
@@ -26,4 +29,6 @@ const TooltipContent = React.forwardRef<
 ))
 TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+const TooltipArrow = TooltipPrimitive.Arrow
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider, TooltipArrow }
