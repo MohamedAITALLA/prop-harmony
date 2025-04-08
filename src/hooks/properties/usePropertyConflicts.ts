@@ -35,12 +35,58 @@ export function usePropertyConflicts(propertyId: string | undefined) {
     },
   });
 
+  const resolveConflictMutation = useMutation({
+    mutationFn: async ({ propertyId, conflictId, eventsToKeep }: { 
+      propertyId: string; 
+      conflictId: string;
+      eventsToKeep: string[];
+    }) => {
+      return await conflictService.resolveConflict(propertyId, conflictId, eventsToKeep);
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || "Conflict resolved successfully");
+      queryClient.invalidateQueries({ queryKey: ["property-conflicts", propertyId] });
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to resolve conflict: ${error.message || "Unknown error"}`);
+    },
+  });
+
+  const autoResolveConflictMutation = useMutation({
+    mutationFn: async ({ propertyId, conflictId }: { propertyId: string; conflictId: string }) => {
+      return await conflictService.autoResolveConflict(propertyId, conflictId);
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || "Conflict auto-resolved successfully");
+      queryClient.invalidateQueries({ queryKey: ["property-conflicts", propertyId] });
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to auto-resolve conflict: ${error.message || "Unknown error"}`);
+    },
+  });
+
   const handleDeleteConflict = async (conflictId: string) => {
     if (!propertyId) {
       toast.error("Property ID is required");
       return;
     }
     deleteConflictMutation.mutate({ propertyId, conflictId });
+  };
+
+  const handleResolveConflict = async (conflictId: string, eventsToKeep: string[]) => {
+    if (!propertyId) {
+      toast.error("Property ID is required");
+      return;
+    }
+    resolveConflictMutation.mutate({ propertyId, conflictId, eventsToKeep });
+  };
+
+  const handleAutoResolveConflict = async (conflictId: string) => {
+    if (!propertyId) {
+      toast.error("Property ID is required");
+      return;
+    }
+    autoResolveConflictMutation.mutate({ propertyId, conflictId });
   };
 
   return {
@@ -52,6 +98,10 @@ export function usePropertyConflicts(propertyId: string | undefined) {
     statusFilter,
     setStatusFilter,
     deleteConflict: handleDeleteConflict,
+    resolveConflict: handleResolveConflict,
+    autoResolveConflict: handleAutoResolveConflict,
     isDeletingConflict: deleteConflictMutation.isPending,
+    isResolvingConflict: resolveConflictMutation.isPending,
+    isAutoResolvingConflict: autoResolveConflictMutation.isPending,
   };
 }

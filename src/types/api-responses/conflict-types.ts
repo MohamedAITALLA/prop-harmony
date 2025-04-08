@@ -51,3 +51,52 @@ export interface ConflictDeleteResponse {
   message: string;
   timestamp: string;
 }
+
+export interface EventSummary {
+  id: string;
+  summary: string;
+  start_date: string;
+  end_date: string;
+  platform: string;
+  duration_days?: number;
+}
+
+export interface EventsCount {
+  total: number;
+  kept: number;
+  removed: number;
+}
+
+export interface ResolveConflictRequest {
+  events_to_keep: string[];
+  resolution_strategy: 'delete' | 'deactivate';
+}
+
+export interface ResolveConflictResponse {
+  success: boolean;
+  data: {
+    conflict_id: string;
+    property_id: string;
+    resolution_strategy: 'delete' | 'deactivate';
+    events_kept: EventSummary[];
+    events_removed: string[];
+    events_count: EventsCount;
+  };
+  message: string;
+  timestamp: string;
+}
+
+export interface AutoResolveConflictResponse {
+  success: boolean;
+  data: {
+    conflict_id: string;
+    property_id: string;
+    resolution_strategy: 'delete' | 'deactivate';
+    auto_resolution_method: string;
+    event_kept: EventSummary;
+    events_removed: EventSummary[];
+    events_count: EventsCount;
+  };
+  message: string;
+  timestamp: string;
+}

@@ -16,7 +16,7 @@ interface PropertyListResultsProps {
     pages: number;
   };
   onResetFilters: () => void;
-  onPropertyClick: (id: string) => void;
+  onPropertyClick: (property: Property) => void;
 }
 
 export function PropertyListResults({ 
