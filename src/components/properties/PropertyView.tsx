@@ -1,20 +1,17 @@
 
 import React from "react";
-import { Tabs } from "@/components/ui/tabs";
+import { PropertyList } from "./PropertyList";
+import { PropertyTableContainer } from "./table/PropertyTableContainer";
 import { Property } from "@/types/api-responses";
-import { PropertyViewTabs } from "./view/PropertyViewTabs";
-import { PropertyViewContent } from "./view/PropertyViewContent";
 
 interface PropertyViewProps {
   properties: Property[];
-  isLoading: boolean;
-  pagination: {
+  isLoading?: boolean;
+  pagination?: {
     total: number;
     page: number;
     limit: number;
     pages: number;
-    has_next_page: boolean;
-    has_previous_page: boolean;
   };
   summary?: {
     total_properties: number;
@@ -22,15 +19,15 @@ interface PropertyViewProps {
     by_city: Record<string, number>;
     applied_filters: Record<string, any>;
   };
-  onPageChange: (page: number) => void;
-  onPropertyDeleted: (propertyId: string) => void;
-  viewMode: "grid" | "table";
-  setViewMode: (value: "grid" | "table") => void;
+  onPageChange?: (page: number) => void;
+  onPropertyDeleted?: (propertyId: string) => void;
+  viewMode: 'grid' | 'list' | 'table';
+  setViewMode: (viewMode: 'grid' | 'list' | 'table') => void;
 }
 
 export function PropertyView({
   properties,
-  isLoading,
+  isLoading = false,
   pagination,
   summary,
   onPageChange,
@@ -39,16 +36,27 @@ export function PropertyView({
   setViewMode
 }: PropertyViewProps) {
   return (
-    <Tabs defaultValue={viewMode} onValueChange={(value) => setViewMode(value as "grid" | "table")}>
-      <PropertyViewTabs viewMode={viewMode} setViewMode={setViewMode} />
-      <PropertyViewContent 
-        viewMode={viewMode}
-        properties={properties}
-        isLoading={isLoading}
-        pagination={pagination}
-        onPageChange={onPageChange}
-        onPropertyDeleted={onPropertyDeleted}
-      />
-    </Tabs>
+    <div className="container mx-auto px-4 py-6">
+      {viewMode === 'table' ? (
+        <PropertyTableContainer
+          properties={properties}
+          isLoading={isLoading}
+          pagination={pagination}
+          onPageChange={onPageChange}
+          onPropertyDeleted={onPropertyDeleted}
+        />
+      ) : (
+        <PropertyList
+          properties={properties}
+          isLoading={isLoading}
+          pagination={pagination}
+          summary={summary}
+          onPageChange={onPageChange}
+          onPropertyDeleted={onPropertyDeleted}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+        />
+      )}
+    </div>
   );
 }
