@@ -44,7 +44,7 @@ export function ICalTabContent({ propertyId }: ICalTabContentProps) {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                   <div className="flex items-start gap-2">
-                    <ExternalLink className="h-4 w-4 text-primary mt-0.5" />
+                    <ExternalLink className="h-4 w-4 text-primary mt-2" />
                     <div>
                       <h4 className="text-sm font-medium">Export Your Calendar</h4>
                       <p className="text-xs text-muted-foreground">
