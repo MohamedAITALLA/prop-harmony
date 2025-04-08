@@ -99,9 +99,7 @@ export enum Platform {
   EXPEDIA = 'Expedia',
   TRIPADVISOR = 'TripAdvisor',
   VRBO = 'Vrbo',
-  MANUAL = 'manual',
-  GOOGLE = 'Google',
-  OTHER = 'other'
+  MANUAL = 'manual'
 }
 
 export enum ConnectionStatus {

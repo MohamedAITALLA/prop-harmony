@@ -44,7 +44,7 @@ export function PlatformSelect({
   if (selected !== undefined && onSelectionChange) {
     return (
       <div className="space-y-2">
-        {Object.values(Platform).filter(p => p !== 'Google' && p !== 'OTHER').map((platform) => (
+        {Object.values(Platform).map((platform) => (
           <div key={platform} className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -80,7 +80,7 @@ export function PlatformSelect({
             <span>All Platforms</span>
           </div>
         </SelectItem>
-        {Object.values(Platform).filter(p => p !== 'Google' && p !== 'OTHER').map((platform) => (
+        {Object.values(Platform).map((platform) => (
           <SelectItem key={platform} value={platform}>
             <div className="flex items-center gap-2">
               <PlatformIcon platform={platform} className="h-4 w-4" />

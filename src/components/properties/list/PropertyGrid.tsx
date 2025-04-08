@@ -1,32 +1,57 @@
-
-import React from "react";
+import React from 'react';
 import { Property } from "@/types/api-responses";
-import { PropertyGridCard } from "../cards/PropertyGridCard";
+import { PropertyCard } from "@/components/properties/list/PropertyCard";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface PropertyGridProps {
   properties: Property[];
-  viewMode: 'grid' | 'list';
-  onPropertyDeleted?: (propertyId: string) => void;
-  onPropertyClick?: (id: string) => void;
+  isLoading: boolean;
+  onPropertyClick: (property: Property) => void;
 }
 
-export function PropertyGrid({ properties, viewMode, onPropertyDeleted, onPropertyClick }: PropertyGridProps) {
+export const PropertyGrid: React.FC<PropertyGridProps> = ({ 
+  properties, 
+  isLoading, 
+  onPropertyClick 
+}) => {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div key={index} className="border rounded-lg p-4 space-y-3">
+            <Skeleton className="h-40 w-full rounded-md" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+            <div className="flex justify-between pt-2">
+              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-8 w-8 rounded-full" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (properties.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <h3 className="text-lg font-medium">No properties found</h3>
+        <p className="text-muted-foreground mt-1">
+          Try adjusting your filters or add a new property.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {properties.map((property) => {
-        // Fix the type error by ensuring propertyId is a string
-        const propertyId = String(property._id || property.id || "");
-        return (
-          <PropertyGridCard
-            key={propertyId}
-            property={property}
-            onDeleted={() => onPropertyDeleted?.(propertyId)}
-            onClick={() => onPropertyClick?.(propertyId)}
-            imageUrl={property.images?.[0] || '/placeholder.svg'}
-            createdDate={property.created_at ? new Date(property.created_at) : null}
-          />
-        );
-      })}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {properties.map((property) => (
+        <PropertyCard 
+          key={property._id} 
+          property={property} 
+          onClick={() => onPropertyClick(property)}
+        />
+      ))}
     </div>
   );
-}
+};

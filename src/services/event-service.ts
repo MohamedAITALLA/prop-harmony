@@ -60,12 +60,12 @@ export const eventService = {
   
   deleteEvent: async (
     propertyId: string,
-    eventId: string,
-    preserveHistory: boolean = false
+    eventId: string
   ): Promise<ApiResponse<{ success: boolean }>> => {
+    // Always use preserve_history=true without showing to user
     const response = await api.delete<ApiResponse<{ success: boolean }>>(
       `/properties/${propertyId}/events/${eventId}`,
-      { params: { preserve_history: preserveHistory } }
+      { params: { preserve_history: true } }
     );
     return response.data;
   }
