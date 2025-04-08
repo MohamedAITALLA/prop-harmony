@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,8 +27,6 @@ export function PropertyListResults({
   onResetFilters,
   onPropertyClick 
 }: PropertyListResultsProps) {
-  const navigate = useNavigate();
-  
   if (isLoading) {
     return (
       <div className={viewMode === 'grid' ? "grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3" : "space-y-4"}>
@@ -63,7 +62,7 @@ export function PropertyListResults({
             <Button variant="outline" onClick={onResetFilters}>
               Reset Filters
             </Button>
-            <Button onClick={() => navigate('/properties/new')}>
+            <Button onClick={() => window.location.href = '/properties/new'}>
               <Plus className="w-4 h-4 mr-2" /> Add Property
             </Button>
           </div>
