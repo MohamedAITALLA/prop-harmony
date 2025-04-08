@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Property } from "@/types/api-responses";
+import { Platform } from "@/types/enums";
 
 interface AddEventDialogProps {
   isOpen: boolean;
@@ -76,12 +77,14 @@ export const AddEventDialog: React.FC<AddEventDialogProps> = ({
                   <SelectValue placeholder="Select platform" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Airbnb">Airbnb</SelectItem>
-                  <SelectItem value="Booking">Booking.com</SelectItem>
-                  <SelectItem value="Expedia">Expedia</SelectItem>
-                  <SelectItem value="TripAdvisor">TripAdvisor</SelectItem>
-                  <SelectItem value="Vrbo">Vrbo</SelectItem>
-                  <SelectItem value="manual">Manual</SelectItem>
+                  {Object.values(Platform)
+                    .filter(platform => platform !== 'Google' && platform !== 'OTHER')
+                    .map((platform) => (
+                      <SelectItem key={platform} value={platform}>
+                        {platform}
+                      </SelectItem>
+                    ))
+                  }
                 </SelectContent>
               </Select>
             </div>

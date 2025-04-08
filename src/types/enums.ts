@@ -14,7 +14,6 @@ export enum EventType {
   BOOKING = 'booking',
   BLOCKED = 'blocked',
   MAINTENANCE = 'maintenance',
-  CLEANING = 'cleaning',
   OTHER = 'other'
 }
 

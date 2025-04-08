@@ -55,6 +55,7 @@ export function usePropertyEvents(id: string | undefined, filters?: FilterOption
     },
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    enabled: !!id
   });
 
   const formattedEvents = useMemo(() => {

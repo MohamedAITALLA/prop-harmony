@@ -38,12 +38,34 @@ export const eventService = {
     return response.data;
   },
   
+  updateEvent: async (
+    propertyId: string,
+    eventId: string,
+    eventData: {
+      platform?: string;
+      summary?: string;
+      start_date?: string;
+      end_date?: string;
+      event_type?: string;
+      status?: string;
+      description?: string;
+    }
+  ): Promise<ApiResponse<CalendarEvent>> => {
+    const response = await api.put<ApiResponse<CalendarEvent>>(
+      `/properties/${propertyId}/events/${eventId}`,
+      eventData
+    );
+    return response.data;
+  },
+  
   deleteEvent: async (
     propertyId: string,
-    eventId: string
+    eventId: string,
+    preserveHistory: boolean = false
   ): Promise<ApiResponse<{ success: boolean }>> => {
     const response = await api.delete<ApiResponse<{ success: boolean }>>(
-      `/properties/${propertyId}/events/${eventId}`
+      `/properties/${propertyId}/events/${eventId}`,
+      { params: { preserve_history: preserveHistory } }
     );
     return response.data;
   }

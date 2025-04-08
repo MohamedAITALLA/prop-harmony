@@ -38,6 +38,26 @@ export const eventService = {
     return response.data;
   },
   
+  updateEvent: async (
+    propertyId: string,
+    eventId: string,
+    eventData: {
+      platform?: string;
+      summary?: string;
+      start_date?: string;
+      end_date?: string;
+      event_type?: string;
+      status?: string;
+      description?: string;
+    }
+  ): Promise<ApiResponse<CalendarEvent>> => {
+    const response = await api.put<ApiResponse<CalendarEvent>>(
+      `/properties/${propertyId}/events/${eventId}`,
+      eventData
+    );
+    return response.data;
+  },
+  
   deleteEvent: async (
     propertyId: string,
     eventId: string
