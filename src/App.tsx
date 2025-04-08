@@ -1,5 +1,5 @@
 
-import React, { Suspense, useEffect, useCallback } from 'react';
+import React, { Suspense, useCallback } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
