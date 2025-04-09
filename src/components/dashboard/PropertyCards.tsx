@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { Home, Image } from 'lucide-react';
 import { Property } from '@/types/api-responses';
 import { useQuery } from '@tanstack/react-query';
 import { propertyService } from '@/services/api-service';
+import { getPropertyImageUrl } from '@/components/properties/utils/imageUtils';
 
 interface PropertyCardProps {
   property: Property;
@@ -16,40 +16,32 @@ interface PropertyCardProps {
 function PropertyCard({ property, onClick }: PropertyCardProps) {
   const defaultImage = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
   
-  // Always use the first image if available, otherwise use the default
-  const hasImage = property.images && property.images.length > 0;
-  
-  // Fix image URL if it starts with "/https://"
-  let imageUrl = hasImage ? property.images[0] : defaultImage;
-  if (imageUrl.startsWith('/https://')) {
-    imageUrl = imageUrl.substring(1); // Remove the leading slash
-  }
+  const imageUrl = getPropertyImageUrl(property.images, defaultImage);
   
   return (
-    <Card onClick={onClick} className="cursor-pointer hover:shadow-md transition-shadow duration-200">
+    <Card onClick={onClick} className="cursor-pointer hover:shadow-md transition-shadow duration-200 overflow-hidden">
       <div className="relative">
         <div className="h-32 w-full overflow-hidden">
           <img 
             src={imageUrl} 
             alt={`${property.name}`}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
             onError={(e) => {
-              // Fallback to default image if image fails to load
               (e.target as HTMLImageElement).src = defaultImage;
             }}
           />
         </div>
       </div>
-      <CardHeader>
-        <CardTitle>{property.name}</CardTitle>
-        <CardDescription>
+      <CardHeader className="py-3 px-4">
+        <CardTitle className="text-base font-medium line-clamp-1">{property.name}</CardTitle>
+        <CardDescription className="line-clamp-1">
           {property.address ? `${property.address.city || ''}, ${property.address.state_province || ''}` : ''}
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="flex items-center space-x-2">
+      <CardContent className="py-2 px-4">
+        <div className="flex items-center space-x-2 text-sm">
           <Home className="h-4 w-4 text-muted-foreground" />
-          <span>{property.property_type}</span>
+          <span className="capitalize">{property.property_type?.toLowerCase() || "Property"}</span>
         </div>
       </CardContent>
     </Card>
@@ -67,22 +59,19 @@ export interface PropertyCardsProps {
 export function PropertyCards({ properties, isLoading, error, limit, action }: PropertyCardsProps) {
   const navigate = useNavigate();
 
-  // If no properties are provided, fetch them
   const { data: fetchedProperties = [], isLoading: isFetching, error: fetchError } = useQuery({
     queryKey: ['properties', 'dashboard'],
     queryFn: async () => {
       try {
-        // Try to fetch real properties first
         const response = await propertyService.getAllProperties();
         return response.data.properties;
       } catch (error) {
         console.error("Falling back to mock data:", error);
-        // Return mock data that conforms to the Property interface
         return [
           {
             id: '1',
             name: 'Beach House',
-            property_type: 'House' as any, // Type assertion to avoid PropertyType enum constraint
+            property_type: 'House' as any,
             desc: 'A beautiful beach house',
             accommodates: 6,
             bedrooms: 3,
@@ -102,7 +91,7 @@ export function PropertyCards({ properties, isLoading, error, limit, action }: P
           {
             id: '2',
             name: 'Mountain Cabin',
-            property_type: 'Cabin' as any, // Type assertion to avoid PropertyType enum constraint
+            property_type: 'Cabin' as any,
             desc: 'Cozy mountain retreat',
             accommodates: 4,
             bedrooms: 2,
@@ -122,7 +111,7 @@ export function PropertyCards({ properties, isLoading, error, limit, action }: P
           {
             id: '3',
             name: 'Downtown Loft',
-            property_type: 'Apartment' as any, // Type assertion to avoid PropertyType enum constraint
+            property_type: 'Apartment' as any,
             desc: 'Modern downtown loft',
             accommodates: 2,
             bedrooms: 1,
@@ -142,16 +131,13 @@ export function PropertyCards({ properties, isLoading, error, limit, action }: P
         ] as Property[];
       }
     },
-    enabled: !properties && !isLoading // Only fetch if properties aren't provided
+    enabled: !properties && !isLoading
   });
 
-  // Use provided properties or fetched properties
   const displayProperties = properties || fetchedProperties;
   
-  // If limit is specified, slice the properties array
   const limitedProperties = limit && displayProperties ? displayProperties.slice(0, limit) : displayProperties;
   
-  // Combined loading and error states
   const isLoadingData = isLoading || isFetching;
   const errorData = error || fetchError;
 
@@ -159,42 +145,20 @@ export function PropertyCards({ properties, isLoading, error, limit, action }: P
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {isLoadingData ? (
         <>
-          <Card>
-            <div className="h-32 w-full bg-muted">
-              <Skeleton className="h-full w-full" />
-            </div>
-            <CardHeader>
-              <CardTitle><Skeleton className="h-5 w-40" /></CardTitle>
-              <CardDescription><Skeleton className="h-4 w-60" /></CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-4 w-32" />
-            </CardContent>
-          </Card>
-          <Card>
-            <div className="h-32 w-full bg-muted">
-              <Skeleton className="h-full w-full" />
-            </div>
-            <CardHeader>
-              <CardTitle><Skeleton className="h-5 w-40" /></CardTitle>
-              <CardDescription><Skeleton className="h-4 w-60" /></CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-4 w-32" />
-            </CardContent>
-          </Card>
-          <Card>
-            <div className="h-32 w-full bg-muted">
-              <Skeleton className="h-full w-full" />
-            </div>
-            <CardHeader>
-              <CardTitle><Skeleton className="h-5 w-40" /></CardTitle>
-              <CardDescription><Skeleton className="h-4 w-60" /></CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-4 w-32" />
-            </CardContent>
-          </Card>
+          {Array(limit || 3).fill(null).map((_, index) => (
+            <Card key={index}>
+              <div className="h-32 w-full bg-muted">
+                <Skeleton className="h-full w-full" />
+              </div>
+              <CardHeader>
+                <CardTitle><Skeleton className="h-5 w-40" /></CardTitle>
+                <CardDescription><Skeleton className="h-4 w-60" /></CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-4 w-32" />
+              </CardContent>
+            </Card>
+          ))}
         </>
       ) : errorData ? (
         <div className="text-red-500">Error loading properties.</div>

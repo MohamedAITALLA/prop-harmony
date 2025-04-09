@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Calendar, MapPin, Users, Bed } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { getPropertyImageUrl } from "../utils/imageUtils";
 
 interface PropertyCardProps {
   property: Property;
@@ -13,10 +14,9 @@ interface PropertyCardProps {
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick }) => {
-  // Get the first image if available, or use a placeholder
-  const imageUrl = property.images && property.images.length > 0 
-    ? (typeof property.images[0] === 'string' ? property.images[0] : String(property.images[0])) 
-    : 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop';
+  // Get image URL using the utility function
+  const defaultImage = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
+  const imageUrl = getPropertyImageUrl(property.images, defaultImage);
 
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md cursor-pointer group" onClick={onClick}>
@@ -24,10 +24,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick })
         <img 
           src={imageUrl} 
           alt={property.name} 
-          className="w-full h-full object-cover transition-transform group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
           onError={(e) => {
             // Fallback if image fails to load
-            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop';
+            (e.target as HTMLImageElement).src = defaultImage;
           }}
         />
         <Badge className="absolute top-2 right-2 bg-background/80 text-foreground backdrop-blur-sm">

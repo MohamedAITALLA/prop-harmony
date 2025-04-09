@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
@@ -10,10 +9,12 @@ import { PropertyCards } from "@/components/dashboard/PropertyCards";
 import { MiniCalendar } from "@/components/dashboard/MiniCalendar";
 import { RecentNotifications } from "@/components/dashboard/RecentNotifications";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, ArrowRightCircle, BarChart3, Calendar, Clock, Home } from "lucide-react";
+import { AlertCircle, ArrowRightCircle, BarChart3, Calendar, Clock, Home, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { analyticsService } from "@/services/api-service";
 import { format } from "date-fns";
+import { PlatformsList } from "@/components/sync/PlatformsList";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -24,6 +25,13 @@ export default function Dashboard() {
   const { data: dashboardData, isLoading: isDashboardLoading } = useQuery({
     queryKey: ["dashboardAnalytics"],
     queryFn: () => analyticsService.getDashboardAnalytics(),
+    staleTime: 5 * 60 * 1000,
+  });
+  
+  // Fetch platform analytics for the platforms section
+  const { data: platformData, isLoading: isPlatformLoading } = useQuery({
+    queryKey: ["platformAnalytics"],
+    queryFn: () => analyticsService.getPlatformAnalytics(),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -121,6 +129,15 @@ export default function Dashboard() {
     }
   ];
 
+  // Get connection data for platforms visualization
+  const connectionsByPlatform = platformData?.data?.connections_by_platform || [
+    { _id: "airbnb", count: 2 },
+    { _id: "booking.com", count: 1 },
+    { _id: "vrbo", count: 1 }
+  ];
+
+  const connectionColors = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
@@ -201,6 +218,169 @@ export default function Dashboard() {
         />
       </div>
       
+      {/* Platform Connections Section */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div>
+              <CardTitle className="text-lg font-semibold">Platform Connections</CardTitle>
+              <CardDescription>Active connections by platform</CardDescription>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-1"
+              onClick={() => navigate("/analytics")}
+            >
+              <BarChart3 className="h-4 w-4" />
+              <span>Analytics</span>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-4 items-center">
+              <div className="w-full md:w-1/2 h-[200px]">
+                {isPlatformLoading ? (
+                  <div className="flex h-full items-center justify-center">
+                    <div className="h-32 w-32 animate-pulse rounded-full bg-muted"></div>
+                  </div>
+                ) : connectionsByPlatform && connectionsByPlatform.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={connectionsByPlatform}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="count"
+                        nameKey="_id"
+                        label={({ _id, percent }) => 
+                          `${_id}: ${(percent * 100).toFixed(0)}%`
+                        }
+                      >
+                        {connectionsByPlatform.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={connectionColors[index % connectionColors.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value, name) => [`${value} connections`, name]}
+                        contentStyle={{
+                          backgroundColor: 'var(--background)',
+                          borderColor: 'var(--border)',
+                          borderRadius: '0.375rem',
+                        }}
+                      />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-full items-center justify-center text-muted-foreground">
+                    No connection data available
+                  </div>
+                )}
+              </div>
+              
+              <div className="w-full md:w-1/2">
+                <h3 className="font-medium text-base mb-3">Connection Status</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span>Active Connections</span>
+                    <span className="font-semibold">
+                      {platformData?.data?.connections_by_status?.find(s => s._id === 'active')?.count || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Inactive Connections</span>
+                    <span className="font-semibold">
+                      {platformData?.data?.connections_by_status?.find(s => s._id === 'inactive')?.count || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Error Connections</span>
+                    <span className="font-semibold text-destructive">
+                      {platformData?.data?.connections_by_status?.find(s => s._id === 'error')?.count || 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2 border-t">
+                    <span className="font-medium">Total</span>
+                    <span className="font-semibold">
+                      {isPlatformLoading ? (
+                        <span className="animate-pulse">...</span>
+                      ) : (
+                        platformData?.data?.connections_by_platform?.reduce((total, item) => total + item.count, 0) || 0
+                      )}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="mt-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => navigate("/sync")}
+                  >
+                    Manage Connections
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-semibold">Connected Platforms</CardTitle>
+            <CardDescription>Your property connections</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isPlatformLoading ? (
+              <div className="space-y-3">
+                {Array(3).fill(0).map((_, i) => (
+                  <div key={i} className="h-8 bg-muted animate-pulse rounded"></div>
+                ))}
+              </div>
+            ) : platformData?.data?.connections_by_platform && platformData.data.connections_by_platform.length > 0 ? (
+              <div className="space-y-1">
+                <PlatformsList 
+                  platforms={platformData.data.connections_by_platform.map(item => item._id)} 
+                />
+                
+                <div className="mt-4 pt-3 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    <div className="flex justify-between mb-1">
+                      <span>Most reliable platform</span>
+                      <span className="font-medium capitalize">
+                        {platformData?.data?.most_reliable_platform?.platform || "N/A"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Most active platform</span>
+                      <span className="font-medium capitalize">
+                        {platformData?.data?.most_active_platform?._id || "N/A"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="py-8 text-center text-muted-foreground">
+                <p>No platforms connected yet</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-4"
+                  onClick={() => navigate("/properties")}
+                >
+                  Connect Platforms
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+      
       {dashboardConfig.overview_page.sections.map((section, index) => (
         section.component === "PropertyCards" && (
           <div key={index} className="space-y-4">
@@ -228,7 +408,7 @@ export default function Dashboard() {
         <Card className="col-span-2">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div>
-              <CardTitle className="text-base font-medium">Recent Activity</CardTitle>
+              <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
               <CardDescription>Latest activity across your properties</CardDescription>
             </div>
             <Button 
@@ -263,7 +443,7 @@ export default function Dashboard() {
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
               <div>
-                <CardTitle className="text-base font-medium">Upcoming Events</CardTitle>
+                <CardTitle className="text-lg font-semibold">Upcoming Events</CardTitle>
                 <CardDescription>Next scheduled events</CardDescription>
               </div>
               <Button 
