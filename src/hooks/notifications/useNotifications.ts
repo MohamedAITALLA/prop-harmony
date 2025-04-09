@@ -24,6 +24,8 @@ export function useNotifications(filters?: NotificationFilters): UseNotification
       try {
         const { search, ...apiParams } = currentFilters || {};
         const response = await notificationService.getNotifications(apiParams);
+        // Make sure to invalidate the unread count when loading notifications
+        queryClient.invalidateQueries({ queryKey: ["notifications", "unread"] });
         return response.data;
       } catch (error) {
         console.error("Error fetching notifications:", error);
@@ -63,6 +65,13 @@ export function useNotifications(filters?: NotificationFilters): UseNotification
     page: 1, 
     limit: data.length 
   } : (data?.pagination || { total: 0, pages: 1, page: 1, limit: 10 });
+  
+  const summary = Array.isArray(data) ? {
+    total_count: data.length,
+    unread_count: data.filter(n => !n.read).length,
+    read_count: data.filter(n => n.read).length,
+    by_type: {}
+  } : (data?.summary || { total_count: 0, unread_count: 0, read_count: 0, by_type: {} });
 
   // Process settings data
   let notificationSettings: NotificationSettings;
@@ -88,10 +97,23 @@ export function useNotifications(filters?: NotificationFilters): UseNotification
     pageSize,
     totalPages: pagination.pages,
     totalNotifications: pagination.total,
+    unreadCount: summary.unread_count,
     onPageChange: handlePageChange,
-    markAsRead: (id: string) => markAsReadMutation.mutate(id),
-    markAllAsRead: () => markAllAsReadMutation.mutate(),
-    deleteNotification: (id: string) => deleteNotificationMutation.mutate(id),
+    markAsRead: (id: string) => {
+      markAsReadMutation.mutate(id);
+      // Invalidate unread count query after marking as read
+      queryClient.invalidateQueries({ queryKey: ["notifications", "unread"] });
+    },
+    markAllAsRead: () => {
+      markAllAsReadMutation.mutate();
+      // Invalidate unread count query after marking all as read
+      queryClient.invalidateQueries({ queryKey: ["notifications", "unread"] });
+    },
+    deleteNotification: (id: string) => {
+      deleteNotificationMutation.mutate(id);
+      // Invalidate unread count query after deleting notification
+      queryClient.invalidateQueries({ queryKey: ["notifications", "unread"] });
+    },
     settings: notificationSettings,
     updateSettings: (newSettings: NotificationSettings) => updateSettingsMutation.mutate(newSettings),
   };

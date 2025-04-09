@@ -38,6 +38,7 @@ export interface UseNotificationsReturn {
   pageSize: number;
   totalPages: number;
   totalNotifications: number;
+  unreadCount: number;
   onPageChange: (page: number) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;

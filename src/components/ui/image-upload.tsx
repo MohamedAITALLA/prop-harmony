@@ -1,20 +1,22 @@
 
 import React, { useState } from 'react';
 import { Button } from './button';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, Loader2 } from 'lucide-react';
 
 interface ImageUploadProps {
   currentImageUrl?: string;
   onImageUpload: (file: File) => void;
   onImageRemove?: () => void;
   className?: string;
+  isLoading?: boolean;
 }
 
 export function ImageUpload({ 
   currentImageUrl, 
   onImageUpload, 
   onImageRemove,
-  className 
+  className,
+  isLoading = false
 }: ImageUploadProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
@@ -74,13 +76,22 @@ export function ImageUpload({
             accept="image/*"
             className="hidden"
             onChange={handleFileChange}
+            disabled={isLoading}
           />
           <Button 
             type="button" 
             variant="outline" 
             onClick={() => document.getElementById('image-upload')?.click()}
+            disabled={isLoading}
           >
-            {displayUrl ? 'Change Image' : 'Upload Image'}
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              displayUrl ? 'Change Image' : 'Upload Image'
+            )}
           </Button>
         </div>
       </div>

@@ -14,7 +14,7 @@ interface PropertyCardProps {
 }
 
 export const PropertyCard: React.FC<PropertyCardProps> = ({ property, onClick }) => {
-  // Get image URL using the utility function
+  // Get image URL using the utility function - same as dashboard
   const defaultImage = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
   const imageUrl = getPropertyImageUrl(property.images, defaultImage);
 

@@ -8,6 +8,7 @@ import { SidebarNav } from "./sidebar/SidebarNav";
 import { SidebarHeader } from "./sidebar/SidebarHeader";
 import { MainContent } from "./MainContent";
 import { LoadingSpinner } from "./LoadingSpinner";
+import { notificationService } from "@/services/api-service";
 
 interface MainLayoutProps {
   children?: React.ReactNode;
@@ -18,13 +19,22 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const { data: notificationCount = 0 } = useQuery({
-    queryKey: ["notificationCount"],
+  const { data: notificationsData, isLoading: isLoadingNotifications } = useQuery({
+    queryKey: ["notifications", "unread"],
     queryFn: async () => {
-      return 3;
+      try {
+        const response = await notificationService.getNotifications({ read: false, limit: 1 });
+        return response.data;
+      } catch (error) {
+        console.error("Error fetching notifications count:", error);
+        return null;
+      }
     },
     enabled: !!user,
   });
+
+  // Calculate unread notification count
+  const notificationCount = notificationsData?.summary?.unread_count || 0;
 
   const { data: conflictCount = 0 } = useQuery({
     queryKey: ["conflictCount"],
