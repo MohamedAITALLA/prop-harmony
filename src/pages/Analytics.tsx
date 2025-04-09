@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,12 +13,10 @@ import { UserActivityTab } from "@/components/analytics/tabs/UserActivityTab";
 import { Button } from "@/components/ui/button";
 import { Download, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
+import { DateRange } from "react-day-picker";
 
 export default function Analytics() {
-  const [dateRange, setDateRange] = useState<{
-    from?: Date;
-    to?: Date;
-  }>({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: subMonths(new Date(), 3),
     to: new Date(),
   });
@@ -37,7 +34,6 @@ export default function Analytics() {
     userActivityData,
   } = useAnalyticsTabs();
 
-  // Generate dummy data for charts that need it
   const eventsDistributionData = useMemo(() => [
     { name: "Airbnb", value: 45 },
     { name: "Booking.com", value: 30 },
@@ -61,8 +57,10 @@ export default function Analytics() {
     { name: "Conflict", value: 5 }
   ], []);
 
-  const handleDateRangeChange = (range: { from?: Date; to?: Date }) => {
-    setDateRange(range);
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    if (range) {
+      setDateRange(range);
+    }
   };
 
   const handlePropertyChange = (value: string) => {
