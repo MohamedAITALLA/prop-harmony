@@ -59,7 +59,7 @@ export function UserActivityTab({ data, isLoading }: UserActivityTabProps) {
       </div>
       
       {data?.data?.health_score && data.data.health_score < 80 && (
-        <Alert variant={data.data.health_score < 70 ? "destructive" : "warning"} className="mb-4">
+        <Alert variant={data.data.health_score < 70 ? "destructive" : "default"} className="mb-4">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>System Health Alert</AlertTitle>
           <AlertDescription>

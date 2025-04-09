@@ -178,7 +178,7 @@ export function PlatformsTab({ data, isLoading }: PlatformsTabProps) {
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium capitalize">{platform.platform}</h3>
-                      <Badge variant={Number(platform.reliability_score) > 90 ? "success" : Number(platform.reliability_score) > 70 ? "outline" : "destructive"}>
+                      <Badge variant={Number(platform.reliability_score) > 90 ? "secondary" : Number(platform.reliability_score) > 70 ? "outline" : "destructive"}>
                         {platform.reliability_score}% Reliability
                       </Badge>
                     </div>

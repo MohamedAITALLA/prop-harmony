@@ -3,28 +3,20 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
-} from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
 interface OverviewTabProps {
   eventsData: any;
+  notificationsData: any;
+  syncLogs: any;
   eventsDistributionData: Array<{ name: string; value: number }>;
   eventsByMonth: Array<{ name: string; count: number }>;
-  syncLogs: any;
-  notificationsData: any;
   notificationTypeData: Array<{ name: string; value: number }>;
   isLoadingEvents: boolean;
-  isLoadingSyncLogs: boolean;
   isLoadingNotifications: boolean;
+  isLoadingSyncLogs: boolean;
 }
 
 export function OverviewTab({
@@ -50,7 +42,7 @@ export function OverviewTab({
         
         <StatsCard
           title="Connected Platforms"
-          value={eventsDistributionData.length || 0}
+          value={eventsDistributionData?.length || 0}
           icon="home"
           isLoading={isLoadingEvents}
         />
@@ -84,7 +76,7 @@ export function OverviewTab({
             <div className="h-[300px] w-full">
               <Skeleton className="h-full w-full" />
             </div>
-          ) : eventsByMonth.length > 0 ? (
+          ) : eventsByMonth?.length > 0 ? (
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
@@ -142,7 +134,7 @@ export function OverviewTab({
               <div className="h-[300px] w-full flex items-center justify-center">
                 <Skeleton className="h-[250px] w-[250px] rounded-full" />
               </div>
-            ) : eventsDistributionData.length > 0 ? (
+            ) : eventsDistributionData?.length > 0 ? (
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -194,7 +186,7 @@ export function OverviewTab({
               <div className="h-[300px] w-full flex items-center justify-center">
                 <Skeleton className="h-[250px] w-[250px] rounded-full" />
               </div>
-            ) : notificationTypeData.length > 0 ? (
+            ) : notificationTypeData?.length > 0 ? (
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>

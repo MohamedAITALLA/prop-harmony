@@ -5,9 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface PropertySelectProps {
   value: string | null;
   onValueChange: (value: string) => void;
+  includeAllOption?: boolean;
 }
 
-export function PropertySelect({ value, onValueChange }: PropertySelectProps) {
+export function PropertySelect({ value, onValueChange, includeAllOption = false }: PropertySelectProps) {
   const properties = [
     { _id: "prop-1", name: "Oceanfront Villa" },
     { _id: "prop-2", name: "Mountain Cabin" },
@@ -20,7 +21,7 @@ export function PropertySelect({ value, onValueChange }: PropertySelectProps) {
         <SelectValue placeholder="Select a property" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="all_properties">All Properties</SelectItem>
+        {includeAllOption && <SelectItem value="all">All Properties</SelectItem>}
         {properties.map((property) => (
           <SelectItem key={property._id} value={property._id}>
             {property.name}

@@ -211,7 +211,7 @@ export function CalendarAnalyticsTab({ data, isLoading, dateRange }: CalendarAna
                       <Badge 
                         variant={
                           parseFloat(month.occupancy_rate) > 70
-                            ? "success"
+                            ? "secondary"
                             : parseFloat(month.occupancy_rate) > 40
                               ? "default"
                               : "outline"

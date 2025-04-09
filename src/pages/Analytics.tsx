@@ -1,8 +1,8 @@
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DatePickerWithRange } from "@/components/ui/date-range";
+import { DatePickerWithRange } from "@/components/ui/date-picker-with-range";
 import { PropertySelect } from "@/components/properties/PropertySelect";
 import { format, subMonths } from "date-fns";
 import { useAnalyticsTabs } from "@/hooks/useAnalytics";
@@ -37,12 +37,32 @@ export default function Analytics() {
     userActivityData,
   } = useAnalyticsTabs();
 
+  // Generate dummy data for charts that need it
+  const eventsDistributionData = useMemo(() => [
+    { name: "Airbnb", value: 45 },
+    { name: "Booking.com", value: 30 },
+    { name: "VRBO", value: 15 },
+    { name: "Direct", value: 10 }
+  ], []);
+
+  const eventsByMonth = useMemo(() => [
+    { name: "Jan", count: 20 },
+    { name: "Feb", count: 28 },
+    { name: "Mar", count: 35 },
+    { name: "Apr", count: 42 },
+    { name: "May", count: 38 },
+    { name: "Jun", count: 45 }
+  ], []);
+
+  const notificationTypeData = useMemo(() => [
+    { name: "System", value: 12 },
+    { name: "Booking", value: 25 },
+    { name: "Calendar", value: 18 },
+    { name: "Conflict", value: 5 }
+  ], []);
+
   const handleDateRangeChange = (range: { from?: Date; to?: Date }) => {
     setDateRange(range);
-    setDateRange(prev => ({
-      ...prev,
-      ...range
-    }));
   };
 
   const handlePropertyChange = (value: string) => {
@@ -140,6 +160,9 @@ export default function Analytics() {
         <TabsContent value="overview" className="space-y-4">
           <OverviewTab 
             eventsData={calendarData.data}
+            eventsDistributionData={eventsDistributionData}
+            eventsByMonth={eventsByMonth}
+            notificationTypeData={notificationTypeData}
             notificationsData={userActivityData.data}
             syncLogs={userActivityData.data}
             isLoadingEvents={calendarData.isLoading}
