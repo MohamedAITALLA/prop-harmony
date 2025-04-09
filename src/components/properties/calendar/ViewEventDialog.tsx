@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarEvent } from "@/types/api-responses";
 import { Badge } from "@/components/ui/badge";
 import { EventFormFields } from "@/components/properties/calendar/EventFormFields";
-import { Trash2, Edit2, CheckCircle, Calendar, Clock } from "lucide-react";
+import { Trash2, Edit2, CheckCircle, Calendar, Clock, Info } from "lucide-react";
 import { toast } from "sonner";
 import { eventService } from "@/services/api-service";
 import { format } from "date-fns";
@@ -146,9 +146,17 @@ export const ViewEventDialog: React.FC<ViewEventDialogProps> = ({
             </DialogDescription>
           </DialogHeader>
           
-          {!isEditMode && (
-            <>
-              <div className="flex justify-between items-center mb-3">
+          {isEditMode ? (
+            // Edit Mode - Show form fields
+            <EventFormFields 
+              formData={updatedEventData}
+              onInputChange={handleInputChange}
+              readOnly={false}
+            />
+          ) : (
+            // View Mode - Show read-only event details
+            <div className="space-y-4">
+              <div className="flex justify-between items-center mb-2">
                 <h3 className="text-base font-semibold">{viewedEvent.summary}</h3>
                 <Badge className="text-xs">{viewedEvent.platform}</Badge>
               </div>
@@ -169,15 +177,35 @@ export const ViewEventDialog: React.FC<ViewEventDialogProps> = ({
                   </div>
                 </div>
               </div>
-            </>
+              
+              <div className="space-y-3">
+                <div className="flex items-start gap-2">
+                  <Info className="h-3.5 w-3.5 text-primary mt-0.5" />
+                  <div className="flex-1">
+                    <span className="font-medium text-xs block">Event Type: </span>
+                    <span className="text-xs text-muted-foreground">{viewedEvent.event_type}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-2">
+                  <Info className="h-3.5 w-3.5 text-primary mt-0.5" />
+                  <div className="flex-1">
+                    <span className="font-medium text-xs block">Status: </span>
+                    <span className="text-xs text-muted-foreground">{viewedEvent.status}</span>
+                  </div>
+                </div>
+                
+                {viewedEvent.description && (
+                  <div className="mt-3 space-y-1">
+                    <span className="font-medium text-xs block">Description: </span>
+                    <div className="text-xs text-muted-foreground p-2 bg-muted/20 rounded border min-h-[60px] whitespace-pre-wrap">
+                      {viewedEvent.description}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
-          
-          {/* Use the shared form fields component in read-only or edit mode */}
-          <EventFormFields 
-            formData={isEditMode ? updatedEventData : formattedEventData}
-            onInputChange={handleInputChange}
-            readOnly={!isEditMode}
-          />
           
           <DialogFooter className="mt-4 pt-2 border-t">
             {isEditMode ? (
