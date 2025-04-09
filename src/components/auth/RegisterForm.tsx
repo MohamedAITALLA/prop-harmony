@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, Loader2, Mail, Lock, User, Eye, EyeOff } from "lucide-react";
+import { Home, Loader2, Mail, Lock, User, Eye, EyeOff, InfoIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { InfoIcon } from "lucide-react";
 
 export default function RegisterForm() {
   const [firstName, setFirstName] = useState("");
@@ -42,10 +40,8 @@ export default function RegisterForm() {
         lastName
       });
       
-      // Show success message instead of automatic redirect
       setRegistrationComplete(true);
     } catch (error) {
-      // Error handling is managed by the API interceptor
       console.error("Registration failed:", error);
     }
   };
@@ -56,7 +52,7 @@ export default function RegisterForm() {
 
   if (registrationComplete) {
     return (
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1 flex flex-col items-center text-center">
           <div className="flex items-center gap-2 mb-2">
             <Home className="h-6 w-6 text-primary" />
@@ -93,7 +89,7 @@ export default function RegisterForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md shadow-lg">
       <CardHeader className="space-y-1 flex flex-col items-center text-center">
         <div className="flex items-center gap-2 mb-2">
           <Home className="h-6 w-6 text-primary" />

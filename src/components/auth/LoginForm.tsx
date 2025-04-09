@@ -43,7 +43,7 @@ export default function LoginForm() {
   };
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md shadow-lg">
       <CardHeader className="space-y-1 flex flex-col items-center text-center">
         <div className="flex items-center gap-2 mb-2">
           <Home className="h-6 w-6 text-primary" />
