@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarEvent } from "@/types/api-responses";
 import { Badge } from "@/components/ui/badge";
 import { EventFormFields } from "@/components/properties/calendar/EventFormFields";
-import { Trash2, Edit2, CheckCircle, AlertCircle, Calendar, Clock } from "lucide-react";
+import { Trash2, Edit2, CheckCircle, Calendar, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { eventService } from "@/services/api-service";
 import { format } from "date-fns";
@@ -138,34 +138,34 @@ export const ViewEventDialog: React.FC<ViewEventDialogProps> = ({
   return (
     <>
       <Dialog open={isViewEventOpen} onOpenChange={setIsViewEventOpen}>
-        <DialogContent className="sm:max-w-[525px]">
-          <DialogHeader>
-            <DialogTitle>{isEditMode ? "Edit Event" : "Event Details"}</DialogTitle>
-            <DialogDescription>
-              {isEditMode ? "Update this event's information" : "View details for this event"}
+        <DialogContent className="sm:max-w-[450px] p-4">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-lg">{isEditMode ? "Edit Event" : "Event Details"}</DialogTitle>
+            <DialogDescription className="text-xs">
+              {isEditMode ? "Update event information" : "View event details"}
             </DialogDescription>
           </DialogHeader>
           
           {!isEditMode && (
             <>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">{viewedEvent.summary}</h3>
-                <Badge>{viewedEvent.platform}</Badge>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-base font-semibold">{viewedEvent.summary}</h3>
+                <Badge className="text-xs">{viewedEvent.platform}</Badge>
               </div>
               
-              <div className="space-y-3 mb-4 p-3 bg-muted/30 rounded-md border">
+              <div className="space-y-2 mb-3 p-2 bg-muted/20 rounded-md border text-sm">
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-primary" />
+                  <Calendar className="h-3.5 w-3.5 text-primary" />
                   <div>
-                    <p className="text-sm font-medium">Start Date</p>
-                    <p className="text-sm text-muted-foreground">{formattedStartDate}</p>
+                    <span className="font-medium text-xs">Start: </span>
+                    <span className="text-xs text-muted-foreground">{formattedStartDate}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-primary" />
+                  <Clock className="h-3.5 w-3.5 text-primary" />
                   <div>
-                    <p className="text-sm font-medium">End Date</p>
-                    <p className="text-sm text-muted-foreground">{formattedEndDate}</p>
+                    <span className="font-medium text-xs">End: </span>
+                    <span className="text-xs text-muted-foreground">{formattedEndDate}</span>
                   </div>
                 </div>
               </div>
@@ -179,35 +179,30 @@ export const ViewEventDialog: React.FC<ViewEventDialogProps> = ({
             readOnly={!isEditMode}
           />
           
-          {!isEditMode && viewedEvent.ical_uid && (
-            <div className="mt-4">
-              <p className="text-sm text-muted-foreground">iCal UID</p>
-              <p className="mt-1 text-xs text-muted-foreground break-all">{viewedEvent.ical_uid}</p>
-            </div>
-          )}
-          
-          <DialogFooter className="mt-6">
+          <DialogFooter className="mt-4 pt-2 border-t">
             {isEditMode ? (
               <>
                 <Button 
                   type="button" 
                   variant="outline" 
+                  size="sm"
                   onClick={handleCancelEdit}
                 >
                   Cancel
                 </Button>
                 <Button 
                   type="button" 
+                  size="sm"
                   onClick={handleUpdateEvent}
                   disabled={isUpdating}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-1"
                 >
                   {isUpdating ? (
                     "Updating..."
                   ) : (
                     <>
-                      <CheckCircle className="h-4 w-4" />
-                      Save Changes
+                      <CheckCircle className="h-3.5 w-3.5" />
+                      Save
                     </>
                   )}
                 </Button>
@@ -217,27 +212,32 @@ export const ViewEventDialog: React.FC<ViewEventDialogProps> = ({
                 <Button 
                   type="button" 
                   variant="destructive" 
+                  size="sm"
                   onClick={() => setIsDeleteDialogOpen(true)}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-1"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-3.5 w-3.5" />
                   Delete
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsViewEventOpen(false)}
-                >
-                  Close
-                </Button>
-                <Button 
-                  type="button" 
-                  onClick={handleEditClick}
-                  className="flex items-center gap-2"
-                >
-                  <Edit2 className="h-4 w-4" />
-                  Edit
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setIsViewEventOpen(false)}
+                  >
+                    Close
+                  </Button>
+                  <Button 
+                    type="button" 
+                    size="sm"
+                    onClick={handleEditClick}
+                    className="flex items-center gap-1"
+                  >
+                    <Edit2 className="h-3.5 w-3.5" />
+                    Edit
+                  </Button>
+                </div>
               </>
             )}
           </DialogFooter>
@@ -246,19 +246,19 @@ export const ViewEventDialog: React.FC<ViewEventDialogProps> = ({
       
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[400px]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-destructive flex items-center gap-2">
-              <Trash2 className="h-5 w-5" />
+              <Trash2 className="h-4 w-4" />
               Delete Event
             </AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this event? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="my-4 p-4 border rounded-md bg-muted/50">
+          <div className="my-3 p-3 border rounded-md bg-muted/50 text-sm">
             <p className="font-medium">{viewedEvent.summary}</p>
-            <div className="text-sm text-muted-foreground mt-1 space-y-1">
+            <div className="text-xs text-muted-foreground mt-1 space-y-1">
               <p><span className="font-medium">Platform:</span> {viewedEvent.platform}</p>
               <p><span className="font-medium">Type:</span> {viewedEvent.event_type}</p>
               <p><span className="font-medium">Start:</span> {formattedStartDate}</p>

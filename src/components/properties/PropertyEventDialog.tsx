@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { EventFormFields } from "@/components/properties/calendar/EventFormFields";
 import { Platform, EventType } from "@/types/enums";
+import { CalendarPlus, CheckCircle, ClipboardList } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -48,26 +49,47 @@ export const PropertyEventDialog: React.FC<PropertyEventDialogProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[525px]">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="sm:max-w-[450px] p-4">
+        <DialogHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            {readOnly ? (
+              <ClipboardList className="h-5 w-5 text-primary" />
+            ) : (
+              <CalendarPlus className="h-5 w-5 text-primary" />
+            )}
+            <DialogTitle className="text-lg">{title}</DialogTitle>
+          </div>
+          <DialogDescription className="text-xs">
             {description}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={onSubmit}>
-          <div className="py-4">
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div className="py-2">
             <EventFormFields 
               formData={formData}
               onInputChange={onInputChange}
               readOnly={readOnly}
             />
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <DialogFooter className="pt-2 border-t">
+            <Button 
+              type="button" 
+              variant="outline" 
+              size="sm" 
+              onClick={() => onOpenChange(false)}
+            >
               {readOnly ? "Close" : "Cancel"}
             </Button>
-            {!readOnly && <Button type="submit">{submitLabel}</Button>}
+            {!readOnly && (
+              <Button 
+                type="submit" 
+                size="sm"
+                className="flex items-center gap-1.5"
+              >
+                <CheckCircle className="h-3.5 w-3.5" />
+                {submitLabel}
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>

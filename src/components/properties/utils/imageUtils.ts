@@ -1,15 +1,24 @@
 
-export const getPropertyImageUrl = (images?: string[], defaultImage?: string): string => {
-  const fallbackImage = defaultImage || "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
+/**
+ * Gets a clean image URL from the property images array
+ * @param images Array of image URLs or undefined
+ * @param defaultImage Default image URL to use if no valid images are found
+ * @returns A clean, usable image URL
+ */
+export function getPropertyImageUrl(images: string[] | undefined, defaultImage: string): string {
+  // Return default image if no images array or empty array
+  if (!images || images.length === 0) {
+    return defaultImage;
+  }
   
-  let imageUrl = images && images.length > 0 
-    ? images[0] 
-    : fallbackImage;
-    
+  // Get the first image from the array
+  let imageUrl = typeof images[0] === 'string' ? images[0] : '';
+  
   // Fix image URL if it starts with "/https://"
   if (imageUrl.startsWith('/https://')) {
     imageUrl = imageUrl.substring(1);
   }
   
-  return imageUrl;
-};
+  // Return the image URL or default if empty
+  return imageUrl || defaultImage;
+}

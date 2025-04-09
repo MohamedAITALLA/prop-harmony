@@ -1,18 +1,18 @@
 
 import React from 'react';
-import { PropertyEventDialog } from '@/components/properties/PropertyEventDialog';
-import { Platform, EventType } from '@/types/enums';
+import { PropertyEventDialog } from "@/components/properties/PropertyEventDialog";
+import { Platform, EventType } from "@/types/enums";
 
 interface AddEventDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   formData: {
     property_id: string;
-    platform: Platform;  // Changed from string to Platform enum
+    platform: Platform;
     summary: string;
     start_date: string;
     end_date: string;
-    event_type: EventType;  // Changed from string to EventType enum
+    event_type: EventType;
     status: string;
     description: string;
   };
@@ -34,8 +34,8 @@ export const AddEventDialog: React.FC<AddEventDialogProps> = ({
       formData={formData}
       onInputChange={onInputChange}
       onSubmit={onSubmit}
-      title="Add New Event"
-      description="Create a new event for this property"
+      title="New Calendar Event"
+      description="Add a new event or booking to your property calendar."
       submitLabel="Create Event"
     />
   );

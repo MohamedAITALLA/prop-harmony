@@ -15,7 +15,7 @@ export interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, viewMode = "grid", className, onClick, ...props }: PropertyCardProps & React.HTMLAttributes<HTMLDivElement>) {
-  // Get a clean image URL
+  // Get a clean image URL - ensure we get the first image if available
   const defaultImage = "https://images.unsplash.com/photo-1518780664697-55e3ad937233?q=80&w=800&auto=format&fit=crop";
   const imageUrl = getPropertyImageUrl(property.images, defaultImage);
   
