@@ -11,6 +11,7 @@ import eventService from "./event-service";
 import notificationService from "./notification-service";
 import calendarService from "./calendar-service";
 import conflictService from "./conflict-service";
+import { analyticsService } from "./analytics-service";
 
 // Export all services
 export {
@@ -24,5 +25,6 @@ export {
   eventService,
   notificationService,
   calendarService,
-  conflictService
+  conflictService,
+  analyticsService
 };

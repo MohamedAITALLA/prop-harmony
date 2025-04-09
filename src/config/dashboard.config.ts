@@ -1,12 +1,12 @@
 
 import { 
   LayoutDashboard, Home, Calendar, Bell, RefreshCw, 
-  BarChart3, User, Settings, Shield 
+  BarChart3, User, Settings, Shield, Activity, BarChart 
 } from "lucide-react";
 
 export type SidebarItemType = {
   name: string;
-  icon: React.FC<React.SVGProps<SVGSVGElement>>;
+  icon: React.FC<React.SVGProps<SVGElement>>;
   path: string;
   badge?: "count" | "status";
   role?: string;
@@ -92,6 +92,11 @@ export const dashboardConfig: DashboardConfigType = {
             name: "Events",
             icon: Calendar,
             path: "/events"
+          },
+          {
+            name: "Analytics",
+            icon: BarChart,
+            path: "/analytics"
           }
         ]
       },
@@ -150,9 +155,9 @@ export const dashboardConfig: DashboardConfigType = {
             change: "+{number}% from last month"
           },
           {
-            title: "Sync Status",
+            title: "Occupancy Rate",
             value: "{percent}%",
-            icon: "refresh-cw",
+            icon: "percent",
             variant: "success",
             change: "Last synced: {time}"
           },
@@ -164,6 +169,13 @@ export const dashboardConfig: DashboardConfigType = {
             change: "{number} new since yesterday"
           }
         ]
+      },
+      {
+        name: "Your Properties",
+        layout: "grid",
+        columns: 3,
+        component: "PropertyCards",
+        action: "View all properties"
       }
     ]
   }

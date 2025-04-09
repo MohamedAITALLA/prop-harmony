@@ -17,6 +17,7 @@ import EditProperty from './pages/EditProperty';
 import GlobalSync from './pages/GlobalSync';
 import Notifications from './pages/Notifications';
 import ProfileSettings from './pages/ProfileSettings';
+import Analytics from './pages/Analytics';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -75,6 +76,7 @@ function AppRoutes() {
           <Route path="properties/:id" element={<PropertyDetails />} />
           <Route path="properties/:id/edit" element={<EditProperty />} />
           <Route path="sync" element={<GlobalSync />} />
+          <Route path="analytics" element={<Analytics />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="settings/profile" element={<ProfileSettings />} />
           <Route path="components" element={<ComponentsDemo />} />
