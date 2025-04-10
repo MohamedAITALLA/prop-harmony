@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { User } from "@/types/api-responses";
+import { User, UserProfile } from "@/types/api-responses";
 import { profileService } from "@/services/api-service";
 import { ensureMongoId } from "@/lib/mongo-helpers";
 import { useTokenManagement } from "./useTokenManagement";
@@ -24,7 +23,39 @@ export function useAuthState() {
     
     try {
       const response = await profileService.getProfile();
-      const userData = response.data?.user || response.data;
+      const profile = response.data;
+      
+      const userData: User = {
+        email: "",
+        first_name: "",
+        last_name: "",
+        full_name: "",
+        is_admin: false,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      // Type guard to check if the profile has user property
+      const hasUser = (obj: any): obj is { user: User } => {
+        return obj && typeof obj === "object" && "user" in obj;
+      };
+      
+      // Type guard to check if the profile has user_details property
+      const hasUserDetails = (obj: any): obj is { user_details: { email: string; first_name: string; last_name: string; full_name: string; } } => {
+        return obj && typeof obj === "object" && "user_details" in obj;
+      };
+      
+      if (hasUser(profile)) {
+        Object.assign(userData, profile.user);
+      } else if (hasUserDetails(profile)) {
+        Object.assign(userData, profile.user_details, {
+          is_admin: false,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      }
       
       if (userData) {
         // Ensure the user data has consistent ID format

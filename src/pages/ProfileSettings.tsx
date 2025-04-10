@@ -71,11 +71,11 @@ export default function ProfileSettings() {
     if (profileData) {
       setPreferences({
         ...defaultPreferences,
-        ...profileData.preferences,
+        ...profileData.data.preferences,
       });
       
-      if (profileData.contact_info) {
-        const contact = profileData.contact_info as Record<string, any>;
+      if (profileData.data.contact_info) {
+        const contact = profileData.data.contact_info as Record<string, any>;
         const newContactInfo = {
           phone: contact.phone || "",
           address: contact.address || "",
@@ -92,7 +92,7 @@ export default function ProfileSettings() {
         setContactInfo(newContactInfo);
       }
       
-      setOnboardingCompleted(profileData.onboarding_completed);
+      setOnboardingCompleted(profileData.data.onboarding_completed);
     }
   }, [profileData]);
   

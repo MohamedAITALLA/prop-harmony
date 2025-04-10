@@ -1,4 +1,3 @@
-
 // User related types
 
 export interface User {
@@ -46,7 +45,15 @@ export interface UserProfile {
 
 export interface ProfileResponse {
   success: boolean;
-  data: UserProfile;
+  data: UserProfile & {
+    user?: User;
+    user_details?: {
+      email: string;
+      first_name: string;
+      last_name: string;
+      full_name: string;
+    };
+  };
   message: string;
   timestamp: string;
   profile_status?: {
