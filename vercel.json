@@ -3,17 +3,17 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "routes": [
-    { 
-      "src": "/assets/(.*)\\.js", 
-      "headers": { "content-type": "application/javascript" },
-      "continue": true
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
     },
-    { 
-      "src": "/assets/(.*)\\.css", 
-      "headers": { "content-type": "text/css" },
-      "continue": true
+    {
+      "handle": "filesystem"
     },
-    { "src": "/(.*)", "dest": "/index.html" }
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ],
   "github": {
     "silent": true
